@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// Stamp is implementetion of Stamper intarface
+// Stamp is implementetion of Stamper interface
 var Stamp Stamper
 
 // Stamper is implemented the information that specifies the company name,
