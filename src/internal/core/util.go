@@ -8,44 +8,6 @@ import (
 	"internal/errors"
 )
 
-// []string -> []interface{}
-func valsFromStrings(v []string) []interface{} {
-	res := make([]interface{}, 0, len(v))
-	for i := range v {
-		res = append(res, v[i])
-	}
-	return res
-}
-
-// []int64 -> []interface{}
-func valsFromInt64s(v []int64) []interface{} {
-	res := make([]interface{}, 0, len(v))
-	for i := range v {
-		res = append(res, v[i])
-	}
-	return res
-}
-
-// string -> [0]interface{}
-func mergeKeyVals(key string, v ...interface{}) []interface{} {
-	if key == "" {
-		return v
-	}
-
-	res := make([]interface{}, 0, len(v)+1)
-	return append(append(res, key), v...)
-}
-
-// cmd key -> mem1 mem2 mem3 mem4
-func makeVector(cmd, key string, v ...interface{}) []interface{} {
-	m := 2
-	if key == "" {
-		m--
-	}
-	res := make([]interface{}, 0, len(v)+m)
-	return append(append(res, cmd), mergeKeyVals(key, v...)...)
-}
-
 // TODO: parse keyspace
 //	"keyspace": {
 //		"db0": "keys=1,expires=0,avg_ttl=0"
