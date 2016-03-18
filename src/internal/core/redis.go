@@ -96,26 +96,6 @@ func (s *redisServer) Put(c io.Closer) {
 	}
 }
 
-// ExecOne is wrapper for
-// Do(commandName string, args ...interface{}) (reply interface{}, err error)
-func (s *redisServer) ExecOne(args []interface{}) (interface{}, error) {
-	c := s.pool.Get()
-	defer func(c io.Closer) {
-		_ = c.Close()
-	}(c)
-
-	if cmd, ok := args[0].(string); ok {
-		switch len(args) {
-		case 1:
-			return c.Do(cmd)
-		default:
-			return c.Do(cmd, args[1:]...)
-		}
-	}
-
-	return nil, errors.Locusf("database/redis: unexpected type for string")
-}
-
 // ExecMulti is wrapper for chain
 // Send(commandName string, args ...interface{}) error
 // Flush() error
