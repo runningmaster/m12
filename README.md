@@ -1,6 +1,6 @@
 # m12
 
-This project is pilot experiment to test some ideas. Also true  that it is `$GOPATH` directory.
+This project is a pilot experiment to test some ideas. Also true  that it is `$GOPATH` directory.
 
 Tl;dr:
 - `etc/gen.envl.bash` for overriding some env vars
