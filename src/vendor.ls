@@ -10,9 +10,6 @@ github.com/labstack/echo
 # https://godoc.org/github.com/rogpeppe/fastuuid
 github.com/rogpeppe/fastuuid
 
-# Package uuid provides implementation of Universally Unique Identifier (UUID).
-# github.com/satori/go.uuid
-
 # Package gzip implements reading and writing of gzip format compressed files, as specified in RFC 1952.
 # https://godoc.org/github.com/klauspost/compress/gzip
 github.com/klauspost/compress/gzip
@@ -25,9 +22,16 @@ github.com/spkg/bom
 # https://godoc.org/github.com/pivotal-golang/bytefmt
 github.com/pivotal-golang/bytefmt
 
-# Package humanize converts boring ugly numbers to human-friendly strings and back.
-# github.com/dustin/go-humanize 
-
 # Package redis is a client for the Redis database.
 # https://godoc.org/github.com/garyburd/redigo/redis
 github.com/garyburd/redigo/redis
+
+### Below some alternatives for consideration ###
+
+# Package uuid provides implementation of Universally Unique Identifier (UUID).
+# https://godoc.org/github.com/satori/go.uuid
+# github.com/satori/go.uuid
+
+# Package humanize converts boring ugly numbers to human-friendly strings and back.
+# https://godoc.org/github.com/dustin/go-humanize
+# github.com/dustin/go-humanize
