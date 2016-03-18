@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"internal/errors"
 
@@ -87,7 +86,7 @@ func (d decodeLinkStat) set(c redis.Conn) (interface{}, error) {
 		return nil, errors.Locus(err)
 	}
 
-	return http.StatusText(http.StatusOK), nil
+	return stringOK(), nil
 }
 
 func (d decodeLinkStat) del(c redis.Conn) (interface{}, error) {

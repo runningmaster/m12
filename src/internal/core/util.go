@@ -3,10 +3,15 @@ package core
 import (
 	"bufio"
 	"bytes"
+	"net/http"
 	"strings"
 
 	"internal/errors"
 )
+
+func stringOK() string {
+	return http.StatusText(http.StatusOK)
+}
 
 // TODO: parse keyspace
 //	"keyspace": {
