@@ -96,50 +96,6 @@ func (s *redisServer) Put(c io.Closer) {
 	}
 }
 
-// ExecMulti is wrapper for chain
-// Send(commandName string, args ...interface{}) error
-// Flush() error
-// Receive() (reply interface{}, err error)
-func (s *redisServer) ExecMulti(args [][]interface{}) ([]interface{}, error) {
-	c := s.pool.Get()
-	defer func(c io.Closer) {
-		_ = c.Close()
-	}(c)
-
-	res := make([]interface{}, 0, len(args))
-	var count int
-	for i := range args {
-		if cmd, ok := args[i][0].(string); ok {
-			count++
-			var err error
-			switch len(args[i]) {
-			case 1:
-				err = c.Send(cmd)
-			default:
-				err = c.Send(cmd, args[i][1:]...)
-			}
-			if err != nil {
-				return nil, errors.Locusf("database/redis: send() fails after %d attempts", count)
-			}
-		}
-	}
-
-	err := c.Flush()
-	if err != nil {
-		return nil, errors.Locusf("database/redis: flush() fails  after %d send() attempts", count)
-	}
-
-	for i := 0; i < count; i++ {
-		rcv, err := c.Receive()
-		if err != nil {
-			return nil, errors.Locusf("database/redis: receive() fails after %d attempts", i)
-		}
-		res = append(res, rcv)
-	}
-
-	return res, nil
-}
-
 func toInt64(v interface{}) int64 {
 	res, _ := redis.Int64(v, nil)
 	return res
