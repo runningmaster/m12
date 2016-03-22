@@ -1,3 +1,7 @@
+# Package context defines the Context type, which carries deadlines, cancelation signals, and other request-scoped values across API boundaries and between processes.
+# https://godoc.org/golang.org/x/net/context
+golang.org/x/net/context
+
 # A polite Go HTTP server that shuts down gracefully.
 # https://godoc.org/github.com/braintree/manners
 github.com/braintree/manners
