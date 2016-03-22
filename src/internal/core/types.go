@@ -1,11 +1,13 @@
 package core
 
 type (
+	// Redis scheme:
 	// SET => key="auth"
 	// SADD key v [v...]
 	// SREM key v [v...]
 	// SISMEMBER key v
 
+	// Redis scheme:
 	// HASH => key=ID (SHA1)
 	// HMSET key l/v a/v s/v e/v (if exists in json)
 	// HMGET key l a s e
@@ -18,6 +20,7 @@ type (
 		EGRPOU string `json:"egrpou,omitempty"  redis:"e"`
 	}
 
+	// Redis scheme:
 	// HASH => key=ID (SHA1)
 	// HMSET key l/v d/v b/v c/v s/v (if exists in json)
 	// HMGET key l d b c s
@@ -30,6 +33,7 @@ type (
 		IDStat int64  `json:"id_stat,omitempty" redis:"s"`
 	}
 
+	// Redis scheme:
 	// HASH => key="stat"
 	// HMSET key i->n [i->n...]
 	// HMGET key i [i..]

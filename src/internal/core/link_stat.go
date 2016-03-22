@@ -8,6 +8,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// Redis scheme:
 // HASH key => k/v [k/v ...]
 
 const keyLinkStat = "link:stat"

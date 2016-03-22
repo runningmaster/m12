@@ -8,6 +8,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// Redis scheme:
 // HASH key => [l/v] [a/v] [s/v] [e/v]
 
 type decodeLinkAddr []byte

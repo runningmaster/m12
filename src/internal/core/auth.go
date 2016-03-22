@@ -8,6 +8,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// Redis scheme:
 // SET key => val [val ...]
 
 const keyAuth = "auth:list"
