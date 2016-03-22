@@ -3,7 +3,6 @@ package server
 import (
 	"io/ioutil"
 	"net/http"
-	"net/url"
 
 	"internal/errors"
 
@@ -70,12 +69,7 @@ func makeRouter() (*echo.Echo, error) {
 }
 
 func withRouter(addr string, r engine.Handler) (*http.Server, error) {
-	u, err := url.Parse(addr)
-	if err != nil {
-		return nil, errors.Locus(err)
-	}
-
-	s := standard.New(u.Host)
+	s := standard.New(addr)
 	s.SetHandler(r)
 
 	return s.Server, nil
