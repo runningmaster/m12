@@ -20,7 +20,7 @@ import (
 
 const (
 	major      = 0
-	minor      = 0
+	minor      = 1
 	patch      = 0
 	prerelease = "experimental"
 
@@ -46,15 +46,15 @@ const (
 )
 
 func main() {
-	flagFile := *flag.String("o", "version_gen.go", "output file name")
+	flagFile := *flag.String("o", "tip.go", "output file name")
 	flag.Parse()
 	fmt.Printf("go:generate in %s -> %s\n", os.Getenv("GOFILE"), flagFile)
 
 	buildtime := time.Now().Format("20060102150405")
-	gitcommit := "0000000000000000000000000000000000000000"
+	gitcommit := "0000000"
 	if isGitRepo() {
 		// execCmd("git", "log", "-n", "1", "--format=format: +%h %cd", "HEAD")
-		if res, err := execCmd("git", "rev-parse", "--short", "HEAD"); err != nil {
+		if res, err := execCmd("git", "rev-parse", "--short", "HEAD"); err == nil {
 			gitcommit = chomp(string(res))
 		}
 	}
