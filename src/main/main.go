@@ -1,20 +1,19 @@
 package main
 
 import (
+	_ "expvar"
+	_ "net/http/pprof"
+
+	_ "internal/api"
+	"internal/flag"
 	"internal/log"
 	"internal/server"
 	"internal/signal"
 	"internal/version"
 )
 
-import (
-	_ "expvar"
-	_ "net/http/pprof"
-
-	_ "internal/api"
-)
-
 func main() {
+	flag.Parse()
 	log.Printf("main: start version %s", version.Stamp)
 
 	errCh := make(chan error)

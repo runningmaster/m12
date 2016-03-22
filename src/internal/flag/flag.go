@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// NOTE about priority: default <- key/value store <- config <- env <- flag <-explicit set
+// NOTE: about priority: default <- key/value store <- config <- env <- flag <-explicit set
 
 var (
 	// Addr is HTTP service address
@@ -25,7 +25,8 @@ var (
 	Masterkey = *flag.String("masterkey", "masterkey", "secret key for sysdba")
 )
 
-func init() {
+// Parse is wrapper for std flag.Parse()
+func Parse() {
 	flag.Parse()
 	experimentWithExpVarFIXME()
 }
