@@ -34,9 +34,9 @@ func TestContext(t *testing.T) {
 	invalidContent := "invalid content"
 
 	e := New()
-	req := test.NewRequest(POST, "/", strings.NewReader(userJSON))
+	rq := test.NewRequest(POST, "/", strings.NewReader(userJSON))
 	rec := test.NewResponseRecorder()
-	c := NewContext(req, rec, e)
+	c := NewContext(rq, rec, e)
 
 	// Request
 	assert.NotNil(t, c.Request())
@@ -98,7 +98,7 @@ func TestContext(t *testing.T) {
 
 	// JSON
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	err = c.JSON(http.StatusOK, user{"1", "Joe"})
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rec.Status())
@@ -108,13 +108,13 @@ func TestContext(t *testing.T) {
 
 	// JSON (error)
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	err = c.JSON(http.StatusOK, make(chan bool))
 	assert.Error(t, err)
 
 	// JSONP
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	callback := "callback"
 	err = c.JSONP(http.StatusOK, callback, user{"1", "Joe"})
 	if assert.NoError(t, err) {
@@ -125,7 +125,7 @@ func TestContext(t *testing.T) {
 
 	// XML
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	err = c.XML(http.StatusOK, user{"1", "Joe"})
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rec.Status())
@@ -135,13 +135,13 @@ func TestContext(t *testing.T) {
 
 	// XML (error)
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	err = c.XML(http.StatusOK, make(chan bool))
 	assert.Error(t, err)
 
 	// String
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	err = c.String(http.StatusOK, "Hello, World!")
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rec.Status())
@@ -151,7 +151,7 @@ func TestContext(t *testing.T) {
 
 	// HTML
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	err = c.HTML(http.StatusOK, "Hello, <strong>World!</strong>")
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rec.Status())
@@ -161,7 +161,7 @@ func TestContext(t *testing.T) {
 
 	// Attachment
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	file, err := os.Open("_fixture/images/walle.png")
 	if assert.NoError(t, err) {
 		err = c.Attachment(file, "walle.png")
@@ -174,25 +174,25 @@ func TestContext(t *testing.T) {
 
 	// NoContent
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	c.NoContent(http.StatusOK)
 	assert.Equal(t, http.StatusOK, rec.Status())
 
 	// Redirect
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	assert.Equal(t, nil, c.Redirect(http.StatusMovedPermanently, "http://labstack.github.io/echo"))
 	assert.Equal(t, "http://labstack.github.io/echo", rec.Header().Get(Location))
 	assert.Equal(t, http.StatusMovedPermanently, rec.Status())
 
 	// Error
 	rec = test.NewResponseRecorder()
-	c = NewContext(req, rec, e)
+	c = NewContext(rq, rec, e)
 	c.Error(errors.New("error"))
 	assert.Equal(t, http.StatusInternalServerError, rec.Status())
 
-	// reset
-	c.Object().reset(req, test.NewResponseRecorder())
+	// Reset
+	c.Object().Reset(rq, test.NewResponseRecorder())
 }
 
 func TestContextPath(t *testing.T) {
@@ -210,27 +210,27 @@ func TestContextPath(t *testing.T) {
 	assert.Equal(t, "/users/:uid/files/:fid", c.Path())
 }
 
-func TestContextQuery(t *testing.T) {
+func TestContextQueryParam(t *testing.T) {
 	q := make(url.Values)
 	q.Set("name", "joe")
 	q.Set("email", "joe@labstack.com")
-	req := test.NewRequest(GET, "/?"+q.Encode(), nil)
-	c := NewContext(req, nil, New())
-	assert.Equal(t, "joe", c.Query("name"))
-	assert.Equal(t, "joe@labstack.com", c.Query("email"))
+	rq := test.NewRequest(GET, "/?"+q.Encode(), nil)
+	c := NewContext(rq, nil, New())
+	assert.Equal(t, "joe", c.QueryParam("name"))
+	assert.Equal(t, "joe@labstack.com", c.QueryParam("email"))
 }
 
-func TestContextForm(t *testing.T) {
+func TestContextFormValue(t *testing.T) {
 	f := make(url.Values)
 	f.Set("name", "joe")
 	f.Set("email", "joe@labstack.com")
 
-	req := test.NewRequest(POST, "/", strings.NewReader(f.Encode()))
-	req.Header().Add(ContentType, ApplicationForm)
+	rq := test.NewRequest(POST, "/", strings.NewReader(f.Encode()))
+	rq.Header().Add(ContentType, ApplicationForm)
 
-	c := NewContext(req, nil, New())
-	assert.Equal(t, "joe", c.Form("name"))
-	assert.Equal(t, "joe@labstack.com", c.Form("email"))
+	c := NewContext(rq, nil, New())
+	assert.Equal(t, "joe", c.FormValue("name"))
+	assert.Equal(t, "joe@labstack.com", c.FormValue("email"))
 }
 
 func TestContextNetContext(t *testing.T) {

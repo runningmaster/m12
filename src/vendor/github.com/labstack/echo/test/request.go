@@ -94,12 +94,12 @@ func (r *Request) FormFile(name string) (*multipart.FileHeader, error) {
 }
 
 func (r *Request) MultipartForm() (*multipart.Form, error) {
-	m := r.request.MultipartForm
-	return m, nil
+	err := r.request.ParseMultipartForm(32 << 20) // 32 MB
+	return r.request.MultipartForm, err
 }
 
-func (r *Request) reset(req *http.Request, h engine.Header, u engine.URL) {
-	r.request = req
+func (r *Request) reset(rq *http.Request, h engine.Header, u engine.URL) {
+	r.request = rq
 	r.header = h
 	r.url = u
 }

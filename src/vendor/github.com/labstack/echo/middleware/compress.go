@@ -13,7 +13,9 @@ import (
 )
 
 type (
+	// GzipConfig defines config for gzip middleware.
 	GzipConfig struct {
+		// Level is the gzip level.
 		Level int
 	}
 
@@ -24,7 +26,8 @@ type (
 )
 
 var (
-	defaultGzipConfig = GzipConfig{
+	// DefaultGzipConfig is the default gzip middleware config.
+	DefaultGzipConfig = GzipConfig{
 		Level: gzip.DefaultCompression,
 	}
 )
@@ -32,10 +35,11 @@ var (
 // Gzip returns a middleware which compresses HTTP response using gzip compression
 // scheme.
 func Gzip() echo.MiddlewareFunc {
-	return GzipFromConfig(defaultGzipConfig)
+	return GzipFromConfig(DefaultGzipConfig)
 }
 
-// GzipFromConfig return `Gzip` middleware from config.
+// GzipFromConfig return gzip middleware from config.
+// See `Gzip()`.
 func GzipFromConfig(config GzipConfig) echo.MiddlewareFunc {
 	pool := gzipPool(config)
 	scheme := "gzip"
@@ -44,13 +48,22 @@ func GzipFromConfig(config GzipConfig) echo.MiddlewareFunc {
 		return echo.HandlerFunc(func(c echo.Context) error {
 			c.Response().Header().Add(echo.Vary, echo.AcceptEncoding)
 			if strings.Contains(c.Request().Header().Get(echo.AcceptEncoding), scheme) {
-				w := pool.Get().(*gzip.Writer)
-				w.Reset(c.Response().Writer())
+				rw := c.Response().Writer()
+				gw := pool.Get().(*gzip.Writer)
+				gw.Reset(rw)
 				defer func() {
-					w.Close()
-					pool.Put(w)
+					if c.Response().Size() == 0 {
+						// We have to reset response to it's pristine state when
+						// nothing is written to body or error is returned.
+						// See issue #424, #407.
+						c.Response().SetWriter(rw)
+						c.Response().Header().Del(echo.ContentEncoding)
+						gw.Reset(ioutil.Discard)
+					}
+					gw.Close()
+					pool.Put(gw)
 				}()
-				g := gzipResponseWriter{Response: c.Response(), Writer: w}
+				g := gzipResponseWriter{Response: c.Response(), Writer: gw}
 				c.Response().Header().Set(echo.ContentEncoding, scheme)
 				c.Response().SetWriter(g)
 			}

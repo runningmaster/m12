@@ -70,8 +70,8 @@ func NewFromConfig(c engine.Config) (s *Server) {
 				},
 			},
 		},
-		handler: engine.HandlerFunc(func(req engine.Request, res engine.Response) {
-			s.logger.Fatal("handler not set")
+		handler: engine.HandlerFunc(func(rq engine.Request, rs engine.Response) {
+			s.logger.Error("handler not set, use `SetHandler()` to set it.")
 		}),
 		logger: log.New("echo"),
 	}
@@ -80,49 +80,58 @@ func NewFromConfig(c engine.Config) (s *Server) {
 	return
 }
 
-// SetHandler implements `engine.Server#SetHandler` method.
+// SetHandler implements `engine.Server#SetHandler` function.
 func (s *Server) SetHandler(h engine.Handler) {
 	s.handler = h
 }
 
-// SetLogger implements `engine.Server#SetLogger` method.
+// SetLogger implements `engine.Server#SetLogger` function.
 func (s *Server) SetLogger(l *log.Logger) {
 	s.logger = l
 }
 
-// Start implements `engine.Server#Start` method.
-func (s *Server) Start() {
-	certfile := s.config.TLSCertfile
-	keyfile := s.config.TLSKeyfile
-	if certfile != "" && keyfile != "" {
-		s.logger.Fatal(s.ListenAndServeTLS(certfile, keyfile))
-	} else {
-		s.logger.Fatal(s.ListenAndServe())
+// Start implements `engine.Server#Start` function.
+func (s *Server) Start() error {
+	if s.config.Listener == nil {
+		return s.startDefaultListener()
 	}
+	return s.startCustomListener()
+}
+
+func (s *Server) startDefaultListener() error {
+	c := s.config
+	if c.TLSCertfile != "" && c.TLSKeyfile != "" {
+		return s.ListenAndServeTLS(c.TLSCertfile, c.TLSKeyfile)
+	}
+	return s.ListenAndServe()
+}
+
+func (s *Server) startCustomListener() error {
+	return s.Serve(s.config.Listener)
 }
 
 // ServeHTTP implements `http.Handler` interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Request
-	req := s.pool.request.Get().(*Request)
+	rq := s.pool.request.Get().(*Request)
 	reqHdr := s.pool.header.Get().(*Header)
 	reqURL := s.pool.url.Get().(*URL)
 	reqHdr.reset(r.Header)
 	reqURL.reset(r.URL)
-	req.reset(r, reqHdr, reqURL)
+	rq.reset(r, reqHdr, reqURL)
 
 	// Response
-	res := s.pool.response.Get().(*Response)
+	rs := s.pool.response.Get().(*Response)
 	resHdr := s.pool.header.Get().(*Header)
 	resHdr.reset(w.Header())
-	res.reset(w, resHdr)
+	rs.reset(w, resHdr)
 
-	s.handler.ServeHTTP(req, res)
+	s.handler.ServeHTTP(rq, rs)
 
-	s.pool.request.Put(req)
+	s.pool.request.Put(rq)
 	s.pool.header.Put(reqHdr)
 	s.pool.url.Put(reqURL)
-	s.pool.response.Put(res)
+	s.pool.response.Put(rs)
 	s.pool.header.Put(resHdr)
 }
 
@@ -143,16 +152,16 @@ func WrapHandler(h http.Handler) echo.HandlerFunc {
 func WrapMiddleware(m func(http.Handler) http.Handler) echo.MiddlewareFunc {
 	return func(next echo.Handler) echo.Handler {
 		return echo.HandlerFunc(func(c echo.Context) (err error) {
-			req := c.Request().(*Request)
-			res := c.Response().(*Response)
+			rq := c.Request().(*Request)
+			rs := c.Response().(*Response)
 			m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				res.ResponseWriter = &responseAdapter{
-					ResponseWriter: res.ResponseWriter,
+				rs.ResponseWriter = &responseAdapter{
+					ResponseWriter: rs.ResponseWriter,
 					writer:         c.Response(),
 				}
-				req.Request = r
+				rq.Request = r
 				err = next.Handle(c)
-			})).ServeHTTP(res.ResponseWriter, req.Request)
+			})).ServeHTTP(rs.ResponseWriter, rq.Request)
 			return
 		})
 	}
