@@ -17,18 +17,18 @@ func pipeAuth(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		key, err := getKey(r)
 		if err != nil {
-			goto Fail
+			goto fail
 		}
 
 		err = auth(key)
 		if err != nil {
-			goto Fail
+			goto fail
 		}
 
 		h(withAuth(ctx, key), w, r)
 		return
 
-	Fail:
+	fail:
 		h(withCode(withFail(ctx, errors.Locus(err)), http.StatusInternalServerError), w, r)
 	}
 }

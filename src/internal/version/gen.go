@@ -74,13 +74,13 @@ func main() {
 		err error
 	)
 	if out, err = format.Source(buf.Bytes()); err != nil {
-		goto Fail
+		goto fail
 	}
 	if err = ioutil.WriteFile(flagFile, out, 0644); err != nil {
-		goto Fail
+		goto fail
 	}
 	return // success
-Fail:
+fail:
 	panic(fmt.Errorf("can not generate %s: %v", flagFile, err))
 }
 
