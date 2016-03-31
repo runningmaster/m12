@@ -37,7 +37,6 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	var (
 		b   []byte
 		err error
-		res interface{}
 	)
 
 	if r.Method == "POST" {
@@ -46,6 +45,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		}
 	}
 
+	var res interface{}
 	if f, ok := mapFuncs[r.URL.Path]; ok {
 		res, err = f(b)
 		if err != nil {

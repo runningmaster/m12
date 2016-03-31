@@ -9,12 +9,10 @@ import (
 	"internal/log"
 	"internal/server"
 	"internal/signal"
-	"internal/version"
 )
 
 func main() {
 	flag.Parse()
-	log.Printf("main: start version %s", version.Stamp)
 
 	errCh := make(chan error)
 	go func(ch chan<- error) {
@@ -32,6 +30,4 @@ func main() {
 			log.Println(err)
 		}
 	}
-
-	log.Println("main: the end")
 }

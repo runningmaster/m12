@@ -26,6 +26,7 @@ func parseInfo(b []byte) (map[string]map[string]string, error) {
 		sect  string
 		split []string
 	)
+
 	for scanner.Scan() {
 		line = strings.ToLower(scanner.Text())
 		if line == "" {

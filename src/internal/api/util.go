@@ -22,7 +22,7 @@ func writeJSON(w http.ResponseWriter, code int, i interface{}) (int64, error) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 
-	if true {
+	if true { // FIXME (flag?)
 		var tmp bytes.Buffer
 		err = json.Indent(&tmp, b, "", "\t")
 		if err != nil {
