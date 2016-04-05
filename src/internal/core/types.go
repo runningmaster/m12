@@ -135,3 +135,65 @@ func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
 		Name: toString(v), // "n"
 	}
 }
+
+type headSrc struct {
+	// auth
+	Key string `json:"key,omitempty"`
+	Tag string `json:"tag,omitempty"`
+	Src string `json:"src,omitempty"` // BR_NICK | MDS_LICENSE / file:FileName
+	// geoa
+	Name string `json:"name,omitempty"`
+	Head string `json:"head,omitempty"`
+	Addr string `json:"addr,omitempty"`
+	Code string `json:"code,omitempty"` // egrpou (okpo)
+	// sale
+	Span []string `json:"span,omitempty"`
+	Time string   `json:"time,omitempty"` // ?
+	Hash string   `json:"hash,omitempty"` // ?
+}
+
+type headSky struct {
+	ID     string `json:"id,omitempty"`
+	IDAddr int64  `json:"id_addr,omitempty"`
+	IP     string `json:"ip,omitempty"`
+	Time   string `json:"time,omitempty"`
+	Hash   string `json:"hash,omitempty"`
+	S3Path string `json:"s3path,omitempty"`
+}
+
+type bodyGeoaV3 struct {
+	ID    string   `json:"id,omitempty"`
+	Name  string   `json:"name,omitempty"`
+	Quant float64  `json:"quant,omitempty"`
+	Price float64  `json:"price,omitempty"`
+	URL   string   `json:"url,omitempty"` // formerly link -> addr, home, url (?)
+	Link  linkDrug `json:"link,omitempty"`
+}
+
+type bodySaleV3 struct {
+	ID        string   `json:"id,omitempty"`
+	Name      string   `json:"name,omitempty"`
+	QuantIn   float64  `json:"quant_in,omitempty"`
+	PriceIn   float64  `json:"price_in,omitempty"`
+	QuantOut  float64  `json:"quant_out,omitempty"`
+	PriceOut  float64  `json:"price_out,omitempty"`
+	Stock     float64  `json:"stock,omitempty"`
+	Reimburse bool     `json:"reimburse,omitempty"`
+	SuppName  string   `json:"supp_name,omitempty"`
+	SuppCode  string   `json:"supp_code,omitempty"`
+	linkAddr  linkAddr `json:"link_addr,omitempty"`
+	LinkDrug  linkDrug `json:"link_drug,omitempty"`
+}
+
+type bodySaleBYV3 struct {
+	ID       string   `json:"id,omitempty"`
+	Name     string   `json:"name,omitempty"`
+	QuantIn  float64  `json:"quant_in,omitempty"` // formerly QuantInp
+	PriceIn  float64  `json:"price_in,omitempty"` // formerly PriceInp
+	QuantOut float64  `json:"quant_out,omitempty"`
+	PriceOut float64  `json:"price_out,omitempty"`
+	PriceRoc float64  `json:"price_roc,omitempty"`
+	Stock    float64  `json:"stock,omitempty"`     // formerly Balance
+	StockTab float64  `json:"stock_tab,omitempty"` // formerly BalanceT
+	Link     linkDrug `json:"link,omitempty"`
+}
