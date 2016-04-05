@@ -140,7 +140,7 @@ type headSrc struct {
 	// auth
 	Key string `json:"key,omitempty"`
 	Tag string `json:"tag,omitempty"`
-	Src string `json:"src,omitempty"` // BR_NICK | MDS_LICENSE / file:FileName
+	Src string `json:"src,omitempty"` // BR_NICK:id_addr | MDS_LICENSE / file:FileName
 	// geoa
 	Name string `json:"name,omitempty"`
 	Head string `json:"head,omitempty"`
@@ -153,12 +153,12 @@ type headSrc struct {
 }
 
 type headSky struct {
-	ID     string `json:"id,omitempty"`
-	IDAddr int64  `json:"id_addr,omitempty"`
-	IP     string `json:"ip,omitempty"`
-	Time   string `json:"time,omitempty"`
-	Hash   string `json:"hash,omitempty"`
-	S3Path string `json:"s3path,omitempty"`
+	ID         string `json:"id,omitempty"`
+	IDAddr     int64  `json:"id_addr,omitempty"`
+	RemoteAddr string `json:"remote_addr,omitempty"`
+	Timestamp  string `json:"timestamp,omitempty"`
+	Checksum   string `json:"checksum,omitempty"`
+	S3Path     string `json:"s3path,omitempty"`
 }
 
 type bodyGeoaV3 struct {
