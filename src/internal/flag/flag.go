@@ -6,12 +6,8 @@ import (
 	"strconv"
 )
 
-type (
-	// CtxKey is type for context keys
-	CtxKey int
-	// OpType is type for operations
-	OpType int
-)
+// CtxKey is type for context keys
+type CtxKey int
 
 const (
 	// CtxUUID is key for context value
@@ -26,13 +22,6 @@ const (
 	CtxCode
 	// CtxTime is key for context value
 	CtxTime
-
-	// OpGet is key for op
-	OpGet OpType = iota
-	// OpSet is key for op
-	OpSet
-	// OpDel is key for op
-	OpDel
 )
 
 // NOTE: about priority: default <- key/value store <- config <- env <- flag <-explicit set
