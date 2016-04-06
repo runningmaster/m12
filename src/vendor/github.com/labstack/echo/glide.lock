@@ -1,5 +1,5 @@
-hash: e740b7b4143d21e271e337a73d785c7c17a3c7ae1c775b7513287bb1599f3f0a
-updated: 2016-03-29T07:21:14.848378979-07:00
+hash: 44dfc8aaffca5078e71afdb209a0ef0a359a35f69fb98c7b6a2fb87a5a70e757
+updated: 2016-04-02T13:40:33.226488832-07:00
 imports:
 - name: github.com/klauspost/compress
   version: 9d711f4445beb7f6488148ce04e3b4dc6e72242d
@@ -20,17 +20,21 @@ imports:
   version: 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+- name: github.com/stretchr/testify
+  version: 6fe211e493929a8aac0469b93f28b1d0688a9a3a
+  subpackages:
+  - assert
 - name: github.com/valyala/fasthttp
-  version: 12ba9899844060189449e9768dc0900a56d3624b
+  version: 8ae2d3e53c26ff32a2da8ad0c974b29cea0b0c7d
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
-  version: 31df19d69da8728e9220def59b80ee577c3e48bf
+  version: 3e8a7b0329d536af18e227bb21b6da4d1dbbe180
   subpackages:
   - context
   - websocket
 - name: golang.org/x/sys
-  version: 320cb01ddbbf0473674c2585f9b6e245721de355
+  version: a60af9cbbc6ab800af4f2be864a31f423a0ae1f2
   subpackages:
   - unix
 devImports: []

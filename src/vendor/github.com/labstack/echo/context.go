@@ -79,8 +79,8 @@ type (
 		// Set saves data in the context.
 		Set(string, interface{})
 
-		// Bind binds the request body into provided type `i`. The default binder does
-		// it based on Content-Type header.
+		// Bind binds the request body into provided type `i`. The default binder
+		// does it based on Content-Type header.
 		Bind(interface{}) error
 
 		// Render renders a template with data and sends a text/html response with status
@@ -156,7 +156,7 @@ type (
 		pvalues    []string
 		query      url.Values
 		store      store
-		handler    Handler
+		handler    HandlerFunc
 		echo       *Echo
 	}
 
@@ -204,7 +204,7 @@ func (c *context) Value(key interface{}) interface{} {
 }
 
 func (c *context) Handle(ctx Context) error {
-	return c.handler.Handle(ctx)
+	return c.handler(ctx)
 }
 
 func (c *context) Request() engine.Request {

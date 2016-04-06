@@ -10,13 +10,12 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/color"
-	"github.com/mattn/go-isatty"
+	isatty "github.com/mattn/go-isatty"
 	"github.com/valyala/fasttemplate"
 )
 
 type (
-	// LoggerConfig defines config for logger middleware.
-	//
+	// LoggerConfig defines the config for logger middleware.
 	LoggerConfig struct {
 		// Format is the log format which can be constructed using the following tags:
 		//
@@ -30,9 +29,12 @@ type (
 		// - response_size
 		//
 		// Example "${remote_id} ${status}"
+		//
+		// Optional with default value as `DefaultLoggerConfig.Format`.
 		Format string
 
 		// Output is the writer where logs are written.
+		// Optional with default value as os.Stdout.
 		Output io.Writer
 
 		template *fasttemplate.Template
@@ -58,18 +60,26 @@ func Logger() echo.MiddlewareFunc {
 // LoggerFromConfig returns a logger middleware from config.
 // See `Logger()`.
 func LoggerFromConfig(config LoggerConfig) echo.MiddlewareFunc {
+	// Defaults
+	if config.Format == "" {
+		config.Format = DefaultLoggerConfig.Format
+	}
+	if config.Output == nil {
+		config.Output = DefaultLoggerConfig.Output
+	}
+
 	config.template = fasttemplate.New(config.Format, "${", "}")
 	config.color = color.New()
 	if w, ok := config.Output.(*os.File); ok && !isatty.IsTerminal(w.Fd()) {
 		config.color.Disable()
 	}
 
-	return func(next echo.Handler) echo.Handler {
-		return echo.HandlerFunc(func(c echo.Context) (err error) {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
 			rq := c.Request()
 			rs := c.Response()
 			start := time.Now()
-			if err = next.Handle(c); err != nil {
+			if err = next(c); err != nil {
 				c.Error(err)
 			}
 			stop := time.Now()
@@ -119,6 +129,6 @@ func LoggerFromConfig(config LoggerConfig) echo.MiddlewareFunc {
 				}
 			})
 			return
-		})
+		}
 	}
 }

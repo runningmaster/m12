@@ -125,25 +125,26 @@ func (s *Server) startCustomListener() error {
 func (s *Server) ServeHTTP(c *fasthttp.RequestCtx) {
 	// Request
 	rq := s.pool.request.Get().(*Request)
-	reqHdr := s.pool.requestHeader.Get().(*RequestHeader)
-	reqURL := s.pool.url.Get().(*URL)
-	reqHdr.reset(&c.Request.Header)
-	reqURL.reset(c.URI())
-	rq.reset(c, reqHdr, reqURL)
+	rqHdr := s.pool.requestHeader.Get().(*RequestHeader)
+	rqURL := s.pool.url.Get().(*URL)
+	rqHdr.reset(&c.Request.Header)
+	rqURL.reset(c.URI())
+	rq.reset(c, rqHdr, rqURL)
 
 	// Response
 	rs := s.pool.response.Get().(*Response)
-	resHdr := s.pool.responseHeader.Get().(*ResponseHeader)
-	resHdr.reset(&c.Response.Header)
-	rs.reset(c, resHdr)
+	rsHdr := s.pool.responseHeader.Get().(*ResponseHeader)
+	rsHdr.reset(&c.Response.Header)
+	rs.reset(c, rsHdr)
 
 	s.handler.ServeHTTP(rq, rs)
 
+	// Return to pool
 	s.pool.request.Put(rq)
-	s.pool.requestHeader.Put(reqHdr)
-	s.pool.url.Put(reqURL)
+	s.pool.requestHeader.Put(rqHdr)
+	s.pool.url.Put(rqURL)
 	s.pool.response.Put(rs)
-	s.pool.responseHeader.Put(resHdr)
+	s.pool.responseHeader.Put(rsHdr)
 }
 
 // WrapHandler wraps `fasthttp.RequestHandler` into `echo.HandlerFunc`.
@@ -161,15 +162,15 @@ func WrapHandler(h fasthttp.RequestHandler) echo.HandlerFunc {
 
 // WrapMiddleware wraps `fasthttp.RequestHandler` into `echo.MiddlewareFunc`
 func WrapMiddleware(h fasthttp.RequestHandler) echo.MiddlewareFunc {
-	return func(next echo.Handler) echo.Handler {
-		return echo.HandlerFunc(func(c echo.Context) error {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 			rq := c.Request().(*Request)
 			rs := c.Response().(*Response)
 			ctx := rq.RequestCtx
 			h(ctx)
 			rs.status = ctx.Response.StatusCode()
 			rs.size = int64(ctx.Response.Header.ContentLength())
-			return next.Handle(c)
-		})
+			return next(c)
+		}
 	}
 }

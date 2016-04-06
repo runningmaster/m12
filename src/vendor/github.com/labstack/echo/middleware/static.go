@@ -9,17 +9,19 @@ import (
 )
 
 type (
-	// StaticConfig defines config for static middleware.
+	// StaticConfig defines the config for static middleware.
 	StaticConfig struct {
 		// Root is the directory from where the static content is served.
+		// Optional with default value as "".
 		Root string `json:"root"`
 
 		// Index is the list of index files to be searched and used when serving
 		// a directory.
-		// Default value is `[]string{"index.html"}`.
+		// Optional with default value as []string{"index.html"}.
 		Index []string `json:"index"`
 
 		// Browse is a flag to enable/disable directory browsing.
+		// Optional with default value as false.
 		Browse bool `json:"browse"`
 	}
 )
@@ -44,17 +46,22 @@ func Static(root string) echo.MiddlewareFunc {
 // StaticFromConfig returns a static middleware from config.
 // See `Static()`.
 func StaticFromConfig(config StaticConfig) echo.MiddlewareFunc {
-	return func(next echo.Handler) echo.Handler {
-		return echo.HandlerFunc(func(c echo.Context) error {
+	// Defaults
+	if config.Index == nil {
+		config.Index = DefaultStaticConfig.Index
+	}
+
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 			fs := http.Dir(config.Root)
 			p := c.Request().URL().Path()
-			if c.P(0) != "" { // If serving from `Group`, e.g. `/static/*`
+			if c.P(0) != "" { // If serving from `Group`, e.g. `/static*`
 				p = c.P(0)
 			}
 			file := path.Clean(p)
 			f, err := fs.Open(file)
 			if err != nil {
-				return next.Handle(c)
+				return next(c)
 			}
 			defer f.Close()
 
@@ -101,11 +108,11 @@ func StaticFromConfig(config StaticConfig) echo.MiddlewareFunc {
 						_, err = fmt.Fprintf(rs, "</pre>\n")
 						return err
 					}
-					return next.Handle(c)
+					return next(c)
 				}
 				fi, _ = f.Stat() // Index file stat
 			}
 			return c.ServeContent(f, fi.Name(), fi.ModTime())
-		})
+		}
 	}
 }
