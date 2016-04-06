@@ -26,6 +26,20 @@ var (
 		"POST:/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SetLinkStat},
 		"POST:/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.DelLinkStat},
 
+		"POST:/upload-gzip/geoapt.ua":           {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/geoapt.ru":           {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-in.monthly.ua":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-in.monthly.kz":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-in.weekly.ua":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-in.daily.ua":    {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-in.daily.kz":    {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-out.monthly.ua": {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-out.monthly.kz": {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-out.weekly.ua":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-out.daily.ua":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-out.daily.kz":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload-gzip/sale-out.daily.by":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+
 		// => Debug mode only, when flag.Debug == true
 		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Info}, // ?
 		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // expvar
