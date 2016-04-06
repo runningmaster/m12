@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -40,7 +42,11 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	)
 
 	if r.Method == "POST" {
-		if b, err = readAllAndClose(r.Body); err != nil {
+		defer func(c io.Closer) {
+			_ = c.Close()
+		}(r.Body)
+
+		if b, err = ioutil.ReadAll(r.Body); err != nil {
 			return with500(ctx, errors.Locus(err))
 		}
 	}
@@ -52,7 +58,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 			return with500(ctx, errors.Locus(err))
 		}
 	} else {
-		panic(errors.Locusf("unreachable"))
+		panic(errors.Locusf("exec: unreachable"))
 	}
 
 	return with200(ctx, w, res)
