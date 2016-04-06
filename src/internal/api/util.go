@@ -3,14 +3,9 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"internal/errors"
-
-	"github.com/spkg/bom"
 )
 
 func writeJSON(w http.ResponseWriter, code int, i interface{}) (int64, error) {
@@ -47,37 +42,4 @@ func writeJSON(w http.ResponseWriter, code int, i interface{}) (int64, error) {
 	size++
 
 	return size, nil
-}
-
-func readAllAndClose(r io.ReadCloser) ([]byte, error) {
-	defer func(c io.Closer) {
-		_ = c.Close()
-	}(r)
-
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, errors.Locus(err)
-	}
-
-	return mendGzipAndBOM(b)
-}
-
-func mendGzipAndBOM(b []byte) ([]byte, error) {
-	ct := http.DetectContentType(b)
-
-	// Gzip
-	if strings.Contains(ct, "gzip") {
-		unz, err := gunzip(b)
-		if err != nil {
-			return nil, errors.Locus(err)
-		}
-		return unz, nil
-	}
-
-	// UTF BOM
-	if strings.Contains(ct, "text/plain; charset=utf-8") {
-		return bom.Clean(b), nil
-	}
-
-	return b, nil
 }
