@@ -16,8 +16,8 @@ func stringOK() string {
 	return http.StatusText(http.StatusOK)
 }
 
-func mendGzip(b []byte) ([]byte, error) {
-	if strings.Contains(http.DetectContentType(b), "gzip") {
+func mendGzip(ct string, b []byte) ([]byte, error) {
+	if strings.Contains(ct, "gzip") {
 		unz, err := gzip.Gunzip(b)
 		if err != nil {
 			return nil, errors.Locus(err)
@@ -28,9 +28,28 @@ func mendGzip(b []byte) ([]byte, error) {
 	return b, nil
 }
 
-func mendBOM(b []byte) ([]byte, error) {
-	if strings.Contains(http.DetectContentType(b), "text/plain; charset=utf-8") {
+func mendUTF8(ct string, b []byte) ([]byte, error) {
+	if strings.Contains(ct, "text/plain; charset=utf-8") {
 		return bom.Clean(b), nil
+	}
+
+	return b, nil
+}
+
+func mendGzipAndUTF8(b []byte) ([]byte, error) {
+	var (
+		ct  string
+		err error
+	)
+
+	ct = http.DetectContentType(b)
+	if b, err = mendGzip(ct, b); err != nil {
+		return nil, errors.Locus(err)
+	}
+
+	ct = http.DetectContentType(b)
+	if b, err = mendUTF8(ct, b); err != nil {
+		return nil, errors.Locus(err)
 	}
 
 	return b, nil

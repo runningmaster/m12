@@ -65,7 +65,7 @@ func getKey(r *http.Request) (string, error) {
 }
 
 func auth(key string) error {
-	res, err := core.SysOp(core.SysAuth, flag.OpGet)(nil, []byte(fmt.Sprintf("[%q]", key)))
+	res, err := core.GetAuth(nil, []byte(fmt.Sprintf("[%q]", key)))
 	if err != nil {
 		return errors.Locus(err)
 	}
