@@ -2,6 +2,7 @@ package gzip
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"sync"
 
@@ -50,9 +51,9 @@ func GetReader() (*gzip.Reader, error) {
 }
 
 // CloseReader closes reader and puts it back to the pool.
-func CloseReader(r *gzip.Reader) {
-	_ = r.Close()
-	readerPool.Put(r)
+func CloseReader(c io.Closer) {
+	_ = c.Close()
+	readerPool.Put(c)
 }
 
 // GetWriter gets writer from pool.
@@ -67,9 +68,9 @@ func GetWriter() (*gzip.Writer, error) {
 }
 
 // CloseWriter closes writer and puts it back to the pool.
-func CloseWriter(w *gzip.Writer) {
-	_ = w.Close()
-	writerPool.Put(w)
+func CloseWriter(c io.Closer) {
+	_ = c.Close()
+	writerPool.Put(c)
 }
 
 // Gunzip decodes gzip-bytes.
