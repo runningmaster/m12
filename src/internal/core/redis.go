@@ -24,6 +24,12 @@ type (
 		//	ExecMulti([][]interface{}) ([]interface{}, error)
 	}
 
+	getsetdeler interface {
+		get(redis.Conn) ([]interface{}, error)
+		set(redis.Conn) (interface{}, error)
+		del(redis.Conn) (interface{}, error)
+	}
+
 	redisServer struct {
 		pool interface {
 			Get() redis.Conn

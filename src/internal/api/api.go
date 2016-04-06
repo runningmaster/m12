@@ -4,41 +4,42 @@ import (
 	"strings"
 
 	"internal/core"
+	"internal/flag"
 	"internal/server"
 )
 
 var (
-	mapFuncs    map[string]coreFunc
-	mapHandlers = map[string]bundle{
+	mapCoreHandlers map[string]core.Handler
+	mapHTTPHandlers = map[string]bundle{
 		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
 		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Ping},
 
-		"POST:/get-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.GetAuth},
-		"POST:/set-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SetAuth},
-		"POST:/del-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.DelAuth},
-		"POST:/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.GetLinkAddr},
-		"POST:/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SetLinkAddr},
-		"POST:/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.DelLinkAddr},
-		"POST:/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.GetLinkDrug},
-		"POST:/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SetLinkDrug},
-		"POST:/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.DelLinkDrug},
-		"POST:/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.GetLinkStat},
-		"POST:/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SetLinkStat},
-		"POST:/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.DelLinkStat},
+		"POST:/system/get-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysAuth, flag.OpGet)},
+		"POST:/system/set-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysAuth, flag.OpSet)},
+		"POST:/system/del-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysAuth, flag.OpDel)},
+		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkAddr, flag.OpGet)},
+		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkAddr, flag.OpSet)},
+		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkAddr, flag.OpDel)},
+		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkDrug, flag.OpGet)},
+		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkDrug, flag.OpSet)},
+		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkDrug, flag.OpDel)},
+		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkStat, flag.OpGet)},
+		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkStat, flag.OpSet)},
+		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysOp(core.SysLinkStat, flag.OpDel)},
 
-		"POST:/upload-gzip/geoapt.ua":           {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/geoapt.ru":           {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-in.monthly.ua":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-in.monthly.kz":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-in.weekly.ua":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-in.daily.ua":    {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-in.daily.kz":    {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-out.monthly.ua": {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-out.monthly.kz": {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-out.weekly.ua":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-out.daily.ua":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-out.daily.kz":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
-		"POST:/upload-gzip/sale-out.daily.by":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload/geoapt.ua":           {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/geoapt.ru":           {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-in.monthly.ua":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-in.monthly.kz":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-in.weekly.ua":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-in.daily.ua":    {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-in.daily.kz":    {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-out.monthly.ua": {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-out.monthly.kz": {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-out.weekly.ua":  {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-out.daily.ua":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-out.daily.kz":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
+		"POST:/upload/sale-out.daily.by":   {use(pipeHead, pipeAuth, pipe(exec), pipeFail, pipeTail), core.ToS3},
 
 		// => Debug mode only, when flag.Debug == true
 		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Info}, // ?
@@ -60,12 +61,12 @@ var (
 )
 
 func init() {
-	mapFuncs = make(map[string]coreFunc, len(mapHandlers))
-	for k, v := range mapHandlers {
+	mapCoreHandlers = make(map[string]core.Handler, len(mapHTTPHandlers))
+	for k, v := range mapHTTPHandlers {
 		s := strings.Split(k, ":")
 		server.RegHandler(s[0], s[1], v.h)
 		if v.f != nil {
-			mapFuncs[s[1]] = v.f
+			mapCoreHandlers[s[1]] = v.f
 		}
 	}
 }

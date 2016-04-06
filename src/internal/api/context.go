@@ -4,26 +4,17 @@ import (
 	"net/http"
 	"time"
 
+	"internal/flag"
+
 	"golang.org/x/net/context"
 )
 
-type key int
-
-const (
-	keyUUID key = iota
-	keyAuth
-	keyFail
-	keySize
-	keyCode
-	keyTime
-)
-
 func withUUID(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, keyUUID, v)
+	return context.WithValue(ctx, flag.CtxUUID, v)
 }
 
 func uuidFromContext(ctx context.Context) string {
-	switch v := ctx.Value(keyUUID).(type) {
+	switch v := ctx.Value(flag.CtxUUID).(type) {
 	case string:
 		return v
 	default:
@@ -32,11 +23,11 @@ func uuidFromContext(ctx context.Context) string {
 }
 
 func withAuth(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, keyAuth, v)
+	return context.WithValue(ctx, flag.CtxAuth, v)
 }
 
 func authFromContext(ctx context.Context) string {
-	switch v := ctx.Value(keyAuth).(type) {
+	switch v := ctx.Value(flag.CtxAuth).(type) {
 	case string:
 		return v
 	default:
@@ -45,11 +36,11 @@ func authFromContext(ctx context.Context) string {
 }
 
 func withFail(ctx context.Context, v error) context.Context {
-	return context.WithValue(ctx, keyFail, v)
+	return context.WithValue(ctx, flag.CtxFail, v)
 }
 
 func failFromContext(ctx context.Context) error {
-	switch v := ctx.Value(keyFail).(type) {
+	switch v := ctx.Value(flag.CtxFail).(type) {
 	case error:
 		return v
 	default:
@@ -58,11 +49,11 @@ func failFromContext(ctx context.Context) error {
 }
 
 func withSize(ctx context.Context, v int64) context.Context {
-	return context.WithValue(ctx, keySize, v)
+	return context.WithValue(ctx, flag.CtxSize, v)
 }
 
 func sizeFromContext(ctx context.Context) int64 {
-	switch v := ctx.Value(keySize).(type) {
+	switch v := ctx.Value(flag.CtxSize).(type) {
 	case int64:
 		return v
 	default:
@@ -71,11 +62,11 @@ func sizeFromContext(ctx context.Context) int64 {
 }
 
 func withCode(ctx context.Context, v int) context.Context {
-	return context.WithValue(ctx, keyCode, v)
+	return context.WithValue(ctx, flag.CtxCode, v)
 }
 
 func codeFromContext(ctx context.Context) int {
-	switch v := ctx.Value(keyCode).(type) {
+	switch v := ctx.Value(flag.CtxCode).(type) {
 	case int:
 		return v
 	default:
@@ -84,11 +75,11 @@ func codeFromContext(ctx context.Context) int {
 }
 
 func withTime(ctx context.Context, v time.Time) context.Context {
-	return context.WithValue(ctx, keyTime, v)
+	return context.WithValue(ctx, flag.CtxTime, v)
 }
 
 func timeFromContext(ctx context.Context) time.Time {
-	switch v := ctx.Value(keyTime).(type) {
+	switch v := ctx.Value(flag.CtxTime).(type) {
 	case time.Time:
 		return v
 	default:

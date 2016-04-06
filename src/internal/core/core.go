@@ -2,12 +2,26 @@ package core
 
 import (
 	"internal/errors"
+	"internal/flag"
 
 	"github.com/garyburd/redigo/redis"
+	"golang.org/x/net/context"
 )
 
+type SysType int
+
+const (
+	SysAuth SysType = iota
+	SysLinkAddr
+	SysLinkDrug
+	SysLinkStat
+)
+
+// Handler is func for processing data from api
+type Handler func(context.Context, []byte) (interface{}, error)
+
 // Ping calls Redis PING
-func Ping(b []byte) (interface{}, error) {
+func Ping(_ context.Context, b []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
 
@@ -15,7 +29,7 @@ func Ping(b []byte) (interface{}, error) {
 }
 
 // Info calls Redis INFO
-func Info(b []byte) (interface{}, error) {
+func Info(_ context.Context, b []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
 
@@ -27,196 +41,41 @@ func Info(b []byte) (interface{}, error) {
 	return parseInfo(b)
 }
 
-// GetAuth returns slice of things or nil instead ones (if thing doesn't exist).
-func GetAuth(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
+// SysOp is wrapper for get/sed/del ops
+func SysOp(st SysType, op flag.OpType) Handler {
+	return func(_ context.Context, b []byte) (interface{}, error) {
+		c := redisPool.Get()
+		defer redisPool.Put(c)
 
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
+		var gsd getsetdeler
+		switch st {
+		case SysAuth:
+			gsd = decodeAuth(b)
+		case SysLinkAddr:
+			gsd = decodeLinkAddr(b)
+		case SysLinkDrug:
+			gsd = decodeLinkDrug(b)
+		case SysLinkStat:
+			gsd = decodeLinkStat(b)
+		default:
+			return nil, errors.Locusf("core: unknown sys type %v", st)
+		}
+
+		switch op {
+		case flag.OpGet:
+			return gsd.get(c)
+		case flag.OpSet:
+			return gsd.set(c)
+		case flag.OpDel:
+			return gsd.del(c)
+		}
+
+		return nil, errors.Locusf("core: unknown op type %v", op)
 	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeAuth(data).get(c)
 }
 
-// SetAuth upserts things and returns simple "OK".
-func SetAuth(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeAuth(data).set(c)
-}
-
-// DelAuth deletes things and returns the number of things that were removed.
-func DelAuth(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeAuth(data).del(c)
-}
-
-// GetLinkAddr returns slice of things or nil instead ones (if thing doesn't exist).
-func GetLinkAddr(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkAddr(data).get(c)
-}
-
-// SetLinkAddr upserts things and returns simple "OK".
-func SetLinkAddr(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkAddr(data).set(c)
-}
-
-// DelLinkAddr deletes things and returns the number of things that were removed.
-func DelLinkAddr(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkAddr(data).del(c)
-}
-
-// GetLinkDrug returns slice of things or nil instead ones (if thing doesn't exist).
-func GetLinkDrug(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-	return decodeLinkDrug(data).get(c)
-}
-
-// SetLinkDrug upserts things and returns simple "OK".
-func SetLinkDrug(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkDrug(data).set(c)
-}
-
-// DelLinkDrug deletes things and returns the number of things that were removed.
-func DelLinkDrug(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkDrug(data).del(c)
-}
-
-// GetLinkStat returns slice of things or nil instead ones (if thing doesn't exist).
-func GetLinkStat(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkStat(data).get(c)
-}
-
-// SetLinkStat upserts things and returns simple "OK".
-func SetLinkStat(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkStat(data).set(c)
-}
-
-// DelLinkStat deletes things and returns the number of things that were removed.
-func DelLinkStat(data []byte) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
-
-	var err error
-	if data, err = mendGzip(data); err != nil {
-		return nil, err
-	}
-
-	if data, err = mendBOM(data); err != nil {
-		return nil, err
-	}
-
-	return decodeLinkStat(data).del(c)
+// ToS3 sends data to s3 interface
+func ToS3(ctx context.Context, data []byte) (interface{}, error) {
+	// TODO: fail fast if not gzip (!)
+	return "ToS3 FIXME", nil
 }

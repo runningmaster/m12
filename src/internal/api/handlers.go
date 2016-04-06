@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"internal/core"
 	"internal/errors"
 	"internal/flag"
 	"internal/version"
@@ -18,11 +19,10 @@ type (
 	handlerFunc    func(context.Context, http.ResponseWriter, *http.Request)
 	handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
 	handlerPipe    func(h handlerFunc) handlerFunc
-	coreFunc       func([]byte) (interface{}, error)
 
 	bundle struct {
 		h http.Handler
-		f coreFunc
+		f core.Handler
 	}
 )
 
@@ -52,8 +52,8 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	}
 
 	var res interface{}
-	if f, ok := mapFuncs[r.URL.Path]; ok {
-		res, err = f(b)
+	if f, ok := mapCoreHandlers[r.URL.Path]; ok {
+		res, err = f(ctx, b)
 		if err != nil {
 			return with500(ctx, errors.Locus(err))
 		}
