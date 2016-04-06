@@ -93,7 +93,7 @@ func (d decodeLinkDrug) set(c redis.Conn) (interface{}, error) {
 		return nil, errors.Locus(err)
 	}
 
-	for _ = range lnk {
+	for range lnk {
 		if _, err = c.Receive(); err != nil {
 			return nil, errors.Locus(err)
 		}

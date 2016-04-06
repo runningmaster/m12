@@ -161,7 +161,7 @@ type headSky struct {
 	S3Path     string `json:"s3path,omitempty"`
 }
 
-type bodyGeoaV3 struct {
+type bodyGeoV3 struct {
 	ID    string   `json:"id,omitempty"`
 	Name  string   `json:"name,omitempty"`
 	Quant float64  `json:"quant,omitempty"`
@@ -181,7 +181,7 @@ type bodySaleV3 struct {
 	Reimburse bool     `json:"reimburse,omitempty"`
 	SuppName  string   `json:"supp_name,omitempty"`
 	SuppCode  string   `json:"supp_code,omitempty"`
-	linkAddr  linkAddr `json:"link_addr,omitempty"`
+	LinkAddr  linkAddr `json:"link_addr,omitempty"`
 	LinkDrug  linkDrug `json:"link_drug,omitempty"`
 }
 
