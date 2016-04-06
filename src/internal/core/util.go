@@ -6,11 +6,34 @@ import (
 	"net/http"
 	"strings"
 
+	"internal/compress/gzip"
 	"internal/errors"
+
+	"github.com/spkg/bom"
 )
 
 func stringOK() string {
 	return http.StatusText(http.StatusOK)
+}
+
+func mendGzip(b []byte) ([]byte, error) {
+	if strings.Contains(http.DetectContentType(b), "gzip") {
+		unz, err := gzip.Gunzip(b)
+		if err != nil {
+			return nil, errors.Locus(err)
+		}
+		return unz, nil
+	}
+
+	return b, nil
+}
+
+func mendBOM(b []byte) ([]byte, error) {
+	if strings.Contains(http.DetectContentType(b), "text/plain; charset=utf-8") {
+		return bom.Clean(b), nil
+	}
+
+	return b, nil
 }
 
 // TODO: parse keyspace

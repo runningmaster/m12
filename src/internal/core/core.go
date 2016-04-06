@@ -31,6 +31,16 @@ func Info(b []byte) (interface{}, error) {
 func GetAuth(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeAuth(data).get(c)
 }
 
@@ -38,6 +48,16 @@ func GetAuth(data []byte) (interface{}, error) {
 func SetAuth(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeAuth(data).set(c)
 }
 
@@ -45,6 +65,16 @@ func SetAuth(data []byte) (interface{}, error) {
 func DelAuth(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeAuth(data).del(c)
 }
 
@@ -52,6 +82,16 @@ func DelAuth(data []byte) (interface{}, error) {
 func GetLinkAddr(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkAddr(data).get(c)
 }
 
@@ -59,6 +99,16 @@ func GetLinkAddr(data []byte) (interface{}, error) {
 func SetLinkAddr(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkAddr(data).set(c)
 }
 
@@ -66,6 +116,16 @@ func SetLinkAddr(data []byte) (interface{}, error) {
 func DelLinkAddr(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkAddr(data).del(c)
 }
 
@@ -80,6 +140,16 @@ func GetLinkDrug(data []byte) (interface{}, error) {
 func SetLinkDrug(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkDrug(data).set(c)
 }
 
@@ -87,6 +157,16 @@ func SetLinkDrug(data []byte) (interface{}, error) {
 func DelLinkDrug(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkDrug(data).del(c)
 }
 
@@ -94,6 +174,16 @@ func DelLinkDrug(data []byte) (interface{}, error) {
 func GetLinkStat(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkStat(data).get(c)
 }
 
@@ -101,6 +191,16 @@ func GetLinkStat(data []byte) (interface{}, error) {
 func SetLinkStat(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkStat(data).set(c)
 }
 
@@ -108,5 +208,15 @@ func SetLinkStat(data []byte) (interface{}, error) {
 func DelLinkStat(data []byte) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
+
+	var err error
+	if data, err = mendGzip(data); err != nil {
+		return nil, err
+	}
+
+	if data, err = mendBOM(data); err != nil {
+		return nil, err
+	}
+
 	return decodeLinkStat(data).del(c)
 }
