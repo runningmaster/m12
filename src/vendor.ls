@@ -30,6 +30,10 @@ github.com/pivotal-golang/bytefmt
 # https://godoc.org/github.com/garyburd/redigo/redis
 github.com/garyburd/redigo/redis
 
+# Minio Go library is a simple client library for S3 compatible cloud storage servers. 
+# https://godoc.org/github.com/minio/minio-go
+github.com/minio/minio-go
+
 ### Below some alternatives for consideration ###
 
 # Package uuid provides implementation of Universally Unique Identifier (UUID).
