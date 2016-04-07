@@ -47,7 +47,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		}(r.Body)
 
 		if b, err = ioutil.ReadAll(r.Body); err != nil {
-			return with500(ctx, errors.Locus(err))
+			return with500(ctx, err)
 		}
 	}
 
@@ -55,7 +55,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	if f, ok := mapCoreHandlers[r.URL.Path]; ok {
 		res, err = f(ctx, b)
 		if err != nil {
-			return with500(ctx, errors.Locus(err))
+			return with500(ctx, err)
 		}
 	} else {
 		panic(errors.Locusf("exec: unreachable"))

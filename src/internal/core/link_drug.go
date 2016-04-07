@@ -3,8 +3,6 @@ package core
 import (
 	"encoding/json"
 
-	"internal/errors"
-
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -16,7 +14,7 @@ type decodeLinkDrug []byte
 func (d decodeLinkDrug) src() ([]string, error) {
 	var out []string
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -25,7 +23,7 @@ func (d decodeLinkDrug) src() ([]string, error) {
 func (d decodeLinkDrug) lnk() ([]linkDrug, error) {
 	var out []linkDrug
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -34,7 +32,7 @@ func (d decodeLinkDrug) lnk() ([]linkDrug, error) {
 func (d decodeLinkDrug) vls() ([]interface{}, error) {
 	src, err := d.src()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	out := make([]interface{}, 0, len(src))
@@ -48,25 +46,25 @@ func (d decodeLinkDrug) vls() ([]interface{}, error) {
 func (d decodeLinkDrug) get(c redis.Conn) ([]interface{}, error) {
 	src, err := d.src()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	var l linkDrug
 	for i := range src {
 		if err = c.Send("HMGET", l.keyflds(src[i])...); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 	}
 
 	if err = c.Flush(); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	out := make([]interface{}, 0, len(src))
 	var rcv []interface{}
 	for i := range src {
 		if rcv, err = redis.Values(c.Receive()); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 		out = append(out, l.makeFrom(src[i], rcv))
 	}
@@ -77,25 +75,25 @@ func (d decodeLinkDrug) get(c redis.Conn) ([]interface{}, error) {
 func (d decodeLinkDrug) set(c redis.Conn) (interface{}, error) {
 	lnk, err := d.lnk()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	for i := range lnk {
 		if err = c.Send("DEL", lnk[i].ID); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 		if err = c.Send("HMSET", lnk[i].keyvals()...); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 	}
 
 	if err = c.Flush(); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	for range lnk {
 		if _, err = c.Receive(); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 	}
 
@@ -105,7 +103,7 @@ func (d decodeLinkDrug) set(c redis.Conn) (interface{}, error) {
 func (d decodeLinkDrug) del(c redis.Conn) (interface{}, error) {
 	vls, err := d.vls()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return c.Do("DEL", vls...)

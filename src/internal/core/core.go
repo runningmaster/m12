@@ -94,12 +94,12 @@ func applyOp(op opType, to toType) Handler {
 	return func(_ context.Context, b []byte) (interface{}, error) {
 		var err error
 		if b, err = mendGzipAndUTF8(b); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 
 		var gsd getsetdeler
 		if gsd, err = makeGetSetDeler(to, b); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 
 		return execGetSetDeler(gsd, op)
@@ -171,7 +171,7 @@ func Info(_ context.Context, b []byte) (interface{}, error) {
 
 	b, err := redis.Bytes(c.Do("INFO"))
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return parseInfo(b)

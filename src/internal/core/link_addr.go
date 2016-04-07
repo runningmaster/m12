@@ -3,8 +3,6 @@ package core
 import (
 	"encoding/json"
 
-	"internal/errors"
-
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -16,7 +14,7 @@ type decodeLinkAddr []byte
 func (d decodeLinkAddr) src() ([]string, error) {
 	var out []string
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -25,7 +23,7 @@ func (d decodeLinkAddr) src() ([]string, error) {
 func (d decodeLinkAddr) lnk() ([]linkAddr, error) {
 	var out []linkAddr
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -34,7 +32,7 @@ func (d decodeLinkAddr) lnk() ([]linkAddr, error) {
 func (d decodeLinkAddr) vls() ([]interface{}, error) {
 	src, err := d.src()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	out := make([]interface{}, 0, len(src))
@@ -48,7 +46,7 @@ func (d decodeLinkAddr) vls() ([]interface{}, error) {
 func (d decodeLinkAddr) get(c redis.Conn) ([]interface{}, error) {
 	src, err := d.src()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	var l linkAddr
@@ -59,14 +57,14 @@ func (d decodeLinkAddr) get(c redis.Conn) ([]interface{}, error) {
 	}
 
 	if err = c.Flush(); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	out := make([]interface{}, 0, len(src))
 	var rcv []interface{}
 	for i := range src {
 		if rcv, err = redis.Values(c.Receive()); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 		out = append(out, l.makeFrom(src[i], rcv))
 	}
@@ -82,20 +80,20 @@ func (d decodeLinkAddr) set(c redis.Conn) (interface{}, error) {
 
 	for i := range lnk {
 		if err = c.Send("DEL", lnk[i].ID); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 		if err = c.Send("HMSET", lnk[i].keyvals()...); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 	}
 
 	if err = c.Flush(); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	for range lnk {
 		if _, err = c.Receive(); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 	}
 
@@ -105,7 +103,7 @@ func (d decodeLinkAddr) set(c redis.Conn) (interface{}, error) {
 func (d decodeLinkAddr) del(c redis.Conn) (interface{}, error) {
 	vls, err := d.vls()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return c.Do("DEL", vls...)

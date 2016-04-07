@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"internal/compress/gzip"
-	"internal/errors"
 
 	"github.com/spkg/bom"
 )
@@ -20,7 +19,7 @@ func mendGzip(ct string, b []byte) ([]byte, error) {
 	if strings.Contains(ct, "gzip") {
 		unz, err := gzip.Gunzip(b)
 		if err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 		return unz, nil
 	}
@@ -44,12 +43,12 @@ func mendGzipAndUTF8(b []byte) ([]byte, error) {
 
 	ct = http.DetectContentType(b)
 	if b, err = mendGzip(ct, b); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	ct = http.DetectContentType(b)
 	if b, err = mendUTF8(ct, b); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return b, nil
@@ -84,7 +83,7 @@ func parseInfo(b []byte) (map[string]map[string]string, error) {
 	}
 
 	if scanner.Err() != nil {
-		return nil, errors.Locus(scanner.Err())
+		return nil, scanner.Err()
 	}
 
 	return mapper, nil

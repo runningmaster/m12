@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"time"
 
-	"internal/errors"
 	"internal/flag"
 	"internal/server"
 
@@ -41,7 +40,7 @@ func init() {
 	var err error
 	redisPool, err = newRedis(flag.Redis)
 	if err != nil {
-		server.FailFast = errors.Locus(err)
+		server.FailFast = err
 	}
 }
 
@@ -55,7 +54,7 @@ func newRedis(addr string) (rediser, error) {
 
 	var c redis.Conn
 	if c = pool.Get(); c.Err() != nil {
-		return nil, errors.Locus(c.Err())
+		return nil, c.Err()
 	}
 	_ = c.Close()
 
@@ -66,12 +65,12 @@ func dial(addr string) func() (redis.Conn, error) {
 	return func() (redis.Conn, error) {
 		u, err := url.Parse(addr)
 		if err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 
 		c, err := redis.Dial("tcp", u.Host)
 		if err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 
 		defer func() {
@@ -83,7 +82,7 @@ func dial(addr string) func() (redis.Conn, error) {
 		if u.User != nil {
 			if pw, ok := u.User.Password(); ok {
 				if _, err := c.Do("AUTH", pw); err != nil {
-					return nil, errors.Locus(err)
+					return nil, err
 				}
 			}
 		}

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	gz "internal/compress/gzip"
-	"internal/errors"
 
 	"github.com/klauspost/compress/gzip"
 	"golang.org/x/net/context"
@@ -26,20 +25,20 @@ func (w gzWriter) Write(b []byte) (int, error) {
 
 	n, err := w.Writer.Write(b)
 	if err != nil {
-		return n, errors.Locus(err)
+		return n, err
 	}
 
 	return n, nil
 }
 
 func (w gzWriter) Flush() error {
-	return errors.Locus(w.Writer.(*gzip.Writer).Flush())
+	return w.Writer.(*gzip.Writer).Flush()
 }
 
 func (w gzWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	c, rw, err := w.ResponseWriter.(http.Hijacker).Hijack()
 	if err != nil {
-		return c, rw, errors.Locus(err)
+		return c, rw, err
 	}
 
 	return c, rw, nil

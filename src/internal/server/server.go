@@ -35,7 +35,7 @@ func initOnce() error {
 	})
 
 	if errOnce != nil {
-		return errors.Locus(errOnce)
+		return errOnce
 	}
 
 	return nil
@@ -48,7 +48,7 @@ func Start() error {
 	}
 
 	if err := initOnce(); err != nil {
-		return errors.Locus(err)
+		return err
 	}
 
 	return gsrv.ListenAndServe()

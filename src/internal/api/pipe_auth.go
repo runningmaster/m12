@@ -29,7 +29,7 @@ func pipeAuth(h handlerFunc) handlerFunc {
 		return
 
 	fail:
-		h(withCode(withFail(ctx, errors.Locus(err)), http.StatusInternalServerError), w, r)
+		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 
@@ -67,7 +67,7 @@ func getKey(r *http.Request) (string, error) {
 func auth(key string) error {
 	res, err := core.GetAuth(nil, []byte(fmt.Sprintf("[%q]", key)))
 	if err != nil {
-		return errors.Locus(err)
+		return err
 	}
 
 	if src, ok := res.([]interface{}); ok && len(src) > 0 {
@@ -82,7 +82,7 @@ func auth(key string) error {
 
 	var v []byte
 	if v, err = json.Marshal(res); err != nil {
-		return errors.Locus(err)
+		return err
 	}
 	return errors.Locusf("api: auth key (as value) not found: %s: forbidden", string(v))
 }

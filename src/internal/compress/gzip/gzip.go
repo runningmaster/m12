@@ -22,7 +22,7 @@ var (
 		New: func() interface{} {
 			z, err := gzip.NewReader(bytes.NewReader(simple))
 			if err != nil {
-				return errors.Locus(err)
+				return err
 			}
 			return z
 		},
@@ -32,7 +32,7 @@ var (
 		New: func() interface{} {
 			z, err := gzip.NewWriterLevel(ioutil.Discard, gzip.DefaultCompression)
 			if err != nil {
-				return errors.Locus(err)
+				return err
 			}
 			return z
 		},
@@ -45,7 +45,7 @@ func GetReader() (*gzip.Reader, error) {
 	case *gzip.Reader:
 		return r, nil
 	case error:
-		return nil, errors.Locus(r)
+		return nil, r
 	}
 	return nil, errors.Locusf("gzip: unreachable")
 }
@@ -62,7 +62,7 @@ func GetWriter() (*gzip.Writer, error) {
 	case *gzip.Writer:
 		return w, nil
 	case error:
-		return nil, errors.Locus(w)
+		return nil, w
 	}
 	return nil, errors.Locusf("gzip: unreachable")
 }
@@ -77,17 +77,17 @@ func CloseWriter(c io.Closer) {
 func Gunzip(data []byte) ([]byte, error) {
 	z, err := GetReader()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 	defer CloseReader(z)
 
 	if err = z.Reset(bytes.NewReader(data)); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	var out []byte
 	if out, err = ioutil.ReadAll(z); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil

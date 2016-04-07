@@ -62,7 +62,7 @@ func makeRouter() (*echo.Echo, error) {
 
 	err := initRouter(r, regHandlers...)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return r, nil
