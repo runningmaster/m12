@@ -6,14 +6,17 @@ import (
 	"net/http"
 
 	"internal/errors"
+
+	"golang.org/x/net/context"
 )
 
-func writeJSON(w http.ResponseWriter, code int, i interface{}) (int64, error) {
+func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface{}) (int64, error) {
 	b, err := json.Marshal(i)
 	if err != nil {
 		return 0, errors.Locus(err)
 	}
 
+	w.Header().Set("X-UUID", uuidFromContext(ctx))
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 

@@ -88,7 +88,7 @@ func timeFromContext(ctx context.Context) time.Time {
 }
 
 func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
-	size, err := writeJSON(w, http.StatusOK, res)
+	size, err := writeJSON(ctx, w, http.StatusOK, res)
 	if err != nil {
 		return withoutCode(ctx, err, size)
 	}

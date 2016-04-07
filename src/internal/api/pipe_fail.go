@@ -13,7 +13,7 @@ func pipeFail(h handlerFunc) handlerFunc {
 		if err := failFromContext(ctx); err != nil {
 			if code := codeFromContext(ctx); code != 0 {
 				var size int64
-				if size, err = writeJSON(w, http.StatusInternalServerError, errors.Locus(err).Error()); err != nil {
+				if size, err = writeJSON(ctx, w, http.StatusInternalServerError, errors.Locus(err).Error()); err != nil {
 					ctx = withFail(ctx, err)
 				}
 				ctx = withSize(ctx, size)
