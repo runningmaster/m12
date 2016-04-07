@@ -1,7 +1,9 @@
 package core
 
 import (
+	"bytes"
 	"internal/errors"
+	"internal/net/s3"
 
 	"github.com/garyburd/redigo/redis"
 	"golang.org/x/net/context"
@@ -135,8 +137,12 @@ func execGetSetDeler(gsd getsetdeler, op opType) (interface{}, error) {
 
 // ToS3 sends data to s3 interface
 func ToS3(ctx context.Context, b []byte) (interface{}, error) {
-	// TODO: fail fast if not gzip (!)
-	return "ToS3 FIXME", nil
+	err := s3.Put("test", "name", bytes.NewBuffer(b), "{}")
+	if err != nil {
+		return nil, err
+	}
+
+	return "OK", nil
 }
 
 // Ping calls Redis PING
