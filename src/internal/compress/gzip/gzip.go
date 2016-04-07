@@ -45,7 +45,7 @@ func GetReader() (*gzip.Reader, error) {
 	case *gzip.Reader:
 		return r, nil
 	case error:
-		return nil, r
+		return nil, errors.Locus(r)
 	}
 	return nil, errors.Locusf("gzip: unreachable")
 }
@@ -62,7 +62,7 @@ func GetWriter() (*gzip.Writer, error) {
 	case *gzip.Writer:
 		return w, nil
 	case error:
-		return nil, w
+		return nil, errors.Locus(w)
 	}
 	return nil, errors.Locusf("gzip: unreachable")
 }

@@ -43,7 +43,7 @@ var (
 	Masterkey = *flag.String("masterkey", "masterkey", "secret key for sysdba")
 
 	// S3Address
-	S3Address = *flag.String("s3addr", "http://127.0.0.1:9000", "S3 object storage address")
+	S3Address = *flag.String("s3addr", "127.0.0.1:9000", "S3 object storage address")
 
 	// S3AccessKey
 	S3AccessKey = *flag.String("s3akey", "ACCESSKEYID", "S3 access key")

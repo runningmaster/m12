@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"internal/errors"
 	"internal/net/s3"
+	"net/http"
+	"strings"
 
 	"github.com/garyburd/redigo/redis"
 	"golang.org/x/net/context"
@@ -137,7 +139,16 @@ func execGetSetDeler(gsd getsetdeler, op opType) (interface{}, error) {
 
 // ToS3 sends data to s3 interface
 func ToS3(ctx context.Context, b []byte) (interface{}, error) {
-	err := s3.Put("test", "name", bytes.NewBuffer(b), "{}")
+	if !strings.Contains(http.DetectContentType(b), "gzip") {
+		return nil, errors.Locusf("core: s3: gzip not found")
+	}
+
+	//err := s3.MkB("test")
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	err := s3.Put("test", "name2", bytes.NewBuffer(b), "{}")
 	if err != nil {
 		return nil, err
 	}

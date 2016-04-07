@@ -13,7 +13,7 @@ import (
 var (
 	pool = sync.Pool{
 		New: func() interface{} {
-			c, err := s3.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, false)
+			c, err := s3.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, true)
 			if err != nil {
 				return errors.Locus(err)
 			}
@@ -27,7 +27,7 @@ func getCli() (*s3.Client, error) {
 	case *s3.Client:
 		return c, nil
 	case error:
-		return nil, c
+		return nil, errors.Locus(c)
 	}
 	return nil, errors.Locusf("s3: unreachable")
 }
@@ -36,10 +36,30 @@ func putCli(x interface{}) {
 	pool.Put(x)
 }
 
+func MkB(bucketName string) error {
+	c, err := getCli()
+	if err != nil {
+		return errors.Locus(err)
+	}
+	defer putCli(c)
+
+	return c.MakeBucket(bucketName, "")
+}
+
+func RmB(bucketName string) error {
+	c, err := getCli()
+	if err != nil {
+		return errors.Locus(err)
+	}
+	defer putCli(c)
+
+	return c.RemoveBucket(bucketName)
+}
+
 func Put(bucketName, objectName string, r io.Reader, contentType string) error {
 	c, err := getCli()
 	if err != nil {
-		return err
+		return errors.Locus(err)
 	}
 	defer putCli(c)
 
@@ -53,7 +73,7 @@ func Put(bucketName, objectName string, r io.Reader, contentType string) error {
 func Get(bucketName, objectName string) (io.Reader, error) {
 	c, err := getCli()
 	if err != nil {
-		return nil, err
+		return nil, errors.Locus(err)
 	}
 	defer putCli(c)
 
