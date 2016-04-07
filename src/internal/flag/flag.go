@@ -42,11 +42,14 @@ var (
 	// Masterkey is default secret key for sysdba
 	Masterkey = *flag.String("masterkey", "masterkey", "secret key for sysdba")
 
+	// S3Address
+	S3Address = *flag.String("s3addr", "http://127.0.0.1:9000", "S3 object storage address")
+
 	// S3AccessKey
-	S3AccessKey = *flag.String("s3akey", "", "S3 access key")
+	S3AccessKey = *flag.String("s3akey", "ACCESSKEYID", "S3 access key")
 
 	// S3SecretKey
-	S3SecretKey = *flag.String("s3skey", "", "S3 secret key")
+	S3SecretKey = *flag.String("s3skey", "SECRETACCESSKEY", "S3 secret key")
 )
 
 // Parse is wrapper for std flag.Parse()
