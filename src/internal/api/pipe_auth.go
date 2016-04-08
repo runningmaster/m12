@@ -64,7 +64,12 @@ func getKey(r *http.Request) (string, error) {
 }
 
 func auth(key string) error {
-	res, err := core.GetAuth(nil, []byte(fmt.Sprintf("[%q]", key)))
+	req, err := http.NewRequest("", "", strings.NewReader(fmt.Sprintf("[%q]", key)))
+	if err != nil {
+		return err
+	}
+
+	res, err := core.GetAuth(req)
 	if err != nil {
 		return err
 	}

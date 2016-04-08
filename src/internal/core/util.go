@@ -3,6 +3,8 @@ package core
 import (
 	"bufio"
 	"bytes"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -15,8 +17,24 @@ func stringOK() string {
 	return http.StatusText(http.StatusOK)
 }
 
-func mendGzip(ct string, b []byte) ([]byte, error) {
-	if strings.Contains(ct, "gzip") {
+func readBody(r *http.Request) ([]byte, error) {
+	defer func(c io.Closer) {
+		_ = c.Close()
+	}(r.Body)
+
+	return ioutil.ReadAll(r.Body)
+}
+
+func isTypeGzip(b []byte) bool {
+	return strings.Contains(http.DetectContentType(b), "gzip")
+}
+
+func isTypeUTF8(b []byte) bool {
+	return strings.Contains(http.DetectContentType(b), "text/plain; charset=utf-8")
+}
+
+func mendIfGzip(b []byte) ([]byte, error) {
+	if isTypeGzip(b) {
 		unz, err := gzip.Gunzip(b)
 		if err != nil {
 			return nil, err
@@ -27,28 +45,9 @@ func mendGzip(ct string, b []byte) ([]byte, error) {
 	return b, nil
 }
 
-func mendUTF8(ct string, b []byte) ([]byte, error) {
-	if strings.Contains(ct, "text/plain; charset=utf-8") {
+func mendIfUTF8(b []byte) ([]byte, error) {
+	if isTypeUTF8(b) {
 		return bom.Clean(b), nil
-	}
-
-	return b, nil
-}
-
-func mendGzipAndUTF8(b []byte) ([]byte, error) {
-	var (
-		ct  string
-		err error
-	)
-
-	ct = http.DetectContentType(b)
-	if b, err = mendGzip(ct, b); err != nil {
-		return nil, err
-	}
-
-	ct = http.DetectContentType(b)
-	if b, err = mendUTF8(ct, b); err != nil {
-		return nil, err
 	}
 
 	return b, nil

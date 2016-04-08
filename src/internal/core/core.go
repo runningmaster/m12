@@ -3,12 +3,11 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"internal/net/s3"
 	"net/http"
-	"strings"
+
+	"internal/net/s3"
 
 	"github.com/garyburd/redigo/redis"
-	"golang.org/x/net/context"
 )
 
 type (
@@ -28,72 +27,83 @@ const (
 )
 
 // Handler is func for processing data from api.
-type Handler func(context.Context, []byte) (interface{}, error)
+type Handler func(r *http.Request) (interface{}, error)
 
 // GetAuth gets auth(s).
-func GetAuth(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opGet, toAuth)(ctx, b)
+func GetAuth(r *http.Request) (interface{}, error) {
+	return applyOp(opGet, toAuth)(r)
 }
 
 // SetAuth sets auth(s).
-func SetAuth(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opSet, toAuth)(ctx, b)
+func SetAuth(r *http.Request) (interface{}, error) {
+	return applyOp(opSet, toAuth)(r)
 }
 
 // DelAuth deletes auth(s).
-func DelAuth(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opDel, toAuth)(ctx, b)
+func DelAuth(r *http.Request) (interface{}, error) {
+	return applyOp(opDel, toAuth)(r)
 }
 
 // GetLinkAddr gets linkAddr(s).
-func GetLinkAddr(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opGet, toLinkAddr)(ctx, b)
+func GetLinkAddr(r *http.Request) (interface{}, error) {
+	return applyOp(opGet, toLinkAddr)(r)
 }
 
 // SetLinkAddr sets linkAddr(s).
-func SetLinkAddr(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opSet, toLinkAddr)(ctx, b)
+func SetLinkAddr(r *http.Request) (interface{}, error) {
+	return applyOp(opSet, toLinkAddr)(r)
 }
 
 // DelLinkAddr deletes linkAddr(s).
-func DelLinkAddr(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opDel, toLinkAddr)(ctx, b)
+func DelLinkAddr(r *http.Request) (interface{}, error) {
+	return applyOp(opDel, toLinkAddr)(r)
 }
 
 // GetLinkDrug gets linkDrug(s).
-func GetLinkDrug(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opGet, toLinkDrug)(ctx, b)
+func GetLinkDrug(r *http.Request) (interface{}, error) {
+	return applyOp(opGet, toLinkDrug)(r)
 }
 
 // SetLinkDrug sets linkDrug(s).
-func SetLinkDrug(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opSet, toLinkDrug)(ctx, b)
+func SetLinkDrug(r *http.Request) (interface{}, error) {
+	return applyOp(opSet, toLinkDrug)(r)
 }
 
 // DelLinkDrug deletes linkDrug(s).
-func DelLinkDrug(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opDel, toLinkDrug)(ctx, b)
+func DelLinkDrug(r *http.Request) (interface{}, error) {
+	return applyOp(opDel, toLinkDrug)(r)
 }
 
 // GetLinkStat gets linkStat(s).
-func GetLinkStat(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opGet, toLinkStat)(ctx, b)
+func GetLinkStat(r *http.Request) (interface{}, error) {
+	return applyOp(opGet, toLinkStat)(r)
 }
 
 // SetLinkStat sets linkStat(s).
-func SetLinkStat(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opSet, toLinkStat)(ctx, b)
+func SetLinkStat(r *http.Request) (interface{}, error) {
+	return applyOp(opSet, toLinkStat)(r)
 }
 
 // DelLinkStat deletes linkStat(s).
-func DelLinkStat(ctx context.Context, b []byte) (interface{}, error) {
-	return applyOp(opDel, toLinkStat)(ctx, b)
+func DelLinkStat(r *http.Request) (interface{}, error) {
+	return applyOp(opDel, toLinkStat)(r)
 }
 
 func applyOp(op opType, to toType) Handler {
-	return func(_ context.Context, b []byte) (interface{}, error) {
-		var err error
-		if b, err = mendGzipAndUTF8(b); err != nil {
+	return func(r *http.Request) (interface{}, error) {
+		var (
+			b   []byte
+			err error
+		)
+		if b, err = readBody(r); err != nil {
+			return nil, err
+		}
+
+		if b, err = mendIfGzip(b); err != nil {
+			return nil, err
+		}
+
+		if b, err = mendIfUTF8(b); err != nil {
 			return nil, err
 		}
 
@@ -138,8 +148,16 @@ func execGetSetDeler(gsd getsetdeler, op opType) (interface{}, error) {
 }
 
 // ToS3 sends data to s3 interface
-func ToS3(ctx context.Context, b []byte) (interface{}, error) {
-	if !strings.Contains(http.DetectContentType(b), "gzip") {
+func ToS3(r *http.Request) (interface{}, error) {
+	var (
+		b   []byte
+		err error
+	)
+	if b, err = readBody(r); err != nil {
+		return nil, err
+	}
+
+	if !isTypeGzip(b) {
 		return nil, fmt.Errorf("core: s3: gzip not found")
 	}
 
@@ -148,8 +166,7 @@ func ToS3(ctx context.Context, b []byte) (interface{}, error) {
 	//	return nil, err
 	//}
 
-	err := s3.Put("test", "name2", bytes.NewBuffer(b), "{}")
-	if err != nil {
+	if err = s3.Put("test", "name2", bytes.NewBuffer(b), "{}"); err != nil {
 		return nil, err
 	}
 
@@ -157,7 +174,7 @@ func ToS3(ctx context.Context, b []byte) (interface{}, error) {
 }
 
 // Ping calls Redis PING
-func Ping(_ context.Context, b []byte) (interface{}, error) {
+func Ping(_ *http.Request) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
 
@@ -165,7 +182,7 @@ func Ping(_ context.Context, b []byte) (interface{}, error) {
 }
 
 // Info calls Redis INFO
-func Info(_ context.Context, b []byte) (interface{}, error) {
+func Info(_ *http.Request) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
 

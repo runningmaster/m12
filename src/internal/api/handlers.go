@@ -2,8 +2,6 @@ package api
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -36,28 +34,16 @@ func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	var (
-		b   []byte
-		err error
+		f  core.Handler
+		ok bool
 	)
-
-	if r.Method == "POST" {
-		defer func(c io.Closer) {
-			_ = c.Close()
-		}(r.Body)
-
-		if b, err = ioutil.ReadAll(r.Body); err != nil {
-			return with500(ctx, err)
-		}
+	if f, ok = mapCoreHandlers[r.URL.Path]; !ok {
+		return with500(ctx, fmt.Errorf("exec: core method not found"))
 	}
 
-	var res interface{}
-	if f, ok := mapCoreHandlers[r.URL.Path]; ok {
-		res, err = f(ctx, b)
-		if err != nil {
-			return with500(ctx, err)
-		}
-	} else {
-		panic(fmt.Errorf("exec: unreachable"))
+	res, err := f(r)
+	if err != nil {
+		return with500(ctx, err)
 	}
 
 	return with200(ctx, w, res)
