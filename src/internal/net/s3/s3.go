@@ -36,6 +36,7 @@ func putCli(x interface{}) {
 	pool.Put(x)
 }
 
+// MkB is wrapper for MakeBucket()
 func MkB(bucketName string) error {
 	c, err := getCli()
 	if err != nil {
@@ -46,6 +47,7 @@ func MkB(bucketName string) error {
 	return c.MakeBucket(bucketName, "")
 }
 
+// RmB is wrapper for RemoveBucket()
 func RmB(bucketName string) error {
 	c, err := getCli()
 	if err != nil {
@@ -56,6 +58,7 @@ func RmB(bucketName string) error {
 	return c.RemoveBucket(bucketName)
 }
 
+// Put is wrapper for PutObject()
 func Put(bucketName, objectName string, r io.Reader, contentType string) error {
 	c, err := getCli()
 	if err != nil {
@@ -70,6 +73,7 @@ func Put(bucketName, objectName string, r io.Reader, contentType string) error {
 	return nil
 }
 
+// Get is wrapper for GetObject()
 func Get(bucketName, objectName string) (io.Reader, error) {
 	c, err := getCli()
 	if err != nil {

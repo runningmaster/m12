@@ -136,6 +136,7 @@ func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
 	}
 }
 
+/*
 type headSrc struct {
 	// auth
 	Key string `json:"key,omitempty"`
@@ -197,3 +198,4 @@ type bodySaleBYV3 struct {
 	StockTab float64  `json:"stock_tab,omitempty"` // formerly BalanceT
 	Link     linkDrug `json:"link,omitempty"`
 }
+*/
