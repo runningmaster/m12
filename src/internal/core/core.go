@@ -10,86 +10,11 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-type (
-	toType int
-	opType int
-)
-
-const (
-	toAuth toType = iota
-	toLinkAddr
-	toLinkDrug
-	toLinkStat
-
-	opGet opType = iota
-	opSet
-	opDel
-)
-
 // Handler is func for processing data from api.
 type Handler func(r *http.Request) (interface{}, error)
 
-// GetAuth gets auth(s).
-func GetAuth(r *http.Request) (interface{}, error) {
-	return applyOp(opGet, toAuth)(r)
-}
-
-// SetAuth sets auth(s).
-func SetAuth(r *http.Request) (interface{}, error) {
-	return applyOp(opSet, toAuth)(r)
-}
-
-// DelAuth deletes auth(s).
-func DelAuth(r *http.Request) (interface{}, error) {
-	return applyOp(opDel, toAuth)(r)
-}
-
-// GetLinkAddr gets linkAddr(s).
-func GetLinkAddr(r *http.Request) (interface{}, error) {
-	return applyOp(opGet, toLinkAddr)(r)
-}
-
-// SetLinkAddr sets linkAddr(s).
-func SetLinkAddr(r *http.Request) (interface{}, error) {
-	return applyOp(opSet, toLinkAddr)(r)
-}
-
-// DelLinkAddr deletes linkAddr(s).
-func DelLinkAddr(r *http.Request) (interface{}, error) {
-	return applyOp(opDel, toLinkAddr)(r)
-}
-
-// GetLinkDrug gets linkDrug(s).
-func GetLinkDrug(r *http.Request) (interface{}, error) {
-	return applyOp(opGet, toLinkDrug)(r)
-}
-
-// SetLinkDrug sets linkDrug(s).
-func SetLinkDrug(r *http.Request) (interface{}, error) {
-	return applyOp(opSet, toLinkDrug)(r)
-}
-
-// DelLinkDrug deletes linkDrug(s).
-func DelLinkDrug(r *http.Request) (interface{}, error) {
-	return applyOp(opDel, toLinkDrug)(r)
-}
-
-// GetLinkStat gets linkStat(s).
-func GetLinkStat(r *http.Request) (interface{}, error) {
-	return applyOp(opGet, toLinkStat)(r)
-}
-
-// SetLinkStat sets linkStat(s).
-func SetLinkStat(r *http.Request) (interface{}, error) {
-	return applyOp(opSet, toLinkStat)(r)
-}
-
-// DelLinkStat deletes linkStat(s).
-func DelLinkStat(r *http.Request) (interface{}, error) {
-	return applyOp(opDel, toLinkStat)(r)
-}
-
-func applyOp(op opType, to toType) Handler {
+// RunC is "print-like" operation.
+func RunC(cmd, base string) Handler {
 	return func(r *http.Request) (interface{}, error) {
 		var (
 			b   []byte
@@ -108,43 +33,43 @@ func applyOp(op opType, to toType) Handler {
 		}
 
 		var gsd getsetdeler
-		if gsd, err = makeGetSetDeler(to, b); err != nil {
+		if gsd, err = makeGetSetDeler(base, b); err != nil {
 			return nil, err
 		}
 
-		return execGetSetDeler(gsd, op)
+		return execGetSetDeler(cmd, gsd)
 	}
 }
 
-func makeGetSetDeler(to toType, b []byte) (getsetdeler, error) {
-	switch to {
-	case toAuth:
+func makeGetSetDeler(base string, b []byte) (getsetdeler, error) {
+	switch base {
+	case "auth":
 		return decodeAuth(b), nil
-	case toLinkAddr:
+	case "addr":
 		return decodeLinkAddr(b), nil
-	case toLinkDrug:
+	case "drug":
 		return decodeLinkDrug(b), nil
-	case toLinkStat:
+	case "stat":
 		return decodeLinkStat(b), nil
 	}
 
-	return nil, fmt.Errorf("core: unknown sys type %v", to)
+	return nil, fmt.Errorf("core: unknown base %s", base)
 }
 
-func execGetSetDeler(gsd getsetdeler, op opType) (interface{}, error) {
+func execGetSetDeler(cmd string, gsd getsetdeler) (interface{}, error) {
 	c := redisPool.Get()
 	defer redisPool.Put(c)
 
-	switch op {
-	case opGet:
+	switch cmd {
+	case "get":
 		return gsd.get(c)
-	case opSet:
+	case "set":
 		return gsd.set(c)
-	case opDel:
+	case "del":
 		return gsd.del(c)
 	}
 
-	return nil, fmt.Errorf("core: unknown op type %v", op)
+	return nil, fmt.Errorf("core: unknown command %s", cmd)
 }
 
 // ToS3 sends data to s3 interface
