@@ -3,8 +3,6 @@ package core
 import (
 	"encoding/json"
 
-	"internal/errors"
-
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -18,7 +16,7 @@ type decodeLinkStat []byte
 func (d decodeLinkStat) src() ([]int64, error) {
 	var out []int64
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -27,7 +25,7 @@ func (d decodeLinkStat) src() ([]int64, error) {
 func (d decodeLinkStat) lnk() ([]linkStat, error) {
 	var out []linkStat
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -36,7 +34,7 @@ func (d decodeLinkStat) lnk() ([]linkStat, error) {
 func (d decodeLinkStat) vls(withKey bool) ([]interface{}, error) {
 	src, err := d.src()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	out := make([]interface{}, 0, len(src)+1)
@@ -54,12 +52,12 @@ func (d decodeLinkStat) vls(withKey bool) ([]interface{}, error) {
 func (d decodeLinkStat) get(c redis.Conn) ([]interface{}, error) {
 	vls, err := d.vls(true)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	rcv, err := redis.Values(c.Do("HMGET", vls...))
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	var l linkStat
@@ -74,7 +72,7 @@ func (d decodeLinkStat) get(c redis.Conn) ([]interface{}, error) {
 func (d decodeLinkStat) set(c redis.Conn) (interface{}, error) {
 	lnk, err := d.lnk()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	vls := make([]interface{}, 0, len(lnk)*2+1)
@@ -84,7 +82,7 @@ func (d decodeLinkStat) set(c redis.Conn) (interface{}, error) {
 	}
 
 	if _, err = c.Do("HMSET", vls...); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return stringOK(), nil
@@ -93,7 +91,7 @@ func (d decodeLinkStat) set(c redis.Conn) (interface{}, error) {
 func (d decodeLinkStat) del(c redis.Conn) (interface{}, error) {
 	vls, err := d.vls(true)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return c.Do("HDEL", vls...)

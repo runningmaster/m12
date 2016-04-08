@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"internal/core"
-	"internal/errors"
 	"internal/flag"
 
 	"golang.org/x/net/context"
@@ -29,7 +28,7 @@ func pipeAuth(h handlerFunc) handlerFunc {
 		return
 
 	fail:
-		h(withCode(withFail(ctx, errors.Locus(err)), http.StatusInternalServerError), w, r)
+		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 
@@ -53,7 +52,7 @@ func getKeyV2(r *http.Request, err error) (string, error) {
 
 func getKey(r *http.Request) (string, error) {
 	var key string
-	var err = errors.Locusf("api: auth key (as param) not found")
+	var err = fmt.Errorf("api: auth key (as param) not found")
 
 	if key, err = getKeyV1(r, err); err != nil {
 		if key, err = getKeyV2(r, err); err != nil {
@@ -67,7 +66,7 @@ func getKey(r *http.Request) (string, error) {
 func auth(key string) error {
 	res, err := core.GetAuth(nil, []byte(fmt.Sprintf("[%q]", key)))
 	if err != nil {
-		return errors.Locus(err)
+		return err
 	}
 
 	if src, ok := res.([]interface{}); ok && len(src) > 0 {
@@ -82,9 +81,9 @@ func auth(key string) error {
 
 	var v []byte
 	if v, err = json.Marshal(res); err != nil {
-		return errors.Locus(err)
+		return err
 	}
-	return errors.Locusf("api: auth key (as value) not found: %s: forbidden", string(v))
+	return fmt.Errorf("api: auth key (as value) not found: %s: forbidden", string(v))
 }
 
 func isMasterKey(key string) bool {

@@ -2,7 +2,7 @@ package core
 
 import (
 	"bytes"
-	"internal/errors"
+	"fmt"
 	"internal/net/s3"
 	"net/http"
 	"strings"
@@ -94,12 +94,12 @@ func applyOp(op opType, to toType) Handler {
 	return func(_ context.Context, b []byte) (interface{}, error) {
 		var err error
 		if b, err = mendGzipAndUTF8(b); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 
 		var gsd getsetdeler
 		if gsd, err = makeGetSetDeler(to, b); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 
 		return execGetSetDeler(gsd, op)
@@ -118,7 +118,7 @@ func makeGetSetDeler(to toType, b []byte) (getsetdeler, error) {
 		return decodeLinkStat(b), nil
 	}
 
-	return nil, errors.Locusf("core: unknown sys type %v", to)
+	return nil, fmt.Errorf("core: unknown sys type %v", to)
 }
 
 func execGetSetDeler(gsd getsetdeler, op opType) (interface{}, error) {
@@ -134,13 +134,13 @@ func execGetSetDeler(gsd getsetdeler, op opType) (interface{}, error) {
 		return gsd.del(c)
 	}
 
-	return nil, errors.Locusf("core: unknown op type %v", op)
+	return nil, fmt.Errorf("core: unknown op type %v", op)
 }
 
 // ToS3 sends data to s3 interface
 func ToS3(ctx context.Context, b []byte) (interface{}, error) {
 	if !strings.Contains(http.DetectContentType(b), "gzip") {
-		return nil, errors.Locusf("core: s3: gzip not found")
+		return nil, fmt.Errorf("core: s3: gzip not found")
 	}
 
 	//err := s3.MkB("test")
@@ -171,7 +171,7 @@ func Info(_ context.Context, b []byte) (interface{}, error) {
 
 	b, err := redis.Bytes(c.Do("INFO"))
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return parseInfo(b)

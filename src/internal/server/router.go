@@ -1,10 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"internal/errors"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine"
@@ -33,7 +32,7 @@ func initRouter(r *echo.Echo, reg ...regHandler) error {
 		case echo.POST:
 			r.Post(v.p, standard.WrapHandler(v.h))
 		default:
-			return errors.Locusf("router: unsupported method")
+			return fmt.Errorf("router: unsupported method")
 		}
 	}
 	return nil
@@ -62,7 +61,7 @@ func makeRouter() (*echo.Echo, error) {
 
 	err := initRouter(r, regHandlers...)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return r, nil

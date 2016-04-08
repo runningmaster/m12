@@ -3,8 +3,6 @@ package core
 import (
 	"encoding/json"
 
-	"internal/errors"
-
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -18,7 +16,7 @@ type decodeAuth []byte
 func (d decodeAuth) src() ([]string, error) {
 	var out []string
 	if err := json.Unmarshal(d, &out); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return out, nil
@@ -27,7 +25,7 @@ func (d decodeAuth) src() ([]string, error) {
 func (d decodeAuth) vls(withKey bool) ([]interface{}, error) {
 	src, err := d.src()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	out := make([]interface{}, 0, len(src)+1)
@@ -44,23 +42,23 @@ func (d decodeAuth) vls(withKey bool) ([]interface{}, error) {
 func (d decodeAuth) get(c redis.Conn) ([]interface{}, error) {
 	vls, err := d.vls(false)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	for i := range vls {
 		if err = c.Send("SISMEMBER", keyAuth, vls[i]); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 	}
 
 	if err = c.Flush(); err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	var rcv int64
 	for i := range vls {
 		if rcv, err = redis.Int64(c.Receive()); err != nil {
-			return nil, errors.Locus(err)
+			return nil, err
 		}
 		if rcv == 0 {
 			vls[i] = nil
@@ -75,7 +73,7 @@ func (d decodeAuth) get(c redis.Conn) ([]interface{}, error) {
 func (d decodeAuth) set(c redis.Conn) (interface{}, error) {
 	vls, err := d.vls(true)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return c.Do("SADD", vls...)
@@ -84,7 +82,7 @@ func (d decodeAuth) set(c redis.Conn) (interface{}, error) {
 func (d decodeAuth) del(c redis.Conn) (interface{}, error) {
 	vls, err := d.vls(true)
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 
 	return c.Do("SREM", vls...)

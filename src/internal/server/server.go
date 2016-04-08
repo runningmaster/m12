@@ -1,9 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"sync"
 
-	"internal/errors"
 	"internal/flag"
 
 	"github.com/braintree/manners"
@@ -35,7 +35,7 @@ func initOnce() error {
 	})
 
 	if errOnce != nil {
-		return errors.Locus(errOnce)
+		return errOnce
 	}
 
 	return nil
@@ -44,11 +44,11 @@ func initOnce() error {
 // Start starts HTTP server
 func Start() error {
 	if FailFast != nil {
-		return errors.Locusf("server: fail fast: %v", FailFast)
+		return fmt.Errorf("server: fail fast: %v", FailFast)
 	}
 
 	if err := initOnce(); err != nil {
-		return errors.Locus(err)
+		return err
 	}
 
 	return gsrv.ListenAndServe()
@@ -57,11 +57,11 @@ func Start() error {
 // Stop stops HTTP server
 func Stop() error {
 	if gsrv == nil {
-		return errors.Locusf("server: not registered")
+		return fmt.Errorf("server: not registered")
 	}
 
 	if ok := gsrv.Close(); !ok {
-		return errors.Locusf("server: received false on close")
+		return fmt.Errorf("server: received false on close")
 	}
 
 	return nil

@@ -1,10 +1,10 @@
 package s3
 
 import (
+	"fmt"
 	"io"
 	"sync"
 
-	"internal/errors"
 	"internal/flag"
 
 	s3 "github.com/minio/minio-go"
@@ -15,7 +15,7 @@ var (
 		New: func() interface{} {
 			c, err := s3.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, true)
 			if err != nil {
-				return errors.Locus(err)
+				return err
 			}
 			return c
 		},
@@ -27,9 +27,9 @@ func getCli() (*s3.Client, error) {
 	case *s3.Client:
 		return c, nil
 	case error:
-		return nil, errors.Locus(c)
+		return nil, c
 	}
-	return nil, errors.Locusf("s3: unreachable")
+	return nil, fmt.Errorf("s3: unreachable")
 }
 
 func putCli(x interface{}) {
@@ -39,7 +39,7 @@ func putCli(x interface{}) {
 func MkB(bucketName string) error {
 	c, err := getCli()
 	if err != nil {
-		return errors.Locus(err)
+		return err
 	}
 	defer putCli(c)
 
@@ -49,7 +49,7 @@ func MkB(bucketName string) error {
 func RmB(bucketName string) error {
 	c, err := getCli()
 	if err != nil {
-		return errors.Locus(err)
+		return err
 	}
 	defer putCli(c)
 
@@ -59,12 +59,12 @@ func RmB(bucketName string) error {
 func Put(bucketName, objectName string, r io.Reader, contentType string) error {
 	c, err := getCli()
 	if err != nil {
-		return errors.Locus(err)
+		return err
 	}
 	defer putCli(c)
 
 	if _, err := c.PutObject(bucketName, objectName, r, contentType); err != nil {
-		return errors.Locus(err)
+		return err
 	}
 
 	return nil
@@ -73,7 +73,7 @@ func Put(bucketName, objectName string, r io.Reader, contentType string) error {
 func Get(bucketName, objectName string) (io.Reader, error) {
 	c, err := getCli()
 	if err != nil {
-		return nil, errors.Locus(err)
+		return nil, err
 	}
 	defer putCli(c)
 

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"internal/core"
-	"internal/errors"
 	"internal/flag"
 	"internal/version"
 
@@ -47,7 +46,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		}(r.Body)
 
 		if b, err = ioutil.ReadAll(r.Body); err != nil {
-			return with500(ctx, errors.Locus(err))
+			return with500(ctx, err)
 		}
 	}
 
@@ -55,10 +54,10 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	if f, ok := mapCoreHandlers[r.URL.Path]; ok {
 		res, err = f(ctx, b)
 		if err != nil {
-			return with500(ctx, errors.Locus(err))
+			return with500(ctx, err)
 		}
 	} else {
-		panic(errors.Locusf("exec: unreachable"))
+		panic(fmt.Errorf("exec: unreachable"))
 	}
 
 	return with200(ctx, w, res)
@@ -66,7 +65,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	if !flag.Debug {
-		return with500(ctx, errors.Locusf("flag debug not found"))
+		return with500(ctx, fmt.Errorf("flag debug not found"))
 	}
 
 	if h, p := http.DefaultServeMux.Handler(r); p != "" {
@@ -74,7 +73,7 @@ func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		return withCode(withSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
 	}
 
-	return withoutCode(ctx, errors.Locusf("debug: unreachable"), 0)
+	return withoutCode(ctx, fmt.Errorf("api: unreachable"), 0)
 }
 
 func e404(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
@@ -86,5 +85,5 @@ func e405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 }
 
 func estub(format string, code int) error {
-	return errors.Locusf(format, strings.ToLower(http.StatusText(code)))
+	return fmt.Errorf(format, strings.ToLower(http.StatusText(code)))
 }

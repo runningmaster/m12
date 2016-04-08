@@ -5,15 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"internal/errors"
-
 	"golang.org/x/net/context"
 )
 
 func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface{}) (int64, error) {
 	b, err := json.Marshal(i)
 	if err != nil {
-		return 0, errors.Locus(err)
+		return 0, err
 	}
 
 	w.Header().Set("X-UUID", uuidFromContext(ctx))
@@ -24,7 +22,7 @@ func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface
 		var tmp bytes.Buffer
 		err = json.Indent(&tmp, b, "", "\t")
 		if err != nil {
-			return 0, errors.Locus(err)
+			return 0, err
 		}
 		b = tmp.Bytes()
 	}
@@ -35,12 +33,12 @@ func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface
 	)
 
 	if n, err = w.Write(b); err != nil {
-		return int64(n), errors.Locus(err)
+		return int64(n), err
 	}
 	size = size + int64(n)
 
 	if _, err = w.Write([]byte("\n")); err != nil {
-		return 0, errors.Locus(err)
+		return 0, err
 	}
 	size++
 

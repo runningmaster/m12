@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"internal/errors"
-
 	"github.com/rogpeppe/fastuuid"
 	"golang.org/x/net/context"
 )
@@ -16,7 +14,7 @@ var uuidPool = sync.Pool{
 	New: func() interface{} {
 		g, err := fastuuid.NewGenerator()
 		if err != nil {
-			return errors.Locus(err)
+			return err
 		}
 		return g
 	},
