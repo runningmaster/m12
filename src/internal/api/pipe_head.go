@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"internal/context/ctxutil"
+
 	"github.com/rogpeppe/fastuuid"
 	"golang.org/x/net/context"
 )
@@ -22,11 +24,11 @@ var uuidPool = sync.Pool{
 
 func pipeHead(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = withTime(ctx, time.Now())
+		ctx = ctxutil.WithTime(ctx, time.Now())
 		switch g := uuidPool.Get().(type) {
 		case *fastuuid.Generator:
 			defer uuidPool.Put(g)
-			h(withUUID(ctx, fmt.Sprintf("%x", g.Next())), w, r)
+			h(ctxutil.WithID(ctx, fmt.Sprintf("%x", g.Next())), w, r)
 		case error:
 			panic(g) // FIXME (?)
 			//h(withFail(ctx, g), w, r)

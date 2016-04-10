@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"internal/context/ctxutil"
 	"internal/core"
 	"internal/flag"
 
@@ -24,11 +25,11 @@ func pipeAuth(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(withAuth(ctx, key), w, r)
+		h(ctxutil.WithAuth(ctx, key), w, r)
 		return
 
 	fail:
-		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(ctxutil.WithCode(ctxutil.WithFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 
@@ -51,8 +52,10 @@ func getKeyV2(r *http.Request, err error) (string, error) {
 }
 
 func getKey(r *http.Request) (string, error) {
-	var key string
-	var err = fmt.Errorf("api: auth key (as param) not found")
+	var (
+		key string
+		err = fmt.Errorf("api: auth key (as param) not found")
+	)
 
 	if key, err = getKeyV1(r, err); err != nil {
 		if key, err = getKeyV2(r, err); err != nil {
@@ -69,7 +72,7 @@ func auth(key string) error {
 		return err
 	}
 
-	res, err := core.RunC("get", "auth")(req)
+	res, err := core.RunC("get", "auth")(context.Background(), req)
 	if err != nil {
 		return err
 	}

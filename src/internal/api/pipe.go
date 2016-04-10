@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 
+	"internal/context/ctxutil"
+
 	"golang.org/x/net/context"
 )
 
@@ -17,7 +19,7 @@ func use(pipes ...handlerPipe) http.Handler {
 func pipe(h handlerFuncCtx) handlerPipe {
 	return func(next handlerFunc) handlerFunc {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-			if err := failFromContext(ctx); err != nil {
+			if err := ctxutil.FailFromContext(ctx); err != nil {
 				next(ctx, w, r)
 				return
 			}

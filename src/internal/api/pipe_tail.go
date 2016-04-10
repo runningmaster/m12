@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"internal/context/ctxutil"
 	"internal/log"
 
 	"github.com/pivotal-golang/bytefmt"
@@ -15,7 +16,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
 		val := []interface{}{
-			markEmpty(inf.uuid()[:16]),
+			markEmpty(inf.id()[:16]),
 			markEmpty(inf.address()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
@@ -74,31 +75,31 @@ func (i informer) agent() string {
 	return i.r.UserAgent()
 }
 
-func (i informer) uuid() string {
-	return uuidFromContext(i.c)
+func (i informer) id() string {
+	return ctxutil.IDFromContext(i.c)
 }
 
 func (i informer) auth() string {
-	return authFromContext(i.c)
+	return ctxutil.AuthFromContext(i.c)
 }
 
 func (i informer) code() int {
-	return codeFromContext(i.c)
+	return ctxutil.CodeFromContext(i.c)
 }
 
 func (i informer) size() int64 {
-	return sizeFromContext(i.c)
+	return ctxutil.SizeFromContext(i.c)
 }
 
 func (i informer) fail() string {
-	if err := failFromContext(i.c); err != nil {
+	if err := ctxutil.FailFromContext(i.c); err != nil {
 		return err.Error()
 	}
 	return ""
 }
 
 func (i informer) time() string {
-	if t := timeFromContext(i.c); !t.IsZero() {
+	if t := ctxutil.TimeFromContext(i.c); !t.IsZero() {
 		return time.Since(t).String()
 	}
 	return ""

@@ -136,31 +136,28 @@ func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
 	}
 }
 
-/*
-type headSrc struct {
-	// auth
-	Key string `json:"key,omitempty"`
-	Tag string `json:"tag,omitempty"`
-	Src string `json:"src,omitempty"` // BR_NICK:id_addr | MDS_LICENSE / file:FileName
-	// geoa
-	Name string `json:"name,omitempty"`
-	Head string `json:"head,omitempty"`
-	Addr string `json:"addr,omitempty"`
-	Code string `json:"code,omitempty"` // egrpou (okpo)
-	// sale
-	Span []string `json:"span,omitempty"`
-	Time string   `json:"time,omitempty"` // ?
-	Hash string   `json:"hash,omitempty"` // ?
+// geo	key, tag, n,h,a,c
+// sle	key, tag, src, span
+type нead struct {
+	ID string `json:"id,omitempty"` // ?
+	IP string `json:"ip,omitempty"` // ?
+
+	Key  string   `json:"key,omitempty"`  // *
+	Tag  string   `json:"tag,omitempty"`  // *
+	Src  string   `json:"src,omitempty"`  // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
+	Name string   `json:"name,omitempty"` // *
+	Head string   `json:"head,omitempty"` // *
+	Addr string   `json:"addr,omitempty"` // *
+	Code string   `json:"code,omitempty"` // egrpou (okpo)
+	Span []string `json:"span,omitempty"` // *
+
+	From int64  `json:"from,omitempty"` // ?
+	Time string `json:"time,omitempty"` // ?
+	Hash string `json:"hash,omitempty"` // ?
+	Path string `json:"path,omitempty"` // ?
 }
 
-type headSky struct {
-	ID         string `json:"id,omitempty"`
-	IDAddr     int64  `json:"id_addr,omitempty"`
-	RemoteAddr string `json:"remote_addr,omitempty"`
-	Timestamp  string `json:"timestamp,omitempty"`
-	Checksum   string `json:"checksum,omitempty"`
-	S3Path     string `json:"s3path,omitempty"`
-}
+/*
 
 type bodyGeoV3 struct {
 	ID    string   `json:"id,omitempty"`

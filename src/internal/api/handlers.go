@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"internal/context/ctxutil"
 	"internal/core"
 	"internal/flag"
 	"internal/version"
@@ -41,7 +42,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		return with500(ctx, fmt.Errorf("exec: core method not found"))
 	}
 
-	res, err := f(r)
+	res, err := f(ctx, r)
 	if err != nil {
 		return with500(ctx, err)
 	}
@@ -56,18 +57,18 @@ func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 	if h, p := http.DefaultServeMux.Handler(r); p != "" {
 		h.ServeHTTP(w, r)
-		return withCode(withSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
+		return ctxutil.WithCode(ctxutil.WithSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
 	}
 
 	return withoutCode(ctx, fmt.Errorf("api: unreachable"), 0)
 }
 
 func e404(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	return withCode(withFail(ctx, estub("api: method %s", http.StatusNotFound)), http.StatusNotFound)
+	return ctxutil.WithCode(ctxutil.WithFail(ctx, estub("api: method %s", http.StatusNotFound)), http.StatusNotFound)
 }
 
 func e405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	return withCode(withFail(ctx, estub("api: %s", http.StatusMethodNotAllowed)), http.StatusMethodNotAllowed)
+	return ctxutil.WithCode(ctxutil.WithFail(ctx, estub("api: %s", http.StatusMethodNotAllowed)), http.StatusMethodNotAllowed)
 }
 
 func estub(format string, code int) error {
