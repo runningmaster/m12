@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"internal/flag"
-	"internal/server"
+	"internal/log"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -23,7 +23,7 @@ func init() {
 	var err error
 	redisServer, err = newRedis(flag.Redis)
 	if err != nil {
-		server.FailFast = err
+		log.Fatal(err)
 	}
 }
 

@@ -10,9 +10,6 @@ import (
 )
 
 var (
-	// FailFast informs us that work is impossible
-	FailFast error
-
 	once sync.Once
 	gsrv *manners.GracefulServer
 )
@@ -43,10 +40,6 @@ func initOnce() error {
 
 // Start starts HTTP server
 func Start() error {
-	if FailFast != nil {
-		return fmt.Errorf("server: fail fast: %v", FailFast)
-	}
-
 	if err := initOnce(); err != nil {
 		return err
 	}

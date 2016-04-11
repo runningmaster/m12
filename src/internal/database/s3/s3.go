@@ -3,6 +3,7 @@ package s3
 import (
 	"fmt"
 	"io"
+	"log"
 	"sync"
 
 	"internal/flag"
@@ -22,6 +23,13 @@ var (
 	}
 )
 
+func init() {
+	_, err := LsB()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getCli() (*s3.Client, error) {
 	switch c := pool.Get().(type) {
 	case *s3.Client:
@@ -34,6 +42,27 @@ func getCli() (*s3.Client, error) {
 
 func putCli(x interface{}) {
 	pool.Put(x)
+}
+
+// LsB is wrapper for ListBuckets()
+func LsB() ([]string, error) {
+	c, err := getCli()
+	if err != nil {
+		return nil, err
+	}
+	defer putCli(c)
+
+	l, err := c.ListBuckets()
+	if err != nil {
+		return nil, err
+	}
+
+	s := make([]string, len(l))
+	for i := range l {
+		s[i] = l[i].Name
+	}
+
+	return s, nil
 }
 
 // MkB is wrapper for MakeBucket()
