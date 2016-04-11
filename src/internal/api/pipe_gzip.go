@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	gz "internal/compress/gzip"
+	"internal/compress/gzutil"
 
 	"github.com/klauspost/compress/gzip"
 	"golang.org/x/net/context"
@@ -58,11 +58,11 @@ func gzipInAcceptEncoding(r *http.Request) bool {
 func pipeGzip(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		if gzipInContentEncoding(r) {
-			z, err := gz.GetReader()
+			z, err := gzutil.GetReader()
 			if err != nil {
 				// FIXME log err
 			}
-			defer gz.PutReader(z)
+			defer gzutil.PutReader(z)
 			if err := z.Reset(r.Body); err != nil {
 				// FIXME log err
 			}
@@ -70,11 +70,11 @@ func pipeGzip(h handlerFunc) handlerFunc {
 		}
 
 		if gzipInAcceptEncoding(r) {
-			z, err := gz.GetWriter()
+			z, err := gzutil.GetWriter()
 			if err != nil {
 				// FIXME TODO log err
 			}
-			defer gz.PutWriter(z)
+			defer gzutil.PutWriter(z)
 			z.Reset(w)
 			w = gzWriter{Writer: z, ResponseWriter: w}
 			w.Header().Add("Vary", "Accept-Encoding")

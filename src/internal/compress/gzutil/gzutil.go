@@ -1,4 +1,4 @@
-package gzip
+package gzutil
 
 import (
 	"bytes"

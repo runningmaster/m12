@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/compress/gzip"
+	"internal/compress/gzutil"
 
 	"github.com/spkg/bom"
 )
@@ -33,7 +33,7 @@ func isTypeUTF8(b []byte) bool {
 
 func mendIfGzip(b []byte) ([]byte, error) {
 	if isTypeGzip(b) {
-		unz, err := gzip.Gunzip(b)
+		unz, err := gzutil.Gunzip(b)
 		if err != nil {
 			return nil, err
 		}
