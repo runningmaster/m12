@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"internal/context/ctxutil"
-	"internal/net/s3"
+	"internal/database/s3"
 
 	"golang.org/x/net/context"
 )
