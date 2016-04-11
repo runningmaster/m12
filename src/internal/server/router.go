@@ -44,14 +44,16 @@ func trapErrorHandler(err error, c echo.Context) {
 		switch he.Code {
 		case http.StatusNotFound:
 			c.Echo().Router().Find("GET", "/error/404", c)
-			_ = c.Handle(c)
+			goto find
 		case http.StatusMethodNotAllowed:
 			c.Echo().Router().Find("GET", "/error/405", c)
-			_ = c.Handle(c)
+			goto find
 		}
-		return
 	}
 	c.Echo().DefaultHTTPErrorHandler(err, c)
+	return
+find:
+	c.Handle(c)
 }
 
 func makeRouter() (*echo.Echo, error) {
