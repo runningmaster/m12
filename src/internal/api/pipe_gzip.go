@@ -13,12 +13,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-type gzWriter struct {
+type gzipResponseWriter struct {
 	io.Writer
 	http.ResponseWriter
 }
 
-func (w gzWriter) Write(b []byte) (int, error) {
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	if w.Header().Get("Content-Type") == "" {
 		w.Header().Set("Content-Type", http.DetectContentType(b))
 	}
@@ -31,11 +31,11 @@ func (w gzWriter) Write(b []byte) (int, error) {
 	return n, nil
 }
 
-func (w gzWriter) Flush() error {
+func (w gzipResponseWriter) Flush() error {
 	return w.Writer.(*gzip.Writer).Flush()
 }
 
-func (w gzWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+func (w gzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	c, rw, err := w.ResponseWriter.(http.Hijacker).Hijack()
 	if err != nil {
 		return c, rw, err
@@ -44,7 +44,7 @@ func (w gzWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return c, rw, nil
 }
 
-func (w *gzWriter) CloseNotify() <-chan bool {
+func (w *gzipResponseWriter) CloseNotify() <-chan bool {
 	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }
 
@@ -76,7 +76,7 @@ func pipeGzip(h handlerFunc) handlerFunc {
 			}
 			defer gzutil.PutWriter(z)
 			z.Reset(w)
-			w = gzWriter{Writer: z, ResponseWriter: w}
+			w = gzipResponseWriter{Writer: z, ResponseWriter: w}
 			w.Header().Add("Vary", "Accept-Encoding")
 			w.Header().Set("Content-Encoding", "gzip")
 		}
