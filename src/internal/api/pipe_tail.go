@@ -1,7 +1,6 @@
 package api
 
 import (
-	"net"
 	"net/http"
 	"time"
 
@@ -17,7 +16,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 		inf := informer{ctx, w, r}
 		val := []interface{}{
 			markEmpty(inf.id()[:16]),
-			markEmpty(inf.address()),
+			markEmpty(inf.ip()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
 			markEmpty(inf.auth()),
@@ -59,16 +58,8 @@ func (i informer) method() string {
 	return i.r.Method
 }
 
-func (i informer) address() string {
-	var ip string
-	if ip = i.r.Header.Get("X-Real-IP"); ip == "" {
-		ip = i.r.Header.Get("X-Forwarded-For")
-	}
-	if ip == "" {
-		ip = i.r.RemoteAddr
-	}
-	ip, _, _ = net.SplitHostPort(ip)
-	return ip
+func (i informer) ip() string {
+	return ctxutil.IPFromContext(i.c)
 }
 
 func (i informer) agent() string {

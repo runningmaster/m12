@@ -34,6 +34,21 @@ func IDFromContext(ctx context.Context) string {
 }
 
 //
+func WithIP(ctx context.Context, v string) context.Context {
+	return context.WithValue(ctx, ctxIP, v)
+}
+
+//
+func IPFromContext(ctx context.Context) string {
+	switch v := ctx.Value(ctxIP).(type) {
+	case string:
+		return v
+	default:
+		return ""
+	}
+}
+
+//
 func WithAuth(ctx context.Context, v string) context.Context {
 	return context.WithValue(ctx, ctxAuth, v)
 }
