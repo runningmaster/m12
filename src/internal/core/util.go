@@ -8,8 +8,25 @@ import (
 
 	"internal/compress/gzutil"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/spkg/bom"
 )
+
+type redisGetSetDelOper interface {
+	get(redis.Conn) ([]interface{}, error)
+	set(redis.Conn) (interface{}, error)
+	del(redis.Conn) (interface{}, error)
+}
+
+func toInt64(v interface{}) int64 {
+	res, _ := redis.Int64(v, nil)
+	return res
+}
+
+func toString(v interface{}) string {
+	res, _ := redis.String(v, nil)
+	return res
+}
 
 func stringOK() string {
 	return http.StatusText(http.StatusOK)

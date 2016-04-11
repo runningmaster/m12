@@ -1,4 +1,4 @@
-package core
+package redispool
 
 import (
 	"io"
@@ -11,41 +11,24 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-var redisPool rediser
+var redisServer connGetter
 
 type (
-	// Rediser is dead simple common interface for executing commands to redis
-	rediser interface {
+	connGetter interface {
 		Get() redis.Conn
-		Put(c io.Closer)
-
-		//	ExecOne([]interface{}) (interface{}, error)
-		//	ExecMulti([][]interface{}) ([]interface{}, error)
-	}
-
-	getsetdeler interface {
-		get(redis.Conn) ([]interface{}, error)
-		set(redis.Conn) (interface{}, error)
-		del(redis.Conn) (interface{}, error)
-	}
-
-	redisServer struct {
-		pool interface {
-			Get() redis.Conn
-		}
 	}
 )
 
 func init() {
 	var err error
-	redisPool, err = newRedis(flag.Redis)
+	redisServer, err = newRedis(flag.Redis)
 	if err != nil {
 		server.FailFast = err
 	}
 }
 
 // New creates a server configured from default values.
-func newRedis(addr string) (rediser, error) {
+func newRedis(addr string) (connGetter, error) {
 	pool := &redis.Pool{
 		Dial:        dial(addr),
 		MaxIdle:     100,
@@ -58,7 +41,7 @@ func newRedis(addr string) (rediser, error) {
 	}
 	_ = c.Close()
 
-	return &redisServer{pool: pool}, nil
+	return pool, nil
 }
 
 func dial(addr string) func() (redis.Conn, error) {
@@ -91,22 +74,14 @@ func dial(addr string) func() (redis.Conn, error) {
 	}
 }
 
-func (s *redisServer) Get() redis.Conn {
-	return s.pool.Get()
+//
+func Get() redis.Conn {
+	return redisServer.Get()
 }
 
-func (s *redisServer) Put(c io.Closer) {
+//
+func Put(c io.Closer) {
 	if c != nil {
 		_ = c.Close()
 	}
-}
-
-func toInt64(v interface{}) int64 {
-	res, _ := redis.Int64(v, nil)
-	return res
-}
-
-func toString(v interface{}) string {
-	res, _ := redis.String(v, nil)
-	return res
 }

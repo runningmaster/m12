@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"internal/database/redispool"
+
 	"golang.org/x/net/context"
 )
 
@@ -26,7 +28,7 @@ func RunC(cmd, base string) Handler {
 			return nil, err
 		}
 
-		var gsd getsetdeler
+		var gsd redisGetSetDelOper
 		if gsd, err = makeGetSetDeler(base, b); err != nil {
 			return nil, err
 		}
@@ -35,7 +37,7 @@ func RunC(cmd, base string) Handler {
 	}
 }
 
-func makeGetSetDeler(base string, b []byte) (getsetdeler, error) {
+func makeGetSetDeler(base string, b []byte) (redisGetSetDelOper, error) {
 	switch base {
 	case "auth":
 		return decodeAuth(b), nil
@@ -50,9 +52,9 @@ func makeGetSetDeler(base string, b []byte) (getsetdeler, error) {
 	return nil, fmt.Errorf("core: unknown base %s", base)
 }
 
-func execGetSetDeler(cmd string, gsd getsetdeler) (interface{}, error) {
-	c := redisPool.Get()
-	defer redisPool.Put(c)
+func execGetSetDeler(cmd string, gsd redisGetSetDelOper) (interface{}, error) {
+	c := redispool.Get()
+	defer redispool.Put(c)
 
 	switch cmd {
 	case "get":
