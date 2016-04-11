@@ -28,10 +28,10 @@ var (
 	S3Address = *flag.String("s3addr", "127.0.0.1:9000", "S3 object storage address")
 
 	// S3AccessKey is S3 access key
-	S3AccessKey = *flag.String("s3akey", "Y7ITNG7IKMIKLVLZM3A3" /*"ACCESSKEYID"*/, "S3 access key")
+	S3AccessKey = *flag.String("s3akey", "ACCESSKEYID", "S3 access key")
 
 	// S3SecretKey is S3 secret key
-	S3SecretKey = *flag.String("s3skey", "kRu8xc2PxxSKc+8Jxpblv0R8mYMkfB0lccYuH6Hw" /*"SECRETACCESSKEY"*/, "S3 secret key")
+	S3SecretKey = *flag.String("s3skey", "SECRETACCESSKEY", "S3 secret key")
 )
 
 // Parse is wrapper for std flag.Parse()

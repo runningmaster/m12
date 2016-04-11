@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"runtime"
 
 	"internal/context/ctxutil"
 
@@ -32,8 +33,9 @@ func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface
 		return 0, err
 	}
 
-	w.Header().Set("X-Request-ID", ctxutil.IDFromContext(ctx))
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Powered-By", runtime.Version())
+	w.Header().Set("X-Request-ID", ctxutil.IDFromContext(ctx))
 	w.WriteHeader(code)
 
 	if true { // FIXME (flag?)

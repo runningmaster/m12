@@ -22,8 +22,8 @@ func pipeHead(h handlerFunc) handlerFunc {
 
 func findIP(r *http.Request) string {
 	var ip string
-	if ip = r.Header.Get("X-Real-IP"); ip == "" {
-		ip = r.Header.Get("X-Forwarded-For")
+	if ip = r.Header.Get("X-Forwarded-For"); ip == "" {
+		ip = r.Header.Get("X-Real-IP")
 	}
 
 	if ip == "" {

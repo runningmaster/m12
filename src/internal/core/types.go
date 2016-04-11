@@ -136,8 +136,8 @@ func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
 	}
 }
 
-// geo	key, tag, n,h,a,c
-// sle	key, tag, src, span
+// key, tag, src(n,h,a,c)
+// key, tag, src, span
 type нead struct {
 	ID string `json:"id,omitempty"` // ?
 	IP string `json:"ip,omitempty"` // ?
