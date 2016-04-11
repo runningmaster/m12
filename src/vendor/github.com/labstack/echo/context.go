@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -125,9 +124,6 @@ type (
 		// Error invokes the registered HTTP error handler. Generally used by middleware.
 		Error(err error)
 
-		// Handler implements `Handler` interface.
-		Handle(Context) error
-
 		// Logger returns the `Logger` instance.
 		Logger() *log.Logger
 
@@ -201,10 +197,6 @@ func (c *context) Err() error {
 
 func (c *context) Value(key interface{}) interface{} {
 	return c.netContext.Value(key)
-}
-
-func (c *context) Handle(ctx Context) error {
-	return c.handler(ctx)
 }
 
 func (c *context) Request() engine.Request {
@@ -374,12 +366,14 @@ func (c *context) File(file string) error {
 
 	fi, _ := f.Stat()
 	if fi.IsDir() {
-		file = path.Join(file, "index.html")
+		file = filepath.Join(file, "index.html")
 		f, err = os.Open(file)
 		if err != nil {
 			return ErrNotFound
 		}
-		fi, _ = f.Stat()
+		if fi, err = f.Stat(); err != nil {
+			return err
+		}
 	}
 	return c.ServeContent(f, fi.Name(), fi.ModTime())
 }

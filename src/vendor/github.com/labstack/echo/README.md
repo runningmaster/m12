@@ -138,32 +138,32 @@ func save(c echo.Context) error {
 	// Get name and email
 	name := c.FormValue("name")
 	email := c.FormParam("email")
-
-	//------------
 	// Get avatar
-	//------------
-
 	avatar, err := c.FormFile("avatar")
 	if err != nil {
 		return err
 	}
-	src, err := file.Open()
+
+	// Source
+	src, err := avatar.Open()
 	if err != nil {
 		return err
 	}
 	defer src.Close()
 
 	// Destination
-	file, err := os.Create(file.Filename)
+	dst, err := os.Create(avatar.Filename)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer dst.Close()
 
 	// Copy
-	if _, err = io.Copy(file, avatar); err != nil {
+	if _, err = io.Copy(dst, src); err != nil {
 		return err
 	}
+
+	return c.HTML(http.StatusOK, "<b>Thank you!</b>")
 }
 ```
 

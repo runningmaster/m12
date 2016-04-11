@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/labstack/echo"
 )
@@ -29,7 +30,6 @@ type (
 var (
 	// DefaultStaticConfig is the default static middleware config.
 	DefaultStaticConfig = StaticConfig{
-		Root:   "",
 		Index:  []string{"index.html"},
 		Browse: false,
 	}
@@ -55,7 +55,7 @@ func StaticWithConfig(config StaticConfig) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			fs := http.Dir(config.Root)
 			p := c.Request().URL().Path()
-			if c.P(0) != "" { // If serving from `Group`, e.g. `/static*`
+			if strings.Contains(c.Path(), "*") { // If serving from a group, e.g. `/static*`.
 				p = c.P(0)
 			}
 			file := path.Clean(p)
@@ -64,7 +64,6 @@ func StaticWithConfig(config StaticConfig) echo.MiddlewareFunc {
 				return next(c)
 			}
 			defer f.Close()
-
 			fi, err := f.Stat()
 			if err != nil {
 				return err
@@ -82,35 +81,37 @@ func StaticWithConfig(config StaticConfig) echo.MiddlewareFunc {
 				file = path.Join(file, config.Index[0])
 				f, err = fs.Open(file)
 				if err != nil {
-					if config.Browse {
-						dirs, err := d.Readdir(-1)
-						if err != nil {
-							return err
-						}
-
-						// Create a directory index
-						rs := c.Response()
-						rs.Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-						if _, err = fmt.Fprintf(rs, "<pre>\n"); err != nil {
-							return err
-						}
-						for _, d := range dirs {
-							name := d.Name()
-							color := "#212121"
-							if d.IsDir() {
-								color = "#e91e63"
-								name += "/"
-							}
-							if _, err = fmt.Fprintf(rs, "<a href=\"%s\" style=\"color: %s;\">%s</a>\n", name, color, name); err != nil {
-								return err
-							}
-						}
-						_, err = fmt.Fprintf(rs, "</pre>\n")
-						return err
-					}
 					return next(c)
 				}
-				fi, _ = f.Stat() // Index file stat
+				if config.Browse {
+					dirs, err := d.Readdir(-1)
+					if err != nil {
+						return err
+					}
+
+					// Create a directory index
+					rs := c.Response()
+					rs.Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
+					if _, err = fmt.Fprintf(rs, "<pre>\n"); err != nil {
+						return err
+					}
+					for _, d := range dirs {
+						name := d.Name()
+						color := "#212121"
+						if d.IsDir() {
+							color = "#e91e63"
+							name += "/"
+						}
+						if _, err = fmt.Fprintf(rs, "<a href=\"%s\" style=\"color: %s;\">%s</a>\n", name, color, name); err != nil {
+							return err
+						}
+					}
+					_, err = fmt.Fprintf(rs, "</pre>\n")
+					return err
+				}
+				if fi, err = f.Stat(); err != nil { // Index file
+					return err
+				}
 			}
 			return c.ServeContent(f, fi.Name(), fi.ModTime())
 		}
