@@ -45,8 +45,10 @@ func getKeyV2(r *http.Request) (string, bool) {
 
 // api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
 func getKeyV3(r *http.Request) (string, bool) {
-	_, pass, ok := r.BasicAuth()
-	key := pass[4:]
+	var key string
+	if _, pass, ok := r.BasicAuth(); ok {
+		key = pass[4:]
+	}
 
 	return key, key != ""
 }
