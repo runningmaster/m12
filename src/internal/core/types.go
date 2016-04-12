@@ -136,9 +136,9 @@ func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
 	}
 }
 
-// key, tag, src(n,h,a,c)
-// key, tag, src, span
-type нead struct {
+// key,
+// tag, src(n,h,a,c), span
+type meta struct {
 	ID string `json:"id,omitempty"` // ?
 	IP string `json:"ip,omitempty"` // ?
 
@@ -159,7 +159,7 @@ type нead struct {
 
 /*
 
-type bodyGeoV3 struct {
+type dataGeoV3 struct {
 	ID    string   `json:"id,omitempty"`
 	Name  string   `json:"name,omitempty"`
 	Quant float64  `json:"quant,omitempty"`
@@ -168,7 +168,7 @@ type bodyGeoV3 struct {
 	Link  linkDrug `json:"link,omitempty"`
 }
 
-type bodySaleV3 struct {
+type dataSaleV3 struct {
 	ID        string   `json:"id,omitempty"`
 	Name      string   `json:"name,omitempty"`
 	QuantIn   float64  `json:"quant_in,omitempty"`
@@ -183,7 +183,7 @@ type bodySaleV3 struct {
 	LinkDrug  linkDrug `json:"link_drug,omitempty"`
 }
 
-type bodySaleBYV3 struct {
+type dataSaleBYV3 struct {
 	ID       string   `json:"id,omitempty"`
 	Name     string   `json:"name,omitempty"`
 	QuantIn  float64  `json:"quant_in,omitempty"` // formerly QuantInp

@@ -33,36 +33,43 @@ func pipeAuth(h handlerFunc) handlerFunc {
 	}
 }
 
-func getKeyV1(r *http.Request, err error) (string, error) {
+func getKeyV1(r *http.Request) (string, bool) {
 	key := r.FormValue("key")
-	if key == "" {
-		return "", err
-	}
-
-	return key, nil
+	return key, key != ""
 }
 
-func getKeyV2(r *http.Request, err error) (string, error) {
+func getKeyV2(r *http.Request) (string, bool) {
 	key := r.Header.Get("X-Morion-Skynet-Key")
-	if key == "" {
-		return "", err
-	}
+	return key, key != ""
+}
 
-	return key, nil
+// api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
+func getKeyV3(r *http.Request) (string, bool) {
+	_, pass, ok := r.BasicAuth()
+	key := pass[4:]
+
+	return key, key != ""
 }
 
 func getKey(r *http.Request) (string, error) {
 	var (
 		key string
-		err = fmt.Errorf("api: auth key (as param) not found")
+		ok  bool
 	)
 
-	if key, err = getKeyV1(r, err); err != nil {
-		if key, err = getKeyV2(r, err); err != nil {
-			return "", err
-		}
+	if key, ok = getKeyV3(r); ok {
+		goto success
+	}
+	if key, ok = getKeyV2(r); ok {
+		goto success
+	}
+	if key, ok = getKeyV1(r); ok {
+		goto success
 	}
 
+	return "", fmt.Errorf("api: auth key (as param) not found")
+
+success:
 	return key, nil
 }
 
