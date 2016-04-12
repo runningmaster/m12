@@ -26,7 +26,7 @@ var (
 func init() {
 	_, err := LsB()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("s3util: %s", err)
 	}
 }
 
@@ -37,7 +37,7 @@ func getCli() (*s3.Client, error) {
 	case error:
 		return nil, c
 	}
-	return nil, fmt.Errorf("s3: unreachable")
+	return nil, fmt.Errorf("s3util: unreachable")
 }
 
 func putCli(x interface{}) {

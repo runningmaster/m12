@@ -23,7 +23,7 @@ func init() {
 	var err error
 	redisServer, err = newRedis(flag.Redis)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("redispool: %s", err)
 	}
 }
 
