@@ -41,7 +41,7 @@ func readBody(r *http.Request) ([]byte, error) {
 }
 
 func isTypeGzip(b []byte) bool {
-	return strings.Contains(http.DetectContentType(b), "gzip")
+	return gzutil.IsGzipInString(http.DetectContentType(b))
 }
 
 func isTypeUTF8(b []byte) bool {
