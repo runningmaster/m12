@@ -1,6 +1,8 @@
 package core
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -22,31 +24,48 @@ SendToChannel
 
 // Upld sends data to s3 interface
 func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
-	//	var (
-	//		b   []byte
-	//		err error
-	//	)
-	//	if b, err = readBody(r); err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	if !isTypeGzip(b) {
-	//		return nil, fmt.Errorf("core: s3: gzip not found")
-	//	}
-
-	_ = s3util.MkB("stream-input")
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	id := ctxutil.IDFromContext(ctx)
-
-	if err := s3util.Put("input", id+".gz", r.Body /*bytes.NewBuffer(b)*/, "{"+id+"}"); err != nil {
+	m, err := makeMeta(ctxutil.MetaFromContext(ctx))
+	if err != nil {
 		return nil, err
 	}
+
+	m.ID = ctxutil.IDFromContext(ctx)
+	m.IP = ctxutil.IPFromContext(ctx)
+	m.Key = ctxutil.AuthFromContext(ctx)
+	m.SrcCE = r.Header.Get("Content-Encoding")
+	m.SrcCT = r.Header.Get("Content-Type")
+
+	p, err := packMeta(m)
+	if err != nil {
+		return nil, err
+	}
+
 	defer func(c io.Closer) {
 		_ = c.Close()
 	}(r.Body)
-	// s3util.Get and check content type
 
-	return "OK: " + id, nil
+	if err := s3util.Put("stream-in", m.ID+".gz", r.Body, p); err != nil {
+		return nil, err
+	}
+
+	// send ?
+
+	return m.ID, nil
+}
+
+func makeMeta(s string) (meta, error) {
+	var v meta
+	if err := json.Unmarshal([]byte(s), &v); err != nil {
+		return meta{}, err
+	}
+	return v, nil
+}
+
+func packMeta(v interface{}) (string, error) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(b), nil
 }

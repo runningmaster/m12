@@ -18,8 +18,8 @@ type regHandler struct {
 
 var regHandlers []regHandler
 
-// RegHandler is called from another packages
-func RegHandler(m, p string, h http.Handler) {
+// regFunc is called from another packages
+func regFunc(m, p string, h http.Handler) {
 	regHandlers = append(regHandlers, regHandler{m, p, h})
 }
 

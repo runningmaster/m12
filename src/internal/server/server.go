@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"internal/api"
 	"internal/flag"
 
 	"github.com/braintree/manners"
@@ -18,16 +19,23 @@ var (
 func initOnce() error {
 	var errOnce error
 	once.Do(func() {
+		if err := api.Init(regFunc); err != nil {
+			errOnce = err
+			return
+		}
+
 		r, err := makeRouter()
 		if err != nil {
 			errOnce = err
 			return
 		}
+
 		s, err := withRouter(flag.Addr, r)
 		if err != nil {
 			errOnce = err
 			return
 		}
+
 		gsrv = manners.NewWithServer(s)
 	})
 

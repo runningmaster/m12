@@ -136,15 +136,13 @@ func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
 	}
 }
 
-// key,
-// tag, src(n,h,a,c), span
 type meta struct {
 	ID string `json:"id,omitempty"` // ?
 	IP string `json:"ip,omitempty"` // ?
 
 	Key  string   `json:"key,omitempty"`  // *
 	Tag  string   `json:"tag,omitempty"`  // *
-	Src  string   `json:"src,omitempty"`  // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
+	Nick string   `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
 	Name string   `json:"name,omitempty"` // *
 	Head string   `json:"head,omitempty"` // *
 	Addr string   `json:"addr,omitempty"` // *
@@ -156,9 +154,8 @@ type meta struct {
 	Hash string `json:"hash,omitempty"` // ?
 	Path string `json:"path,omitempty"` // ?
 
-	//ContentEncoding string `json:",omitempty"` // ?
-	//ContentType string `json:",omitempty"` // ?
-
+	SrcCE string `json:"src_ce,omitempty"` // Source ContentEncoding
+	SrcCT string `json:"src_ct,omitempty"` // Source ContentType
 }
 
 /*

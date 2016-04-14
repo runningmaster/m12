@@ -1,10 +1,10 @@
 package api
 
 import (
+	"net/http"
 	"strings"
 
 	"internal/core"
-	"internal/server"
 )
 
 var (
@@ -47,13 +47,19 @@ var (
 	}
 )
 
-func init() {
+func Init(regFunc func(string, string, http.Handler)) error {
+	if err := core.Init(); err != nil {
+		return err
+	}
+
 	mapCoreHandlers = make(map[string]core.Handler, len(mapHTTPHandlers))
 	for k, v := range mapHTTPHandlers {
 		s := strings.Split(k, ":")
-		server.RegHandler(s[0], s[1], v.h)
+		regFunc(s[0], s[1], v.h)
 		if v.f != nil {
 			mapCoreHandlers[s[1]] = v.f
 		}
 	}
+
+	return nil
 }
