@@ -52,6 +52,16 @@ func Init(regFunc func(string, string, http.Handler)) error {
 		return err
 	}
 
+	regHTTPHandlers(regFunc)
+
+	return nil
+}
+
+func regHTTPHandlers(regFunc func(string, string, http.Handler)) {
+	if regFunc == nil {
+		return
+	}
+
 	mapCoreHandlers = make(map[string]core.Handler, len(mapHTTPHandlers))
 	for k, v := range mapHTTPHandlers {
 		s := strings.Split(k, ":")
@@ -60,6 +70,4 @@ func Init(regFunc func(string, string, http.Handler)) error {
 			mapCoreHandlers[s[1]] = v.f
 		}
 	}
-
-	return nil
 }
