@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"io"
 	"net/url"
 	"time"
@@ -27,7 +28,7 @@ type (
 func initRedis() error {
 	var err error
 	if redisServer, err = newRedis(flag.Redis); err != nil {
-		return err
+		return fmt.Errorf("core: redis: %s", err)
 	}
 	return nil
 }

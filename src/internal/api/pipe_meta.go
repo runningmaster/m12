@@ -44,7 +44,7 @@ func pipeMeta(h handlerFunc) handlerFunc {
 
 func mustHeaderGzip(r *http.Request) error {
 	if !gzutil.IsGzipInString(r.Header.Get("Content-Encoding")) {
-		return fmt.Errorf("api: content-encoding must contain 'gzip'")
+		return fmt.Errorf("api: content-encoding must contain gzip")
 	}
 
 	return nil
@@ -52,7 +52,7 @@ func mustHeaderGzip(r *http.Request) error {
 
 func mustHeaderJSON(r *http.Request) error {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-		return fmt.Errorf("api: content-type must contain 'application/json'")
+		return fmt.Errorf("api: content-type must contain application/json")
 	}
 
 	return nil
@@ -60,7 +60,7 @@ func mustHeaderJSON(r *http.Request) error {
 
 func mustHeaderUTF8(r *http.Request) error {
 	if !strings.Contains(r.Header.Get("Content-Type"), "charset=utf-8") {
-		return fmt.Errorf("api: content-type must contain 'charset=utf-8'")
+		return fmt.Errorf("api: content-type must contain charset=utf-8")
 	}
 
 	return nil
