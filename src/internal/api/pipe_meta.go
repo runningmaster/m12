@@ -36,7 +36,7 @@ func pipeMeta(h handlerFunc) handlerFunc {
 		}
 
 		h(ctxutil.WithMeta(ctx, m), w, r)
-		return
+		return // success
 	fail:
 		h(ctxutil.WithCode(ctxutil.WithFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
