@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"strings"
 
 	"internal/compress/gzutil"
 
@@ -48,16 +47,9 @@ func (w *gzipResponseWriter) CloseNotify() <-chan bool {
 	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }
 
-func gzipInContentEncoding(r *http.Request) bool {
-	return strings.Contains(r.Header.Get("Content-Encoding"), "gzip")
-}
-func gzipInAcceptEncoding(r *http.Request) bool {
-	return strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
-}
-
 func pipeGzip(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		if gzipInContentEncoding(r) {
+		if gzutil.NeedGzip(r.Header.Get("Accept-Encoding")) {
 			z, err := gzutil.GetReader()
 			if err != nil {
 				// FIXME log err
@@ -69,7 +61,7 @@ func pipeGzip(h handlerFunc) handlerFunc {
 			r.Body = z
 		}
 
-		if gzipInAcceptEncoding(r) {
+		if gzutil.NeedGzip(r.Header.Get("Content-Encoding")) {
 			z, err := gzutil.GetWriter()
 			if err != nil {
 				// FIXME TODO log err

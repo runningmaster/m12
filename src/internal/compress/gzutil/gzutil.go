@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 	"sync"
 
 	"github.com/klauspost/compress/gzip"
@@ -90,4 +91,9 @@ func Gunzip(data []byte) ([]byte, error) {
 	}
 
 	return out, nil
+}
+
+// NeedGzip returns true if gzip is mentioned in string
+func NeedGzip(s string) bool {
+	return strings.Contains(s, "gzip")
 }
