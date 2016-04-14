@@ -7,20 +7,9 @@ import (
 	"net/http"
 
 	"internal/context/ctxutil"
-	"internal/database/s3util"
 
 	"golang.org/x/net/context"
 )
-
-/*
-CheckGzip (if not then fail)
-GetHeader [if not exist then find query param (Form)]
-Calc body hash md5
-sha1:	af064923bbf2301596aac4c273ba32178ebc4a96
-md5:	b0804ec967f48520697662a204f5fe72
-Put "H.Tag" "H.UUID"+.gz
-SendToChannel
-*/
 
 // Upld sends data to s3 interface
 func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
@@ -44,7 +33,7 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 		_ = c.Close()
 	}(r.Body)
 
-	if err := s3util.Put("stream-in", m.ID+".gz", r.Body, p); err != nil {
+	if _, err := s3cli.PutObject(backetStreamIn, m.ID+".gz", r.Body, p); err != nil {
 		return nil, err
 	}
 
