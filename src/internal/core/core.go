@@ -10,7 +10,14 @@ import (
 type Handler func(context.Context, *http.Request) (interface{}, error)
 
 func Init() error {
-	// redispool
+	var err error
+	if err = initRedis(); err != nil {
+		return err
+	}
 
-	return initCliS3()
+	if err = initCliS3(); err != nil {
+		return err
+	}
+
+	return nil
 }

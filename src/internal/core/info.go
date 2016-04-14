@@ -6,16 +6,14 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/database/redispool"
-
 	"github.com/garyburd/redigo/redis"
 	"golang.org/x/net/context"
 )
 
 // Info calls Redis INFO
 func Info(_ context.Context, _ *http.Request) (interface{}, error) {
-	c := redispool.Get()
-	defer redispool.Put(c)
+	c := redisGet()
+	defer redisPut(c)
 
 	b, err := redis.Bytes(c.Do("INFO"))
 	if err != nil {

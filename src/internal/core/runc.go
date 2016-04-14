@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"internal/database/redispool"
-
 	"golang.org/x/net/context"
 )
 
@@ -53,8 +51,8 @@ func makeGetSetDeler(base string, b []byte) (redisGetSetDelOper, error) {
 }
 
 func execGetSetDeler(cmd string, gsd redisGetSetDelOper) (interface{}, error) {
-	c := redispool.Get()
-	defer redispool.Put(c)
+	c := redisGet()
+	defer redisPut(c)
 
 	switch cmd {
 	case "get":

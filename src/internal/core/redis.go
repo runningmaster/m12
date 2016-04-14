@@ -1,4 +1,4 @@
-package redispool
+package core
 
 import (
 	"io"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"internal/flag"
-	"internal/log"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -17,14 +16,20 @@ type (
 	connGetter interface {
 		Get() redis.Conn
 	}
+
+	redisGetSetDelOper interface {
+		get(redis.Conn) ([]interface{}, error)
+		set(redis.Conn) (interface{}, error)
+		del(redis.Conn) (interface{}, error)
+	}
 )
 
-func init() {
+func initRedis() error {
 	var err error
-	redisServer, err = newRedis(flag.Redis)
-	if err != nil {
-		log.Fatalf("redispool: %s", err)
+	if redisServer, err = newRedis(flag.Redis); err != nil {
+		return err
 	}
+	return nil
 }
 
 // New creates a server configured from default values.
@@ -74,14 +79,22 @@ func dial(addr string) func() (redis.Conn, error) {
 	}
 }
 
-//
-func Get() redis.Conn {
+func redisGet() redis.Conn {
 	return redisServer.Get()
 }
 
-//
-func Put(c io.Closer) {
+func redisPut(c io.Closer) {
 	if c != nil {
 		_ = c.Close()
 	}
+}
+
+func toInt64(v interface{}) int64 {
+	res, _ := redis.Int64(v, nil)
+	return res
+}
+
+func toString(v interface{}) string {
+	res, _ := redis.String(v, nil)
+	return res
 }
