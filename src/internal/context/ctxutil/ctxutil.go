@@ -12,6 +12,7 @@ const (
 	ctxID ctxKey = iota
 	ctxIP
 	ctxAuth
+	ctxMeta
 	ctxFail
 	ctxSize
 	ctxCode
@@ -56,6 +57,21 @@ func WithAuth(ctx context.Context, v string) context.Context {
 //
 func AuthFromContext(ctx context.Context) string {
 	switch v := ctx.Value(ctxAuth).(type) {
+	case string:
+		return v
+	default:
+		return ""
+	}
+}
+
+//
+func WithMeta(ctx context.Context, v string) context.Context {
+	return context.WithValue(ctx, ctxMeta, v)
+}
+
+//
+func MetaFromContext(ctx context.Context) string {
+	switch v := ctx.Value(ctxMeta).(type) {
 	case string:
 		return v
 	default:
