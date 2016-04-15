@@ -20,7 +20,7 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 
 	m.ID = ctxutil.IDFromContext(ctx)
 	m.IP = ctxutil.IPFromContext(ctx)
-	m.Key = ctxutil.AuthFromContext(ctx)
+	m.Auth = ctxutil.AuthFromContext(ctx)
 	m.SrcCE = r.Header.Get("Content-Encoding")
 	m.SrcCT = r.Header.Get("Content-Type")
 

@@ -140,8 +140,8 @@ type meta struct {
 	ID string `json:"id,omitempty"` // ?
 	IP string `json:"ip,omitempty"` // ?
 
-	Key  string   `json:"key,omitempty"`  // *
-	Tag  string   `json:"tag,omitempty"`  // *
+	Auth string   `json:"auth,omitempty"` // *
+	HTag string   `json:"htag,omitempty"` // *
 	Nick string   `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
 	Name string   `json:"name,omitempty"` // *
 	Head string   `json:"head,omitempty"` // *
@@ -149,9 +149,10 @@ type meta struct {
 	Code string   `json:"code,omitempty"` // egrpou (okpo)
 	Span []string `json:"span,omitempty"` // *
 
-	From int64  `json:"from,omitempty"` // ?
+	Link int64  `json:"link,omitempty"` // ?
 	Time string `json:"time,omitempty"` // ?
-	Hash string `json:"hash,omitempty"` // ?
+	ETag string `json:"etag,omitempty"` // ?
+	Size int64  `json:"size,omitempty"` // ?
 	Path string `json:"path,omitempty"` // ?
 
 	SrcCE string `json:"src_ce,omitempty"` // Source ContentEncoding
