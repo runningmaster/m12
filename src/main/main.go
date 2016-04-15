@@ -4,7 +4,6 @@ import (
 	_ "expvar"
 	_ "net/http/pprof"
 
-	_ "internal/api"
 	"internal/flag"
 	"internal/log"
 	"internal/server"
