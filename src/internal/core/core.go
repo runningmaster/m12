@@ -15,7 +15,7 @@ func Init() error {
 		return err
 	}
 
-	if err = initCliS3(); err != nil {
+	if err = initS3Cli(); err != nil {
 		return err
 	}
 

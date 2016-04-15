@@ -18,7 +18,7 @@ var (
 	backets = [...]string{backetStreamIn, backetStreamOut, backetStreamErr}
 )
 
-func initCliS3() error {
+func initS3Cli() error {
 	var err error
 	if s3cli, err = s3.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, true); err != nil {
 		return fmt.Errorf("core: s3cli: %s", err)
