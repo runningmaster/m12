@@ -4,9 +4,9 @@ import (
 	"math/rand"
 )
 
-// RandASCII generates an alphabetical random string with length n.
 var a = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+// RandASCII generates an alphabetical random string with length n.
 func RandASCII(n int) string {
 	b := make([]rune, n)
 	for i := range b {
