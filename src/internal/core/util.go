@@ -15,12 +15,12 @@ func stringOK() string {
 	return http.StatusText(http.StatusOK)
 }
 
-func readBody(r *http.Request) ([]byte, error) {
+func readClose(r io.ReadCloser) ([]byte, error) {
 	defer func(c io.Closer) {
 		_ = c.Close()
-	}(r.Body)
+	}(r)
 
-	return ioutil.ReadAll(r.Body)
+	return ioutil.ReadAll(r)
 }
 
 func isTypeGzip(b []byte) bool {
@@ -49,4 +49,34 @@ func mendIfUTF8(b []byte) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func readMendClose(r io.ReadCloser) ([]byte, error) {
+	var (
+		b   []byte
+		err error
+	)
+
+	if b, err = readClose(r); err != nil {
+		return nil, err
+	}
+
+	if b, err = mendIfGzip(b); err != nil {
+		return nil, err
+	}
+
+	if b, err = mendIfUTF8(b); err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func isEmpty(v []interface{}) bool {
+	for i := range v {
+		if v[i] != nil {
+			return false
+		}
+	}
+	return true
 }

@@ -10,28 +10,17 @@ import (
 // RunC is "print-like" operation.
 func RunC(cmd, base string) Handler {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var (
-			b   []byte
-			err error
-		)
-		if b, err = readBody(r); err != nil {
+		b, err := readMendClose(r.Body)
+		if err != nil {
 			return nil, err
 		}
 
-		if b, err = mendIfGzip(b); err != nil {
+		v, err := makeGetSetDeler(base, b)
+		if err != nil {
 			return nil, err
 		}
 
-		if b, err = mendIfUTF8(b); err != nil {
-			return nil, err
-		}
-
-		var gsd redisGetSetDelOper
-		if gsd, err = makeGetSetDeler(base, b); err != nil {
-			return nil, err
-		}
-
-		return execGetSetDeler(cmd, gsd)
+		return execGetSetDeler(cmd, v)
 	}
 }
 

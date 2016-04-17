@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	"internal/context/ctxutil"
 
@@ -21,6 +22,7 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 	m.ID = ctxutil.IDFromContext(ctx)
 	m.IP = ctxutil.IPFromContext(ctx)
 	m.Auth = ctxutil.AuthFromContext(ctx)
+	m.HTag = strings.ToLower(m.HTag)
 	m.SrcCE = r.Header.Get("Content-Encoding")
 	m.SrcCT = r.Header.Get("Content-Type")
 
@@ -33,7 +35,7 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 		_ = c.Close()
 	}(r.Body)
 
-	if _, err := s3cli.PutObject(backetStreamIn, m.ID+".gz", r.Body, p); err != nil {
+	if _, err = s3cli.PutObject(backetStreamIn, m.ID, r.Body, p); err != nil {
 		return nil, err
 	}
 

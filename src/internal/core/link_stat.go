@@ -11,7 +11,18 @@ import (
 
 const keyLinkStat = "link:stat"
 
-type decodeLinkStat []byte
+type (
+	decodeLinkStat []byte
+
+	// Redis scheme:
+	// HASH => key="stat"
+	// HMSET key i->n [i->n...]
+	// HMGET key i [i..]
+	linkStat struct {
+		ID   int64  `json:"id,omitempty"   redis:"i"`
+		Name string `json:"name,omitempty" redis:"n"`
+	}
+)
 
 func (d decodeLinkStat) src() ([]int64, error) {
 	var out []int64
@@ -95,4 +106,14 @@ func (d decodeLinkStat) del(c redis.Conn) (interface{}, error) {
 	}
 
 	return c.Do("HDEL", vls...)
+}
+
+func (l linkStat) makeFrom(k int64, v interface{}) interface{} {
+	if v == nil {
+		return v
+	}
+	return linkStat{
+		ID:   k,
+		Name: toString(v), // "n"
+	}
 }
