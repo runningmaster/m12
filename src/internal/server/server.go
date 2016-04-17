@@ -39,11 +39,7 @@ func initOnce() error {
 		gsrv = manners.NewWithServer(s)
 	})
 
-	if errOnce != nil {
-		return errOnce
-	}
-
-	return nil
+	return errOnce
 }
 
 // Start starts HTTP server
