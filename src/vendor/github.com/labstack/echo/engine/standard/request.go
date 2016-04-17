@@ -19,6 +19,16 @@ type (
 	}
 )
 
+// NewRequest returns `Request` instance.
+func NewRequest(r *http.Request, l *log.Logger) *Request {
+	return &Request{
+		Request: r,
+		url:     &URL{URL: r.URL},
+		header:  &Header{Header: r.Header},
+		logger:  l,
+	}
+}
+
 // IsTLS implements `engine.Request#TLS` function.
 func (r *Request) IsTLS() bool {
 	return r.Request.TLS != nil

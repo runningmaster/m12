@@ -28,6 +28,16 @@ type (
 	}
 )
 
+// NewResponse returns `Response` instance.
+func NewResponse(w http.ResponseWriter, l *log.Logger) *Response {
+	return &Response{
+		ResponseWriter: w,
+		header:         &Header{Header: w.Header()},
+		writer:         w,
+		logger:         l,
+	}
+}
+
 // Header implements `engine.Response#Header` function.
 func (r *Response) Header() engine.Header {
 	return r.header
