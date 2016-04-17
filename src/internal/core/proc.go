@@ -82,12 +82,15 @@ func proc(key string) error {
 		return err
 	}
 
-	_, err = readMendClose(o)
+	b, err := readMendClose(o)
 	if err != nil {
 		return err
 	}
 
-	// process object
+	_, err = Test(m.HTag, b)
+	if err != nil {
+		return err
+	}
 	// put object backetStreamOut
 	// put object backetStreamErr
 
@@ -104,12 +107,8 @@ func Test(t string, b []byte) ([]byte, error) {
 		src = listDataGeoV3{}
 	} else if strings.Contains(t, "daily.by") {
 		src = listDataSaleBYV3{}
-	} else if strings.Contains(t, "sale") {
+	} else {
 		src = listDataSaleV3{}
-	}
-
-	if src == nil {
-		return nil, fmt.Errorf("core: proc: invalid interface")
 	}
 
 	if err = json.Unmarshal(b, &src); err != nil {
@@ -126,8 +125,6 @@ func Test(t string, b []byte) ([]byte, error) {
 		}
 	}
 
-	//
-	//ext  =
 	return json.Marshal(src)
 }
 
