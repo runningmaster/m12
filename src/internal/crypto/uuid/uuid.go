@@ -32,6 +32,7 @@ func putGenerator(x *fastuuid.Generator) {
 	uuidPool.Put(x)
 }
 
+// Next returns the next UUID from the generator.
 func Next() string {
 	g, err := getGenerator()
 	if err != nil {
