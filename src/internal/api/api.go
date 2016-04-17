@@ -47,6 +47,7 @@ var (
 	}
 )
 
+// Init is caled from other package for manually initialization
 func Init(regFunc func(string, string, http.Handler)) error {
 	if err := core.Init(); err != nil {
 		return err

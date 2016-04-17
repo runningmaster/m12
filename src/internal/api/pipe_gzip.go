@@ -22,12 +22,7 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 		w.Header().Set("Content-Type", http.DetectContentType(b))
 	}
 
-	n, err := w.Writer.Write(b)
-	if err != nil {
-		return n, err
-	}
-
-	return n, nil
+	return w.Writer.Write(b)
 }
 
 func (w gzipResponseWriter) Flush() error {
@@ -35,12 +30,7 @@ func (w gzipResponseWriter) Flush() error {
 }
 
 func (w gzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	c, rw, err := w.ResponseWriter.(http.Hijacker).Hijack()
-	if err != nil {
-		return c, rw, err
-	}
-
-	return c, rw, nil
+	return w.ResponseWriter.(http.Hijacker).Hijack()
 }
 
 func (w *gzipResponseWriter) CloseNotify() <-chan bool {
