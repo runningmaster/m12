@@ -34,7 +34,7 @@ type (
 		SrcCT string `json:"src_ct,omitempty"` // Source ContentType
 	}
 
-	dataGeoV3 struct {
+	itemGeoV3 struct {
 		ID    string   `json:"id,omitempty"`
 		Name  string   `json:"name,omitempty"`
 		Quant float64  `json:"quant,omitempty"`
@@ -43,7 +43,7 @@ type (
 		Link  linkDrug `json:"link,omitempty"`
 	}
 
-	dataSaleV3 struct {
+	itemSaleV3 struct {
 		ID        string   `json:"id,omitempty"`
 		Name      string   `json:"name,omitempty"`
 		QuantIn   float64  `json:"quant_in,omitempty"`
@@ -58,7 +58,7 @@ type (
 		LinkDrug  linkDrug `json:"link_drug,omitempty"`
 	}
 
-	dataSaleBYV3 struct {
+	itemSaleBYV3 struct {
 		ID       string   `json:"id,omitempty"`
 		Name     string   `json:"name,omitempty"`
 		QuantIn  float64  `json:"quant_in,omitempty"` // formerly QuantInp
@@ -83,52 +83,52 @@ type (
 		setLinkDrug(int, linkDrug)
 	}
 
-	listDataGeoV3    []dataGeoV3
-	listDataSaleV3   []dataSaleV3
-	listDataSaleBYV3 []dataSaleBYV3
+	listGeoV3    []itemGeoV3
+	listSaleV3   []itemSaleV3
+	listSaleBYV3 []itemSaleBYV3
 )
 
-func (l listDataGeoV3) len() int {
+func (l listGeoV3) len() int {
 	return len(l)
 }
 
-func (l listDataGeoV3) getName(i int) string {
+func (l listGeoV3) getName(i int) string {
 	return l[i].Name
 }
 
-func (l listDataGeoV3) setLinkDrug(i int, link linkDrug) {
+func (l listGeoV3) setLinkDrug(i int, link linkDrug) {
 	l[i].Link = link
 }
 
-func (l listDataSaleV3) len() int {
+func (l listSaleV3) len() int {
 	return len(l)
 }
 
-func (l listDataSaleV3) getName(i int) string {
+func (l listSaleV3) getName(i int) string {
 	return l[i].Name
 }
 
-func (l listDataSaleV3) setLinkDrug(i int, link linkDrug) {
+func (l listSaleV3) setLinkDrug(i int, link linkDrug) {
 	l[i].LinkDrug = link
 }
 
-func (l listDataSaleV3) getSupp(i int) string {
+func (l listSaleV3) getSupp(i int) string {
 	return l[i].SuppName
 }
 
-func (l listDataSaleV3) setLinkAddr(i int, link linkAddr) {
+func (l listSaleV3) setLinkAddr(i int, link linkAddr) {
 	l[i].LinkAddr = link
 }
 
-func (l listDataSaleBYV3) len() int {
+func (l listSaleBYV3) len() int {
 	return len(l)
 }
 
-func (l listDataSaleBYV3) getName(i int) string {
+func (l listSaleBYV3) getName(i int) string {
 	return l[i].Name
 }
 
-func (l listDataSaleBYV3) setLinkDrug(i int, link linkDrug) {
+func (l listSaleBYV3) setLinkDrug(i int, link linkDrug) {
 	l[i].Link = link
 }
 

@@ -85,12 +85,12 @@ func Gunzip(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	var out []byte
-	if out, err = ioutil.ReadAll(z); err != nil {
+	b, err := ioutil.ReadAll(z)
+	if err != nil {
 		return nil, err
 	}
 
-	return out, nil
+	return b, nil
 }
 
 // IsGzipInString returns true if gzip is mentioned in string

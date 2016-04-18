@@ -95,11 +95,12 @@ func auth(key string) error {
 		return nil
 	}
 
-	var v []byte
-	if v, err = json.Marshal(res); err != nil {
+	b, err := json.Marshal(res)
+	if err != nil {
 		return err
 	}
-	return fmt.Errorf("api: auth key (as value) not found: %s: forbidden", string(v))
+
+	return fmt.Errorf("api: auth key (as value) not found: %s: forbidden", string(b))
 }
 
 func isMasterKey(key string) bool {

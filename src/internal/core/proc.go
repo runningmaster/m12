@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
@@ -12,10 +11,10 @@ import (
 )
 
 const (
-	fromBY = "by"
-	fromKZ = "kz"
-	fromRU = "ru"
-	fromUA = "ua"
+	extBY = ".by"
+	extKZ = ".kz"
+	extRU = ".ru"
+	extUA = ".ua"
 
 	magicSuffixBY = "{\"COUNTRY_ID\":\"1010\"}"
 	magicSuffixKZ = "{\"COUNTRY_ID\":\"106\"}"
@@ -70,7 +69,7 @@ func proc(key string) error {
 	m.Path = ""     // ?
 	m.Size = s.Size
 	if m.Name != "" {
-		l, err := findLinkAddr(makeSHA1String(makeMagicAddr(m.Name, m.Head, m.Addr)))
+		l, err := findLinkAddr(makeSHA1String(makeMagicHead(m.Name, m.Head, m.Addr)))
 		if err != nil {
 			return err
 		}
@@ -98,29 +97,27 @@ func proc(key string) error {
 }
 
 func Test(t string, b []byte) ([]byte, error) {
-	var (
-		src interface{}
-		err error
-	)
+	var src interface{}
 
-	if strings.Contains(t, "geo") {
-		src = listDataGeoV3{}
-	} else if strings.Contains(t, "daily.by") {
-		src = listDataSaleBYV3{}
-	} else {
-		src = listDataSaleV3{}
+	switch {
+	case isGeo(t):
+		src = listGeoV3{}
+	case isSaleBY(t):
+		src = listSaleBYV3{}
+	default:
+		src = listSaleV3{}
 	}
 
-	if err = json.Unmarshal(b, &src); err != nil {
+	if err := json.Unmarshal(b, &src); err != nil {
 		return nil, err
 	}
 
-	if err = mineLinkDrug(t, src.(linkDruger)); err != nil {
+	if err := mineLinkDrug(t, src.(linkDruger)); err != nil {
 		return nil, err
 	}
 
-	if strings.Contains(t, "sale-in") {
-		if err = mineLinkAddr(src.(linkAddrer)); err != nil {
+	if isSaleIn(t) {
+		if err := mineLinkAddr(src.(linkAddrer)); err != nil {
 			return nil, err
 		}
 	}
@@ -130,19 +127,19 @@ func Test(t string, b []byte) ([]byte, error) {
 
 func mineLinkDrug(t string, l linkDruger) error {
 	var (
+		ext  = filepath.Ext(t)
 		keys = make([]string, l.len())
-		from = filepath.Ext(t)
-		name []byte
+		name string
 	)
 	for i := 0; i < l.len(); i++ {
 		switch {
-		case from == fromUA:
+		case isUA(ext):
 			name = makeMagicDrugUA(l.getName(i))
-		case from == fromRU:
+		case isRU(ext):
 			name = makeMagicDrugRU(l.getName(i))
-		case from == fromKZ:
+		case isKZ(ext):
 			name = makeMagicDrugKZ(l.getName(i))
-		case from == fromBY:
+		case isBY(ext):
 			name = makeMagicDrugBY(l.getName(i))
 		default:
 			name = makeMagicDrug(l.getName(i))
@@ -169,7 +166,7 @@ func mineLinkDrug(t string, l linkDruger) error {
 func mineLinkAddr(l linkAddrer) error {
 	var keys = make([]string, l.len())
 	for i := 0; i < l.len(); i++ {
-		keys[i] = makeSHA1String(makeMagicSupp(l.getSupp(i)))
+		keys[i] = makeSHA1String(makeMagicAddr(l.getSupp(i)))
 	}
 
 	lds, err := findLinkAddr(keys...)
@@ -188,49 +185,77 @@ func mineLinkAddr(l linkAddrer) error {
 	return nil
 }
 
-func makeMagicAddr(name, head, addr string) []byte {
-	return bytes.TrimSpace(
-		[]byte(strutil.First(
+func makeMagicHead(name, head, addr string) string {
+	return strings.TrimSpace(
+		strutil.First(
 			fmt.Sprintf("%s/%s: %s", name, head, addr),
 			magicAddrLength,
-		)),
+		),
 	)
 }
 
-func makeMagicSupp(name string) []byte {
-	return bytes.TrimSpace(
-		[]byte(strutil.First(
+func makeMagicAddr(name string) string {
+	return strings.TrimSpace(
+		strutil.First(
 			name,
 			magicAddrLength,
-		)),
+		),
 	)
 }
 
-func makeMagicDrug(name string) []byte {
-	return bytes.TrimSpace(
-		[]byte(strutil.First(
+func makeMagicDrug(name string) string {
+	return strings.TrimSpace(
+		strutil.First(
 			name,
 			magicDrugLength,
-		)),
+		),
 	)
 }
 
-func makeMagicDrugBY(name string) []byte {
-	return append(makeMagicDrug(name), magicSuffixBY...)
+func makeMagicDrugBY(name string) string {
+	return makeMagicDrug(name) + magicSuffixBY
 }
 
-func makeMagicDrugKZ(name string) []byte {
-	return append(makeMagicDrug(name), magicSuffixKZ...)
+func makeMagicDrugKZ(name string) string {
+	return makeMagicDrug(name) + magicSuffixKZ
 }
 
-func makeMagicDrugRU(name string) []byte {
-	return append(makeMagicDrug(name), magicSuffixRU...)
+func makeMagicDrugRU(name string) string {
+	return makeMagicDrug(name) + magicSuffixRU
 }
 
-func makeMagicDrugUA(name string) []byte {
-	return append(makeMagicDrug(name), magicSuffixUA...)
+func makeMagicDrugUA(name string) string {
+	return makeMagicDrug(name) + magicSuffixUA
 }
 
-func makeSHA1String(b []byte) string {
-	return fmt.Sprintf("%x", sha1.Sum(b))
+func makeSHA1String(s string) string {
+	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
+}
+
+func isGeo(s string) bool {
+	return strings.Contains(s, "geo")
+}
+
+func isSaleBY(s string) bool {
+	return strings.Contains(s, "daily.by")
+}
+
+func isSaleIn(s string) bool {
+	return strings.Contains(s, "sale-in")
+}
+
+func isBY(s string) bool {
+	return strings.EqualFold(s, extBY)
+}
+
+func isKZ(s string) bool {
+	return strings.EqualFold(s, extKZ)
+}
+
+func isRU(s string) bool {
+	return strings.EqualFold(s, extRU)
+}
+
+func isUA(s string) bool {
+	return strings.EqualFold(s, extUA)
 }

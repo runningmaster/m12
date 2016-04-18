@@ -15,11 +15,8 @@ import (
 
 func pipeMeta(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		var (
-			m   string
-			err error
-		)
-		if m, err = getMeta(r); err != nil {
+		m, err := getMeta(r)
+		if err != nil {
 			goto fail
 		}
 

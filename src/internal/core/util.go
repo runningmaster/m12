@@ -52,20 +52,18 @@ func mendIfUTF8(b []byte) ([]byte, error) {
 }
 
 func readMendClose(r io.ReadCloser) ([]byte, error) {
-	var (
-		b   []byte
-		err error
-	)
-
-	if b, err = readClose(r); err != nil {
+	b, err := readClose(r)
+	if err != nil {
 		return nil, err
 	}
 
-	if b, err = mendIfGzip(b); err != nil {
+	b, err = mendIfGzip(b)
+	if err != nil {
 		return nil, err
 	}
 
-	if b, err = mendIfUTF8(b); err != nil {
+	b, err = mendIfUTF8(b)
+	if err != nil {
 		return nil, err
 	}
 

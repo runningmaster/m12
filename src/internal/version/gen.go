@@ -69,12 +69,8 @@ func main() {
 		prerelease,
 	)
 
-	var (
-		out []byte
-		err error
-	)
-
-	if out, err = format.Source(buf.Bytes()); err != nil {
+	out, err := format.Source(buf.Bytes())
+	if err != nil {
 		goto fail
 	}
 

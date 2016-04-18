@@ -65,7 +65,8 @@ func (d decodeAuth) get(c redis.Conn) ([]interface{}, error) {
 
 	var rcv int64
 	for i := range vls {
-		if rcv, err = redis.Int64(c.Receive()); err != nil {
+		rcv, err = redis.Int64(c.Receive())
+		if err != nil {
 			return nil, err
 		}
 		if rcv == 0 {

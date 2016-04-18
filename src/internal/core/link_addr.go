@@ -79,7 +79,8 @@ func (d decodeLinkAddr) get(c redis.Conn) ([]interface{}, error) {
 	out := make([]interface{}, 0, len(src))
 	var rcv []interface{}
 	for i := range src {
-		if rcv, err = redis.Values(c.Receive()); err != nil {
+		rcv, err = redis.Values(c.Receive())
+		if err != nil {
 			return nil, err
 		}
 		out = append(out, l.makeFrom(src[i], rcv))

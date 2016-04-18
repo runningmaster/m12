@@ -27,9 +27,11 @@ type (
 
 func initRedis() error {
 	var err error
-	if redisServer, err = newRedis(flag.Redis); err != nil {
+	redisServer, err = newRedis(flag.Redis)
+	if err != nil {
 		return fmt.Errorf("core: redis: %s", err)
 	}
+
 	return nil
 }
 

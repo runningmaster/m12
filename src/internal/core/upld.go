@@ -45,11 +45,12 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 }
 
 func makeMeta(s string) (meta, error) {
-	var v meta
-	if err := json.Unmarshal([]byte(s), &v); err != nil {
+	var m meta
+	if err := json.Unmarshal([]byte(s), &m); err != nil {
 		return meta{}, err
 	}
-	return v, nil
+
+	return m, nil
 }
 
 func packMeta(v interface{}) (string, error) {
