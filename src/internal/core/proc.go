@@ -1,7 +1,6 @@
 package core
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -70,7 +69,7 @@ func proc(key string) error {
 	m.Size = s.Size
 	if m.Name != "" {
 		var l []linkAddr
-		l, err = findLinkAddr(makeSHA1String(makeMagicHead(m.Name, m.Head, m.Addr)))
+		l, err = findLinkAddr(SHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 		if err != nil {
 			return err
 		}
@@ -87,7 +86,7 @@ func proc(key string) error {
 		return err
 	}
 
-	_, err = test(m.HTag, b)
+	_, err = mineLinks(m.HTag, b)
 	//if err != nil {
 	//	return err
 	//}
@@ -97,7 +96,7 @@ func proc(key string) error {
 	return err
 }
 
-func test(t string, b []byte) ([]byte, error) {
+func mineLinks(t string, b []byte) ([]byte, error) {
 	var src interface{}
 
 	switch {
@@ -145,7 +144,7 @@ func mineLinkDrug(t string, l linkDruger) error {
 		default:
 			name = makeMagicDrug(l.getName(i))
 		}
-		keys[i] = makeSHA1String(name)
+		keys[i] = SHA1(name)
 	}
 
 	lds, err := findLinkDrug(keys...)
@@ -167,7 +166,7 @@ func mineLinkDrug(t string, l linkDruger) error {
 func mineLinkAddr(l linkAddrer) error {
 	var keys = make([]string, l.len())
 	for i := 0; i < l.len(); i++ {
-		keys[i] = makeSHA1String(makeMagicAddr(l.getSupp(i)))
+		keys[i] = SHA1(makeMagicAddr(l.getSupp(i)))
 	}
 
 	lds, err := findLinkAddr(keys...)
@@ -184,6 +183,10 @@ func mineLinkAddr(l linkAddrer) error {
 	}
 
 	return nil
+}
+
+func SHA1(s string) string {
+	return strutil.SHA1(s)
 }
 
 func makeMagicHead(name, head, addr string) string {
@@ -227,10 +230,6 @@ func makeMagicDrugRU(name string) string {
 
 func makeMagicDrugUA(name string) string {
 	return makeMagicDrug(name) + magicSuffixUA
-}
-
-func makeSHA1String(s string) string {
-	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }
 
 func isGeo(s string) bool {

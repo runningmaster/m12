@@ -1,6 +1,8 @@
 package strutil
 
 import (
+	"crypto/sha1"
+	"fmt"
 	"math/rand"
 )
 
@@ -15,7 +17,7 @@ func RandASCII(n int) string {
 	return string(b)
 }
 
-// Join is alternative for http://golang.org/pkg/strings/#Join
+// Join is alternative for http://golang.org/pkg/strings/#Join.
 func Join(a ...string) string {
 	switch len(a) {
 	case 0:
@@ -39,8 +41,8 @@ func Join(a ...string) string {
 	return string(b)
 }
 
-// First returns n first characters
-// Based on https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4
+// First returns n first characters.
+// Based on https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4.
 func First(s string, n int) string {
 	if len(s) == 0 || n <= 0 {
 		return ""
@@ -55,4 +57,9 @@ func First(s string, n int) string {
 
 	}
 	return string(res)
+}
+
+// SHA1 returns SHA1 string from string.
+func SHA1(s string) string {
+	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }
