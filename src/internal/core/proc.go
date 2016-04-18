@@ -115,12 +115,12 @@ func Test(t string, b []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if err = mineLinkName(t, src.(nameLinker)); err != nil {
+	if err = mineLinkDrug(t, src.(linkDruger)); err != nil {
 		return nil, err
 	}
 
 	if strings.Contains(t, "sale-in") {
-		if err = mineLinkSupp(src.(suppLinker)); err != nil {
+		if err = mineLinkAddr(src.(linkAddrer)); err != nil {
 			return nil, err
 		}
 	}
@@ -128,7 +128,7 @@ func Test(t string, b []byte) ([]byte, error) {
 	return json.Marshal(src)
 }
 
-func mineLinkName(t string, l nameLinker) error {
+func mineLinkDrug(t string, l linkDruger) error {
 	var (
 		keys = make([]string, l.len())
 		from = filepath.Ext(t)
@@ -166,7 +166,7 @@ func mineLinkName(t string, l nameLinker) error {
 	return nil
 }
 
-func mineLinkSupp(l suppLinker) error {
+func mineLinkAddr(l linkAddrer) error {
 	var keys = make([]string, l.len())
 	for i := 0; i < l.len(); i++ {
 		keys[i] = makeSHA1String(makeMagicSupp(l.getSupp(i)))

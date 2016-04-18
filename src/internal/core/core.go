@@ -71,13 +71,13 @@ type (
 		Link     linkDrug `json:"link,omitempty"`
 	}
 
-	suppLinker interface {
+	linkAddrer interface {
 		len() int
 		getSupp(int) string
 		setLinkAddr(int, linkAddr)
 	}
 
-	nameLinker interface {
+	linkDruger interface {
 		len() int
 		getName(int) string
 		setLinkDrug(int, linkDrug)
