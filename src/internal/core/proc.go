@@ -135,17 +135,18 @@ func mineLinkDrug(t string, l linkDruger) error {
 		name string
 	)
 	for i := 0; i < l.len(); i++ {
+		name = l.getName(i)
 		switch {
 		case isUA(ext):
-			name = makeMagicDrugUA(l.getName(i))
+			name = makeMagicDrugUA(name)
 		case isRU(ext):
-			name = makeMagicDrugRU(l.getName(i))
+			name = makeMagicDrugRU(name)
 		case isKZ(ext):
-			name = makeMagicDrugKZ(l.getName(i))
+			name = makeMagicDrugKZ(name)
 		case isBY(ext):
-			name = makeMagicDrugBY(l.getName(i))
+			name = makeMagicDrugBY(name)
 		default:
-			name = makeMagicDrug(l.getName(i))
+			name = makeMagicDrug(name)
 		}
 		keys[i] = SHA1(name)
 	}
