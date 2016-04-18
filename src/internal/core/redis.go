@@ -72,7 +72,8 @@ func dial(addr string) func() (redis.Conn, error) {
 
 		if u.User != nil {
 			if pw, ok := u.User.Password(); ok {
-				if _, err := c.Do("AUTH", pw); err != nil {
+				_, err := c.Do("AUTH", pw)
+				if err != nil {
 					return nil, err
 				}
 			}

@@ -29,7 +29,8 @@ type (
 
 func (d decodeLinkDrug) src() ([]string, error) {
 	var out []string
-	if err := json.Unmarshal(d, &out); err != nil {
+	err := json.Unmarshal(d, &out)
+	if err != nil {
 		return nil, err
 	}
 
@@ -38,7 +39,8 @@ func (d decodeLinkDrug) src() ([]string, error) {
 
 func (d decodeLinkDrug) lnk() ([]linkDrug, error) {
 	var out []linkDrug
-	if err := json.Unmarshal(d, &out); err != nil {
+	err := json.Unmarshal(d, &out)
+	if err != nil {
 		return nil, err
 	}
 
@@ -67,12 +69,14 @@ func (d decodeLinkDrug) get(c redis.Conn) ([]interface{}, error) {
 
 	var l linkDrug
 	for i := range src {
-		if err = c.Send("HMGET", l.keyflds(src[i])...); err != nil {
+		err = c.Send("HMGET", l.keyflds(src[i])...)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err = c.Flush(); err != nil {
+	err = c.Flush()
+	if err != nil {
 		return nil, err
 	}
 
@@ -96,20 +100,24 @@ func (d decodeLinkDrug) set(c redis.Conn) (interface{}, error) {
 	}
 
 	for i := range lnk {
-		if err = c.Send("DEL", lnk[i].ID); err != nil {
+		err = c.Send("DEL", lnk[i].ID)
+		if err != nil {
 			return nil, err
 		}
-		if err = c.Send("HMSET", lnk[i].keyvals()...); err != nil {
+		err = c.Send("HMSET", lnk[i].keyvals()...)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err = c.Flush(); err != nil {
+	err = c.Flush()
+	if err != nil {
 		return nil, err
 	}
 
 	for range lnk {
-		if _, err = c.Receive(); err != nil {
+		_, err = c.Receive()
+		if err != nil {
 			return nil, err
 		}
 	}

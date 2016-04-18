@@ -53,7 +53,8 @@ func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface
 	}
 	size := int64(n)
 
-	if _, err = w.Write([]byte("\n")); err != nil {
+	_, err = w.Write([]byte("\n"))
+	if err != nil {
 		return 0, err
 	}
 	size++

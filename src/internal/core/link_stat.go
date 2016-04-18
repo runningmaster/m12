@@ -26,7 +26,8 @@ type (
 
 func (d decodeLinkStat) src() ([]int64, error) {
 	var out []int64
-	if err := json.Unmarshal(d, &out); err != nil {
+	err := json.Unmarshal(d, &out)
+	if err != nil {
 		return nil, err
 	}
 
@@ -35,7 +36,8 @@ func (d decodeLinkStat) src() ([]int64, error) {
 
 func (d decodeLinkStat) lnk() ([]linkStat, error) {
 	var out []linkStat
-	if err := json.Unmarshal(d, &out); err != nil {
+	err := json.Unmarshal(d, &out)
+	if err != nil {
 		return nil, err
 	}
 
@@ -92,7 +94,8 @@ func (d decodeLinkStat) set(c redis.Conn) (interface{}, error) {
 		vls = append(vls, lnk[i].ID, lnk[i].Name)
 	}
 
-	if _, err = c.Do("HMSET", vls...); err != nil {
+	_, err = c.Do("HMSET", vls...)
+	if err != nil {
 		return nil, err
 	}
 

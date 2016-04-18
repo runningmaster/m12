@@ -74,7 +74,8 @@ func main() {
 		goto fail
 	}
 
-	if err = ioutil.WriteFile(flagFile, out, 0644); err != nil {
+	err = ioutil.WriteFile(flagFile, out, 0644)
+	if err != nil {
 		goto fail
 	}
 

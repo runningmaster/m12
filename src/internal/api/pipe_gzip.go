@@ -45,7 +45,8 @@ func pipeGzip(h handlerFunc) handlerFunc {
 				// FIXME log err
 			}
 			defer gzutil.PutReader(z)
-			if err := z.Reset(r.Body); err != nil {
+			err = z.Reset(r.Body)
+			if err != nil {
 				// FIXME log err
 			}
 			r.Body = z

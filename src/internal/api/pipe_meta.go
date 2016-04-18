@@ -20,15 +20,18 @@ func pipeMeta(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		if err = mustHeaderGzip(r); err != nil {
+		err = mustHeaderGzip(r)
+		if err != nil {
 			goto fail
 		}
 
-		if err = mustHeaderJSON(r); err != nil {
+		err = mustHeaderJSON(r)
+		if err != nil {
 			goto fail
 		}
 
-		if err = mustHeaderUTF8(r); err != nil {
+		err = mustHeaderUTF8(r)
+		if err != nil {
 			goto fail
 		}
 
@@ -76,7 +79,8 @@ func getMeta(r *http.Request) (string, error) {
 
 	// check for correct json
 	var v struct{}
-	if err = json.Unmarshal(b, &v); err != nil {
+	err = json.Unmarshal(b, &v)
+	if err != nil {
 		return "", fmt.Errorf("api: content-meta must be correct json: %s", err)
 	}
 

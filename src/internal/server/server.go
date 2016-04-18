@@ -19,7 +19,8 @@ var (
 func initOnce() error {
 	var errOnce error
 	once.Do(func() {
-		if err := api.Init(regFunc); err != nil {
+		err := api.Init(regFunc)
+		if err != nil {
 			errOnce = err
 			return
 		}
@@ -44,7 +45,8 @@ func initOnce() error {
 
 // Start starts HTTP server
 func Start() error {
-	if err := initOnce(); err != nil {
+	err := initOnce()
+	if err != nil {
 		return err
 	}
 

@@ -20,7 +20,8 @@ var (
 
 func initS3Cli() error {
 	var err error
-	if s3cli, err = s3.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, true); err != nil {
+	s3cli, err = s3.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, true)
+	if err != nil {
 		return fmt.Errorf("core: s3cli: %s", err)
 	}
 
@@ -30,8 +31,10 @@ func initS3Cli() error {
 func initBackets() error {
 	for i := range backets {
 		b := backets[i]
-		if err := s3cli.BucketExists(b); err != nil {
-			if err = s3cli.MakeBucket(b, ""); err != nil {
+		err := s3cli.BucketExists(b)
+		if err != nil {
+			err = s3cli.MakeBucket(b, "")
+			if err != nil {
 				return fmt.Errorf("core: s3cli: %s", err)
 			}
 		}

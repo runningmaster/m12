@@ -134,16 +134,12 @@ func (l listSaleBYV3) setLinkDrug(i int, link linkDrug) {
 
 // Init is caled from other package for manually initialization
 func Init() error {
-	var err error
-	if err = initRedis(); err != nil {
+	err := initRedis()
+	if err != nil {
 		return err
 	}
 
-	if err = initS3Cli(); err != nil {
-		return err
-	}
-
-	return nil
+	return initS3Cli()
 }
 
 //$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta-JSON-Base64: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/upload

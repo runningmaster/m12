@@ -81,7 +81,8 @@ func Gunzip(data []byte) ([]byte, error) {
 	}
 	defer PutReader(z)
 
-	if err = z.Reset(bytes.NewReader(data)); err != nil {
+	err = z.Reset(bytes.NewReader(data))
+	if err != nil {
 		return nil, err
 	}
 

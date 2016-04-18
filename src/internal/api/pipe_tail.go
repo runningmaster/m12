@@ -83,7 +83,8 @@ func (i informer) size() int64 {
 }
 
 func (i informer) fail() string {
-	if err := ctxutil.FailFromContext(i.c); err != nil {
+	err := ctxutil.FailFromContext(i.c)
+	if err != nil {
 		return err.Error()
 	}
 	return ""

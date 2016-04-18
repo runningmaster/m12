@@ -35,7 +35,8 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 		_ = c.Close()
 	}(r.Body)
 
-	if _, err = s3cli.PutObject(backetStreamIn, m.ID, r.Body, p); err != nil {
+	_, err = s3cli.PutObject(backetStreamIn, m.ID, r.Body, p)
+	if err != nil {
 		return nil, err
 	}
 
@@ -46,7 +47,8 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 
 func makeMeta(s string) (meta, error) {
 	var m meta
-	if err := json.Unmarshal([]byte(s), &m); err != nil {
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
 		return meta{}, err
 	}
 

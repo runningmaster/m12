@@ -23,7 +23,8 @@ type (
 
 func (d decodeAuth) src() ([]string, error) {
 	var out []string
-	if err := json.Unmarshal(d, &out); err != nil {
+	err := json.Unmarshal(d, &out)
+	if err != nil {
 		return nil, err
 	}
 
@@ -54,12 +55,14 @@ func (d decodeAuth) get(c redis.Conn) ([]interface{}, error) {
 	}
 
 	for i := range vls {
-		if err = c.Send("SISMEMBER", keyAuth, vls[i]); err != nil {
+		err = c.Send("SISMEMBER", keyAuth, vls[i])
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err = c.Flush(); err != nil {
+	err = c.Flush()
+	if err != nil {
 		return nil, err
 	}
 

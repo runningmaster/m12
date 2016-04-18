@@ -108,16 +108,19 @@ func mineLinks(t string, b []byte) ([]byte, error) {
 		src = listSaleV3{}
 	}
 
-	if err := json.Unmarshal(b, &src); err != nil {
+	err := json.Unmarshal(b, &src)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := mineLinkDrug(t, src.(linkDruger)); err != nil {
+	err = mineLinkDrug(t, src.(linkDruger))
+	if err != nil {
 		return nil, err
 	}
 
 	if isSaleIn(t) {
-		if err := mineLinkAddr(src.(linkAddrer)); err != nil {
+		err = mineLinkAddr(src.(linkAddrer))
+		if err != nil {
 			return nil, err
 		}
 	}
