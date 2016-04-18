@@ -53,7 +53,7 @@ func trapErrorHandler(err error, c echo.Context) {
 	c.Echo().DefaultHTTPErrorHandler(err, c)
 	return
 find:
-	c.Handler()(c)
+	_ = c.Handler()(c)
 }
 
 func makeRouter() (*echo.Echo, error) {

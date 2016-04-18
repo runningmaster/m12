@@ -10,9 +10,11 @@ import (
 
 func pipeFail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		if err := ctxutil.FailFromContext(ctx); err != nil {
+		err := ctxutil.FailFromContext(ctx)
+		if err != nil {
 			if code := ctxutil.CodeFromContext(ctx); code != 0 {
-				size, err := writeJSON(ctx, w, http.StatusInternalServerError, err.Error())
+				var size int64
+				size, err = writeJSON(ctx, w, http.StatusInternalServerError, err.Error())
 				if err != nil {
 					ctx = ctxutil.WithFail(ctx, err)
 				}

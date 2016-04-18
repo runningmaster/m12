@@ -69,7 +69,8 @@ func proc(key string) error {
 	m.Path = ""     // ?
 	m.Size = s.Size
 	if m.Name != "" {
-		l, err := findLinkAddr(makeSHA1String(makeMagicHead(m.Name, m.Head, m.Addr)))
+		var l []linkAddr
+		l, err = findLinkAddr(makeSHA1String(makeMagicHead(m.Name, m.Head, m.Addr)))
 		if err != nil {
 			return err
 		}
@@ -86,17 +87,17 @@ func proc(key string) error {
 		return err
 	}
 
-	_, err = Test(m.HTag, b)
-	if err != nil {
-		return err
-	}
+	_, err = test(m.HTag, b)
+	//if err != nil {
+	//	return err
+	//}
 	// put object backetStreamOut
 	// put object backetStreamErr
 
-	return nil
+	return err
 }
 
-func Test(t string, b []byte) ([]byte, error) {
+func test(t string, b []byte) ([]byte, error) {
 	var src interface{}
 
 	switch {
