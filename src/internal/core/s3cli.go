@@ -24,7 +24,7 @@ func initS3Cli() error {
 	if err != nil {
 		return fmt.Errorf("core: s3cli: %s", err)
 	}
-
+	testListBackets()
 	return initBackets()
 }
 
@@ -41,4 +41,25 @@ func initBackets() error {
 	}
 
 	return nil
+}
+
+func testListBackets() {
+	doneCh := make(chan struct{})
+	defer close(doneCh)
+
+	n := 0
+	objectCh := s3cli.ListObjects(backetStreamIn, "", false, doneCh)
+	for object := range objectCh {
+		if object.Err != nil {
+			fmt.Println(object.Err)
+			return
+		}
+		n++
+		fmt.Println(n, object, object.ContentType)
+		if n == 5 {
+			doneCh <- struct{}{}
+		}
+		// send to nats
+	}
+	fmt.Println(n)
 }

@@ -32,6 +32,7 @@ type (
 
 		SrcCE string `json:"src_ce,omitempty"` // Source ContentEncoding
 		SrcCT string `json:"src_ct,omitempty"` // Source ContentType
+		Debug bool   `json:"debug,omitempty"`  // for debug purpose only
 	}
 
 	itemGeoV3 struct {
@@ -139,7 +140,12 @@ func Init() error {
 		return err
 	}
 
-	return initS3Cli()
+	err = initS3Cli()
+	if err != nil {
+		return err
+	}
+
+	return initNATSCli()
 }
 
 //$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/upload
