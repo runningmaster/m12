@@ -34,7 +34,15 @@ github.com/garyburd/redigo/redis
 # https://godoc.org/github.com/minio/minio-go
 github.com/minio/minio-go
 
+# A Go client for the NATS messaging system (https://nats.io).
+# https://godoc.org/github.com/nats-io/nats
+github.com/nats-io/nats
+
 ### Below some alternatives for consideration ###
+
+# A unique identifier generator that is high performance, very fast, and tries to be entropy pool friendly.
+# https://godoc.org/github.com/nats-io/nuid
+# github.com/nats-io/nuid
 
 # Package uuid provides implementation of Universally Unique Identifier (UUID).
 # https://godoc.org/github.com/satori/go.uuid
