@@ -1,6 +1,8 @@
 package core
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 
 	"golang.org/x/net/context"
@@ -89,6 +91,30 @@ type (
 	listSaleBYV3 []itemSaleBYV3
 )
 
+func (m meta) initFromJSON(b []byte) error {
+	return json.Unmarshal(b, &m)
+}
+
+func (m meta) packToJSON() ([]byte, error) {
+	return json.Marshal(m)
+}
+
+func (m meta) initFromBase64(s string) error {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, &m)
+}
+
+func (m meta) packToBase64() (string, error) {
+	b, err := m.packToJSON()
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(b), nil
+}
+
 func (l listGeoV3) len() int {
 	return len(l)
 }
@@ -145,7 +171,14 @@ func Init() error {
 		return err
 	}
 
-	return initNATSCli()
+	err = initNATSCli()
+	if err != nil {
+		return err
+	}
+
+	//	go sendMsgToNATS()
+
+	return nil
 }
 
 //$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/upload

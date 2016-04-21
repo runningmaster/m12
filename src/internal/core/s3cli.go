@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"internal/flag"
+	"io"
 
 	s3 "github.com/minio/minio-go"
 )
@@ -41,6 +42,29 @@ func initBackets() error {
 	}
 
 	return nil
+}
+
+func putObject(bucketName, objectName string, r io.Reader) error {
+	_, err := s3cli.PutObject(bucketName, objectName, r, "")
+	return err
+}
+
+func popObject(bucketName, objectName string) (io.ReadCloser, error) {
+	o, err := s3cli.GetObject(bucketName, objectName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s3cli.RemoveObject(bucketName, objectName)
+	if err != nil {
+		return nil, err
+	}
+
+	return o, nil
+}
+
+func getObjectMeta(n int) ([]string, error) {
+	return nil, nil
 }
 
 func testListBackets() {

@@ -20,10 +20,10 @@ func initNATSCli() error {
 	if err != nil {
 		return fmt.Errorf("core: nats: %s", err)
 	}
-	fmt.Println(natsCli.MaxPayload())
+	//fmt.Println(natsCli.MaxPayload())
 	//natsCli.Close()
-	go testNATSProducer()
-	testNATSConsumer()
+	//go testNATSProducer()
+	//testNATSConsumer()
 	return nil
 }
 

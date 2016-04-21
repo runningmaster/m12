@@ -54,7 +54,8 @@ func proc(key string) error {
 		return err
 	}
 
-	m, err := makeMeta(s.ContentType)
+	m := meta{}
+	err = m.initFromBase64(s.ContentType)
 	if err != nil {
 		return err
 	}
@@ -63,13 +64,9 @@ func proc(key string) error {
 		return fmt.Errorf("core: proc: invalid htag %s", m.HTag)
 	}
 
-	m.Time = s.LastModified.Format("02.01.2006 15:04:05.999999999")
-	m.ETag = s.ETag // MD5
-	m.Path = ""     // ?
-	m.Size = s.Size
 	if m.Name != "" {
 		var l []linkAddr
-		l, err = findLinkAddr(SHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
+		l, err = findLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 		if err != nil {
 			return err
 		}
@@ -148,7 +145,7 @@ func mineLinkDrug(t string, l linkDruger) error {
 		default:
 			name = makeMagicDrug(name)
 		}
-		keys[i] = SHA1(name)
+		keys[i] = strToSHA1(name)
 	}
 
 	lds, err := findLinkDrug(keys...)
@@ -170,7 +167,7 @@ func mineLinkDrug(t string, l linkDruger) error {
 func mineLinkAddr(l linkAddrer) error {
 	var keys = make([]string, l.len())
 	for i := 0; i < l.len(); i++ {
-		keys[i] = SHA1(makeMagicAddr(l.getSupp(i)))
+		keys[i] = strToSHA1(makeMagicAddr(l.getSupp(i)))
 	}
 
 	lds, err := findLinkAddr(keys...)
@@ -187,10 +184,6 @@ func mineLinkAddr(l linkAddrer) error {
 	}
 
 	return nil
-}
-
-func SHA1(s string) string {
-	return strutil.SHA1(s)
 }
 
 func makeMagicHead(name, head, addr string) string {

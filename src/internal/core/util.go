@@ -1,6 +1,9 @@
 package core
 
 import (
+	"crypto/md5"
+	"crypto/sha1"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +16,22 @@ import (
 
 func stringOK() string {
 	return http.StatusText(http.StatusOK)
+}
+
+func btsToMD5(b []byte) string {
+	return fmt.Sprintf("%x", md5.Sum(b))
+}
+
+func strToMD5(s string) string {
+	return btsToMD5([]byte(s))
+}
+
+func btsToSHA1(b []byte) string {
+	return fmt.Sprintf("%x", sha1.Sum(b))
+}
+
+func strToSHA1(s string) string {
+	return btsToSHA1([]byte(s))
 }
 
 func readClose(r io.ReadCloser) ([]byte, error) {
