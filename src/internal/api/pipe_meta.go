@@ -66,23 +66,23 @@ func mustHeaderUTF8(r *http.Request) error {
 	return nil
 }
 
-func getMeta(r *http.Request) (string, error) {
+func getMeta(r *http.Request) ([]byte, error) {
 	m := r.Header.Get("Content-Meta")
 	if m == "" {
-		return "", fmt.Errorf("api: content-meta not found")
+		return nil, fmt.Errorf("api: content-meta not found")
 	}
 
 	b, err := base64.StdEncoding.DecodeString(m)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// check for correct json
 	var v struct{}
 	err = json.Unmarshal(b, &v)
 	if err != nil {
-		return "", fmt.Errorf("api: content-meta must be correct json: %s", err)
+		return nil, fmt.Errorf("api: content-meta must be correct json: %s", err)
 	}
 
-	return string(b), nil
+	return b, nil
 }

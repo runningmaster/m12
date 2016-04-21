@@ -65,17 +65,17 @@ func AuthFromContext(ctx context.Context) string {
 }
 
 // WithMeta returns new Context with Meta.
-func WithMeta(ctx context.Context, v string) context.Context {
+func WithMeta(ctx context.Context, v []byte) context.Context {
 	return context.WithValue(ctx, ctxMeta, v)
 }
 
 // MetaFromContext returns Meta value from Context.
-func MetaFromContext(ctx context.Context) string {
+func MetaFromContext(ctx context.Context) []byte {
 	switch v := ctx.Value(ctxMeta).(type) {
-	case string:
+	case []byte:
 		return v
 	default:
-		return ""
+		return nil
 	}
 }
 
