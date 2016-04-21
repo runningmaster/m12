@@ -1,10 +1,6 @@
 package strutil
 
-import (
-	"crypto/sha1"
-	"fmt"
-	"math/rand"
-)
+import "math/rand"
 
 var a = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -57,9 +53,4 @@ func First(s string, n int) string {
 
 	}
 	return string(res)
-}
-
-// SHA1 returns SHA1 string from string.
-func SHA1(s string) string {
-	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }
