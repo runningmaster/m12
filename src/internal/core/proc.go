@@ -59,7 +59,16 @@ func proc(key string) error {
 	if err != nil {
 		return err
 	}
+	/*
+			if !isTypeGzip(d) {
+			return nil, fmt.Errorf("core: content must contain gzip")
+		}
 
+		m.ETag = btsToMD5(d)
+		m.Path = "" // ?
+		m.Size = int64(len(d))
+	*/
+	m.HTag = strings.ToLower(m.HTag)
 	if !isHTag(m.HTag) {
 		return fmt.Errorf("core: proc: invalid htag %s", m.HTag)
 	}

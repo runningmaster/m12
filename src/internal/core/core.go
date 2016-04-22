@@ -1,8 +1,11 @@
 package core
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"net/http"
 
 	"golang.org/x/net/context"
@@ -113,6 +116,15 @@ func (m meta) packToBase64() (string, error) {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(b), nil
+}
+
+func (m meta) makeReadCloser() io.ReadCloser {
+	p, _ := m.packToJSON()
+	return ioutil.NopCloser(bytes.NewReader(p))
+}
+
+func (m meta) Close() error {
+	return nil
 }
 
 func (l listGeoV3) len() int {
