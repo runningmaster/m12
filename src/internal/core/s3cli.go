@@ -67,6 +67,7 @@ func getObjectMeta(n int) ([]string, error) {
 	return nil, nil
 }
 
+/*
 func testListBackets() {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
@@ -80,10 +81,32 @@ func testListBackets() {
 		}
 		n++
 		fmt.Println(n, object, object.ContentType)
-		if n == 5 {
+		if n == 16 {
 			doneCh <- struct{}{}
 		}
 		// send to nats
+		fmt.Println(n)
+	}
+	fmt.Println(n)
+}
+*/
+func testListBackets() {
+	doneCh := make(chan struct{})
+	//defer close(doneCh)
+
+	objectCh := s3cli.ListObjects(backetStreamIn, "", true, doneCh)
+	n := 0
+	for object := range objectCh {
+		if object.Err != nil {
+			fmt.Println(object.Err)
+			return
+		}
+		n++
+		fmt.Println(n, object, object.ContentType)
+		if n == 7 {
+			doneCh <- struct{}{}
+			close(doneCh)
+		}
 	}
 	fmt.Println(n)
 }

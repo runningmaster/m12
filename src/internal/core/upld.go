@@ -32,10 +32,12 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	err = putObject(backetStreamIn, m.ID, t)
-	if err != nil {
-		return nil, err
-	}
+	go func(r io.Reader) {
+		_ = putObject(backetStreamIn, m.ID, t)
+		//	if err != nil {
+		//		return nil, err
+		//	}
+	}(t)
 
 	// send ?
 
