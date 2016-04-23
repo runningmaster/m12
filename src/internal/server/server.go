@@ -1,67 +1,24 @@
 package server
 
 import (
-	"fmt"
-	"sync"
+	"time"
 
 	"internal/api"
 	"internal/flag"
 
-	"github.com/braintree/manners"
+	"github.com/tylerb/graceful"
 )
 
-var (
-	once sync.Once
-	gsrv *manners.GracefulServer
-)
-
-// initOnce sets once *http.Server for Start/Stop
-func initOnce() error {
-	var errOnce error
-	once.Do(func() {
-		err := api.Init(regFunc)
-		if err != nil {
-			errOnce = err
-			return
-		}
-
-		r, err := makeRouter()
-		if err != nil {
-			errOnce = err
-			return
-		}
-
-		s, err := withRouter(flag.Addr, r)
-		if err != nil {
-			errOnce = err
-			return
-		}
-
-		gsrv = manners.NewWithServer(s)
-	})
-
-	return errOnce
-}
-
-// Start starts HTTP server
-func Start() error {
-	err := initOnce()
+func Run() error {
+	err := api.Init(regFunc)
 	if err != nil {
 		return err
 	}
 
-	return gsrv.ListenAndServe()
-}
-
-// Stop stops HTTP server
-func Stop() error {
-	if gsrv == nil {
-		return fmt.Errorf("server: not registered")
+	s, err := makeServer(flag.Addr)
+	if err != nil {
+		return err
 	}
 
-	if ok := gsrv.Close(); !ok {
-		return fmt.Errorf("server: received false on close")
-	}
-
-	return nil
+	return graceful.ListenAndServe(s, 5*time.Second)
 }

@@ -6,6 +6,10 @@ golang.org/x/net/context
 # https://godoc.org/github.com/braintree/manners
 github.com/braintree/manners
 
+# Graceful is a Go 1.3+ package enabling graceful shutdown of http.Handler servers.
+# https://godoc.org/github.com/tylerb/graceful
+github.com/tylerb/graceful
+
 # Package echo implements a fast and unfancy micro web framework for Go.
 # https://godoc.org/github.com/labstack/echo
 github.com/labstack/echo

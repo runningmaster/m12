@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/standard"
 )
 
@@ -69,7 +68,12 @@ func makeRouter() (*echo.Echo, error) {
 	return r, nil
 }
 
-func withRouter(addr string, r engine.Handler) (*http.Server, error) {
+func makeServer(addr string) (*http.Server, error) {
+	r, err := makeRouter()
+	if err != nil {
+		return nil, err
+	}
+
 	s := standard.New(addr)
 	s.SetHandler(r)
 
