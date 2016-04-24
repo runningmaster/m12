@@ -2,10 +2,6 @@
 # https://godoc.org/golang.org/x/net/context
 golang.org/x/net/context
 
-# A polite Go HTTP server that shuts down gracefully.
-# https://godoc.org/github.com/braintree/manners
-github.com/braintree/manners
-
 # Graceful is a Go 1.3+ package enabling graceful shutdown of http.Handler servers.
 # https://godoc.org/github.com/tylerb/graceful
 github.com/tylerb/graceful
