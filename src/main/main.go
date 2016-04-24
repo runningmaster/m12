@@ -12,17 +12,21 @@ import (
 	"internal/server"
 )
 
-func init() {
-	log.SetFlags(0)
-	log.SetOutput(ioutil.Discard)
-}
-
 func main() {
 	flag.Parse()
+	initLogger()
+	execServer()
+}
+
+func initLogger() {
+	log.SetFlags(0)
+	log.SetOutput(ioutil.Discard)
 	if flag.Verbose {
 		log.SetOutput(os.Stderr)
 	}
+}
 
+func execServer() {
 	err := server.Run()
 	if err != nil {
 		log.Printf("main: %s", err)
