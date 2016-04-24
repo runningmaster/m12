@@ -188,8 +188,6 @@ func Init() error {
 		return err
 	}
 
-	//	go sendMsgToNATS()
-
 	return nil
 }
 

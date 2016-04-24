@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 // Upld sends data to s3 interface
 func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 	m := meta{}
+
 	err := m.initFromJSON([]byte(ctxutil.MetaFromContext(ctx)))
 	if err != nil {
 		return nil, err
@@ -32,16 +34,18 @@ func Upld(ctx context.Context, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	go func(r io.Reader) {
-		_ = putObject(backetStreamIn, m.ID, t)
-		//	if err != nil {
-		//		return nil, err
-		//	}
-	}(t)
-
-	// send ?
+	goToStreamIn(m.ID, t)
 
 	return m.ID, nil
+}
+
+func goToStreamIn(s string, r io.Reader) {
+	go func() {
+		err := putObject(backetStreamIn, s, r)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 }
 
 func tarMetaData(m, d io.ReadCloser) (io.Reader, error) {

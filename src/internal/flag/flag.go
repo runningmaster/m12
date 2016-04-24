@@ -28,13 +28,19 @@ var (
 	S3Address = *flag.String("s3addr", "127.0.0.1:9000", "S3 object storage address")
 
 	// S3AccessKey is S3 access key
-	S3AccessKey = *flag.String("s3akey", "WTTDDZJKU1AJGX1CNNDD", "S3 access key")
+	S3AccessKey = *flag.String("s3akey", "", "S3 access key")
 
 	// S3SecretKey is S3 secret key
-	S3SecretKey = *flag.String("s3skey", "jqBA9Qlzhn84ArN9s9AnwRQr3mkjlLz713tlHxCH", "S3 secret key")
+	S3SecretKey = *flag.String("s3skey", "", "S3 secret key")
 
 	// NATS is a TCP network address for NATS server
-	NATS = *flag.String("nats", "nats://@:4222", "network address for NATS server 'scheme://[user:pass]@host[:port]'")
+	NATS = *flag.String("nats", "nats://user:pass@ip:4222", "network address for NATS server 'scheme://[user:pass]@host[:port]'")
+
+	// NATSSubjectSteamIn is NATS subject for publishing stream-out
+	NATSSubjectSteamIn = *flag.String("nats-subj-stream-in", "stream-in.67a7ea16", "NATS subject for publishing stream-in")
+
+	// NATSSubjectSteamOut is NATS subject for publishing stream-out
+	NATSSubjectSteamOut = *flag.String("nats-subj-stream-out", "stream-out.0566ce58", "NATS subject for publishing stream-out")
 )
 
 // Parse is wrapper for std flag.Parse()
