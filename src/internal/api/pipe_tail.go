@@ -1,11 +1,11 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"internal/context/ctxutil"
-	"internal/log"
 
 	"github.com/pivotal-golang/bytefmt"
 	"golang.org/x/net/context"
