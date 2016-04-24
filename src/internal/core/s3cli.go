@@ -91,7 +91,7 @@ func testListBackets() {
 }
 */
 func testListBackets() {
-	doneCh := make(chan struct{})
+	doneCh := make(chan struct{}, 1)
 	//defer close(doneCh)
 
 	objectCh := s3cli.ListObjects(backetStreamIn, "", true, doneCh)
