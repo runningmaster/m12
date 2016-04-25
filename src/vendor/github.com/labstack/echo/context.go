@@ -88,8 +88,11 @@ type (
 		// Set saves data in the context.
 		Set(string, interface{})
 
-		// Del data from the context
+		// Del deletes data from the context.
 		Del(string)
+
+		// Exists checks if that key exists in the context.
+		Exists(string) bool
 
 		// Bind binds the request body into provided type `i`. The default binder
 		// does it based on Content-Type header.
@@ -292,6 +295,11 @@ func (c *context) Del(key string) {
 	delete(c.store, key)
 }
 
+func (c *context) Exists(key string) bool {
+	_, ok := c.store[key]
+	return ok
+}
+
 func (c *context) Bind(i interface{}) error {
 	return c.echo.binder.Bind(i, c)
 }
@@ -444,19 +452,19 @@ func (c *context) Logger() *log.Logger {
 }
 
 func (c *context) ServeContent(content io.ReadSeeker, name string, modtime time.Time) error {
-	rq := c.Request()
-	rs := c.Response()
+	req := c.Request()
+	res := c.Response()
 
-	if t, err := time.Parse(http.TimeFormat, rq.Header().Get(HeaderIfModifiedSince)); err == nil && modtime.Before(t.Add(1*time.Second)) {
-		rs.Header().Del(HeaderContentType)
-		rs.Header().Del(HeaderContentLength)
+	if t, err := time.Parse(http.TimeFormat, req.Header().Get(HeaderIfModifiedSince)); err == nil && modtime.Before(t.Add(1*time.Second)) {
+		res.Header().Del(HeaderContentType)
+		res.Header().Del(HeaderContentLength)
 		return c.NoContent(http.StatusNotModified)
 	}
 
-	rs.Header().Set(HeaderContentType, ContentTypeByExtension(name))
-	rs.Header().Set(HeaderLastModified, modtime.UTC().Format(http.TimeFormat))
-	rs.WriteHeader(http.StatusOK)
-	_, err := io.Copy(rs, content)
+	res.Header().Set(HeaderContentType, ContentTypeByExtension(name))
+	res.Header().Set(HeaderLastModified, modtime.UTC().Format(http.TimeFormat))
+	res.WriteHeader(http.StatusOK)
+	_, err := io.Copy(res, content)
 	return err
 }
 
@@ -470,10 +478,10 @@ func ContentTypeByExtension(name string) (t string) {
 	return
 }
 
-func (c *context) Reset(rq engine.Request, rs engine.Response) {
+func (c *context) Reset(req engine.Request, res engine.Response) {
 	c.netContext = nil
-	c.request = rq
-	c.response = rs
+	c.request = req
+	c.response = res
 	c.store = nil
 	c.handler = notFoundHandler
 }

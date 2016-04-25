@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo"
@@ -37,8 +39,9 @@ type (
 		// Optional with default value as os.Stdout.
 		Output io.Writer
 
-		template *fasttemplate.Template
-		color    *color.Color
+		template   *fasttemplate.Template
+		color      *color.Color
+		bufferPool sync.Pool
 	}
 )
 
@@ -73,43 +76,51 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 	if w, ok := config.Output.(*os.File); !ok || !isatty.IsTerminal(w.Fd()) {
 		config.color.Disable()
 	}
+	config.bufferPool = sync.Pool{
+		New: func() interface{} {
+			return bytes.NewBuffer(make([]byte, 256))
+		},
+	}
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
-			rq := c.Request()
-			rs := c.Response()
+			req := c.Request()
+			res := c.Response()
 			start := time.Now()
 			if err = next(c); err != nil {
 				c.Error(err)
 			}
 			stop := time.Now()
+			buf := config.bufferPool.Get().(*bytes.Buffer)
+			buf.Reset()
+			defer config.bufferPool.Put(buf)
 
-			_, err = config.template.ExecuteFunc(config.Output, func(w io.Writer, tag string) (int, error) {
+			_, err = config.template.ExecuteFunc(buf, func(w io.Writer, tag string) (int, error) {
 				switch tag {
 				case "time_rfc3339":
 					return w.Write([]byte(time.Now().Format(time.RFC3339)))
 				case "remote_ip":
-					ra := rq.RemoteAddress()
-					if ip := rq.Header().Get(echo.HeaderXRealIP); ip != "" {
+					ra := req.RemoteAddress()
+					if ip := req.Header().Get(echo.HeaderXRealIP); ip != "" {
 						ra = ip
-					} else if ip = rq.Header().Get(echo.HeaderXForwardedFor); ip != "" {
+					} else if ip = req.Header().Get(echo.HeaderXForwardedFor); ip != "" {
 						ra = ip
 					} else {
 						ra, _, _ = net.SplitHostPort(ra)
 					}
 					return w.Write([]byte(ra))
 				case "uri":
-					return w.Write([]byte(rq.URI()))
+					return w.Write([]byte(req.URI()))
 				case "method":
-					return w.Write([]byte(rq.Method()))
+					return w.Write([]byte(req.Method()))
 				case "path":
-					p := rq.URL().Path()
+					p := req.URL().Path()
 					if p == "" {
 						p = "/"
 					}
 					return w.Write([]byte(p))
 				case "status":
-					n := rs.Status()
+					n := res.Status()
 					s := config.color.Green(n)
 					switch {
 					case n >= 500:
@@ -123,11 +134,14 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 				case "response_time":
 					return w.Write([]byte(stop.Sub(start).String()))
 				case "response_size":
-					return w.Write([]byte(strconv.FormatInt(rs.Size(), 10)))
+					return w.Write([]byte(strconv.FormatInt(res.Size(), 10)))
 				default:
 					return w.Write([]byte(fmt.Sprintf("[unknown tag %s]", tag)))
 				}
 			})
+			if err == nil {
+				config.Output.Write(buf.Bytes())
+			}
 			return
 		}
 	}
