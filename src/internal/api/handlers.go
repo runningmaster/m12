@@ -34,15 +34,12 @@ func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 }
 
 func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	var (
-		f  core.Handler
-		ok bool
-	)
-	if f, ok = mapCoreHandlers[r.URL.Path]; !ok {
-		return with500(ctx, fmt.Errorf("exec: core method not found"))
+	f, ok := mapCoreHandlers[r.URL.Path]
+	if !ok {
+		return with500(ctx, fmt.Errorf("api: core method not found"))
 	}
 
-	res, err := f(ctx, r)
+	res, err := f(ctx, w, r)
 	if err != nil {
 		return with500(ctx, err)
 	}
@@ -52,7 +49,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	if !flag.Debug {
-		return with500(ctx, fmt.Errorf("flag debug not found"))
+		return with500(ctx, fmt.Errorf("api: flag debug not found"))
 	}
 
 	if h, p := http.DefaultServeMux.Handler(r); p != "" {

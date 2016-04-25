@@ -11,7 +11,7 @@ import (
 )
 
 // Info calls Redis INFO
-func Info(_ context.Context, _ *http.Request) (interface{}, error) {
+func Info(_ context.Context, _ http.ResponseWriter, _ *http.Request) (interface{}, error) {
 	c := redisGet()
 	defer redisPut(c)
 

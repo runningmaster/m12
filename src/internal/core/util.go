@@ -70,23 +70,22 @@ func mendIfUTF8(b []byte) ([]byte, error) {
 	return b, nil
 }
 
+func mendIfGzipUTF8(b []byte) ([]byte, error) {
+	u, err := mendIfGzip(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return mendIfUTF8(u)
+}
+
 func readMendClose(r io.ReadCloser) ([]byte, error) {
 	b, err := readClose(r)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err = mendIfGzip(b)
-	if err != nil {
-		return nil, err
-	}
-
-	b, err = mendIfUTF8(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
+	return mendIfGzipUTF8(b)
 }
 
 func isEmpty(v []interface{}) bool {

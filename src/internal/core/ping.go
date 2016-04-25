@@ -7,7 +7,7 @@ import (
 )
 
 // Ping calls Redis PING
-func Ping(_ context.Context, _ *http.Request) (interface{}, error) {
+func Ping(_ context.Context, _ http.ResponseWriter, _ *http.Request) (interface{}, error) {
 	c := redisGet()
 	defer redisPut(c)
 

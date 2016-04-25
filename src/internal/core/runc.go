@@ -9,7 +9,7 @@ import (
 
 // RunC is "print-like" operation.
 func RunC(cmd, base string) Handler {
-	return func(_ context.Context, r *http.Request) (interface{}, error) {
+	return func(_ context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
 		b, err := readMendClose(r.Body)
 		if err != nil {
 			return nil, err

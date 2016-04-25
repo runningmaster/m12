@@ -20,10 +20,17 @@ func initNATSCli() error {
 	if err != nil {
 		return fmt.Errorf("core: nats: %s", err)
 	}
-	testNATSConsumer()
+
+	goListenToNATS()
 	goNotifyStream(10)
 
 	return nil
+}
+
+func goListenToNATS() {
+	natsCli.Subscribe(flag.NATSSubjectSteamIn, func(m *nats.Msg) {
+		go proc(m.Data)
+	})
 }
 
 func goNotifyStream(n int) {
@@ -50,20 +57,8 @@ func notifyStream(backet, subject string, n int) error {
 	}
 
 	for i := range objs {
-		log.Println(objs[i].Key)
-		//natsCli.Publish(subject, []byte(objs[i].Key))
+		natsCli.Publish(subject, pathS3{backet, objs[i].Key}.makeReadCloser())
 	}
 
-	//natsCli.Publish(subject, []byte(strToSHA1(time.Now().String())))
 	return nil
-}
-
-func testNATSConsumer() {
-	natsCli.Subscribe(flag.NATSSubjectSteamIn, func(m *nats.Msg) {
-		fmt.Printf("NATS save: %s %s %s\n", time.Now().String(), flag.NATSSubjectSteamIn, string(m.Data))
-	})
-
-	natsCli.Subscribe(flag.NATSSubjectSteamOut, func(m *nats.Msg) {
-		fmt.Printf("NATS save: %s %s %s\n", time.Now().String(), flag.NATSSubjectSteamOut, string(m.Data))
-	})
 }

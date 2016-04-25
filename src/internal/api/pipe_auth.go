@@ -80,7 +80,7 @@ func auth(key string) error {
 		return err
 	}
 
-	res, err := core.RunC("get", "auth")(context.Background(), req)
+	res, err := core.RunC("get", "auth")(context.Background(), nil, req)
 	if err != nil {
 		return err
 	}

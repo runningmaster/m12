@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"internal/flag"
 	"io"
+	"log"
 
-	"github.com/minio/minio-go"
+	minio "github.com/minio/minio-go"
 )
 
 const (
@@ -81,4 +82,25 @@ func listObjectsN(bucket, prefix string, recursive bool, n int) ([]minio.ObjectI
 	}
 
 	return objs, nil
+}
+
+func goToStreamIn(object string, r io.Reader) {
+	goToStream(backetStreamIn, object, r)
+}
+
+func goToStreamOut(object string, r io.Reader) {
+	goToStream(backetStreamOut, object, r)
+}
+
+func goToStreamErr(object string, r io.Reader) {
+	goToStream(backetStreamErr, object, r)
+}
+
+func goToStream(bucket, object string, r io.Reader) {
+	go func() {
+		err := putObject(bucket, object, r)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 }

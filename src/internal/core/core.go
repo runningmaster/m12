@@ -13,7 +13,7 @@ import (
 
 // Handler is func for processing data from api.
 type (
-	Handler func(context.Context, *http.Request) (interface{}, error)
+	Handler func(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
 
 	meta struct {
 		ID string `json:"id,omitempty"` // ?
@@ -92,6 +92,11 @@ type (
 	listGeoV3    []itemGeoV3
 	listSaleV3   []itemSaleV3
 	listSaleBYV3 []itemSaleBYV3
+
+	pathS3 struct {
+		Backet string `json:"backet,omitempty"`
+		Object string `json:"object,omitempty"`
+	}
 )
 
 func (m meta) initFromJSON(b []byte) error {
@@ -119,12 +124,21 @@ func (m meta) packToBase64() (string, error) {
 }
 
 func (m meta) makeReadCloser() io.ReadCloser {
-	p, _ := m.packToJSON()
-	return ioutil.NopCloser(bytes.NewReader(p))
+	j, _ := m.packToJSON()
+	return ioutil.NopCloser(bytes.NewReader(j))
 }
 
-func (m meta) Close() error {
-	return nil
+func (p pathS3) packToJSON() ([]byte, error) {
+	return json.Marshal(p)
+}
+
+func (p pathS3) initFromJSON(b []byte) error {
+	return json.Unmarshal(b, &p)
+}
+
+func (p pathS3) makeReadCloser() io.ReadCloser {
+	j, _ := p.packToJSON()
+	return ioutil.NopCloser(bytes.NewReader(j))
 }
 
 func (l listGeoV3) len() int {
@@ -191,4 +205,4 @@ func Init() error {
 	return nil
 }
 
-//$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/upload
+//$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/push-data

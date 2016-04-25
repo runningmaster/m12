@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -48,26 +49,25 @@ func isHTag(t string) bool {
 	return false
 }
 
-func proc(key string) error {
-	s, err := s3cli.StatObject(backetStreamIn, key)
+func proc(rc io.ReadCloser) error {
+	meta, data, err := mineMetaData(rc)
 	if err != nil {
 		return err
+	}
+
+	if !isTypeGzip(data) {
+		return nil, fmt.Errorf("core: content must contain gzip")
 	}
 
 	m := meta{}
-	err = m.initFromBase64(s.ContentType)
+	err = m.initFromJSON(meta)
 	if err != nil {
 		return err
 	}
-	/*
-			if !isTypeGzip(d) {
-			return nil, fmt.Errorf("core: content must contain gzip")
-		}
+	m.ETag = btsToMD5(d)
+	m.Path = "" // ?
+	m.Size = int64(len(d))
 
-		m.ETag = btsToMD5(d)
-		m.Path = "" // ?
-		m.Size = int64(len(d))
-	*/
 	m.HTag = strings.ToLower(m.HTag)
 	if !isHTag(m.HTag) {
 		return fmt.Errorf("core: proc: invalid htag %s", m.HTag)
@@ -82,22 +82,24 @@ func proc(key string) error {
 		m.Link = l[0]
 	}
 
-	o, err := s3cli.GetObject(backetStreamIn, key)
+	b, err := mendIfGzipUTF8(data)
 	if err != nil {
 		return err
 	}
 
-	b, err := readMendClose(o)
+	b, err = mineLinks(m.HTag, b)
 	if err != nil {
 		return err
 	}
 
-	_, err = mineLinks(m.HTag, b)
-	//if err != nil {
-	//	return err
-	//}
-	// put object backetStreamOut
-	// put object backetStreamErr
+	t, err := tarMetaData(m.makeReadCloser(), r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	goToStreamOut(m.ID, t)
+
+	//goToStreamErr(m.ID, ?)
 
 	return err
 }
