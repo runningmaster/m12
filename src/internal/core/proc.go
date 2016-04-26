@@ -129,11 +129,11 @@ func mineLinks(t string, b []byte) ([]byte, error) {
 
 	switch {
 	case isGeo(t):
-		src = listGeoV3{}
+		src = listV3Geoa{}
 	case isSaleBY(t):
-		src = listSaleBYV3{}
+		src = listV3Soby{}
 	default:
-		src = listSaleV3{}
+		src = listV3Sale{}
 	}
 
 	err := json.Unmarshal(b, &src)

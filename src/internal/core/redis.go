@@ -13,17 +13,15 @@ import (
 
 var redisServer connGetter
 
-type (
-	connGetter interface {
-		Get() redis.Conn
-	}
+type connGetter interface {
+	Get() redis.Conn
+}
 
-	redisGetSetDelOper interface {
-		get(redis.Conn) ([]interface{}, error)
-		set(redis.Conn) (interface{}, error)
-		del(redis.Conn) (interface{}, error)
-	}
-)
+type redisGetSetDelOper interface {
+	get(redis.Conn) ([]interface{}, error)
+	set(redis.Conn) (interface{}, error)
+	del(redis.Conn) (interface{}, error)
+}
 
 func initRedis() error {
 	var err error

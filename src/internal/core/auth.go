@@ -11,15 +11,13 @@ import (
 
 const keyAuth = "auth:list"
 
-type (
-	decodeAuth []byte
+type decodeAuth []byte
 
-	// Redis scheme:
-	// SET => key="auth"
-	// SADD key v [v...]
-	// SREM key v [v...]
-	// SISMEMBER key v
-)
+// Redis scheme:
+// SET => key="auth"
+// SADD key v [v...]
+// SREM key v [v...]
+// SISMEMBER key v
 
 func (d decodeAuth) src() ([]string, error) {
 	var out []string

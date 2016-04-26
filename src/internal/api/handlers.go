@@ -13,16 +13,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-type (
-	handlerFunc    func(context.Context, http.ResponseWriter, *http.Request)
-	handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
-	handlerPipe    func(h handlerFunc) handlerFunc
-
-	bundle struct {
-		h http.Handler
-		f core.Handler
-	}
-)
+type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
+type handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
+type handlerPipe func(h handlerFunc) handlerFunc
+type bundle struct {
+	h http.Handler
+	f core.Handler
+}
 
 func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f(context.Background(), w, r)

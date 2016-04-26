@@ -10,22 +10,20 @@ import (
 // Redis scheme:
 // HASH key => [l/v] [a/v] [s/v] [e/v]
 
-type (
-	decodeLinkAddr []byte
+type decodeLinkAddr []byte
 
-	// Redis scheme:
-	// HASH => key=ID (SHA1)
-	// HMSET key l/v a/v s/v e/v (if exists in json)
-	// HMGET key l a s e
-	// JSON array: [{"id":"key1","id_link":1,"id_addr":2,"id_stat":0,"egrpou":"egrpou1"}]
-	linkAddr struct {
-		ID     string `json:"id,omitempty"      redis:"key"`
-		IDLink int64  `json:"id_link,omitempty" redis:"l"`
-		IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
-		IDStat int64  `json:"id_stat,omitempty" redis:"s"`
-		EGRPOU string `json:"egrpou,omitempty"  redis:"e"`
-	}
-)
+// Redis scheme:
+// HASH => key=ID (SHA1)
+// HMSET key l/v a/v s/v e/v (if exists in json)
+// HMGET key l a s e
+// JSON array: [{"id":"key1","id_link":1,"id_addr":2,"id_stat":0,"egrpou":"egrpou1"}]
+type linkAddr struct {
+	ID     string `json:"id,omitempty"      redis:"key"`
+	IDLink int64  `json:"id_link,omitempty" redis:"l"`
+	IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
+	IDStat int64  `json:"id_stat,omitempty" redis:"s"`
+	EGRPOU string `json:"egrpou,omitempty"  redis:"e"`
+}
 
 func (d decodeLinkAddr) src() ([]string, error) {
 	var out []string
