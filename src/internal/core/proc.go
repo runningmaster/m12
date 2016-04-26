@@ -1,9 +1,10 @@
 package core
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -41,48 +42,42 @@ var htags = map[string]struct{}{
 	"data.sale-out.daily.ua":   {},
 }
 
-func isHTag(t string) bool {
-	if _, ok := htags[t]; ok {
-		return ok
-	}
-
-	return false
-}
-
-func proc(rc io.ReadCloser) error {
-	meta, data, err := mineMetaData(rc)
+func proc(backet, object string) error {
+	meta, data, err := mineMetaData(backet, object)
 	if err != nil {
 		return err
 	}
 
-	if !isTypeGzip(data) {
-		return nil, fmt.Errorf("core: content must contain gzip")
-	}
-
-	m := meta{}
-	err = m.initFromJSON(meta)
+	err = checkGzip(data)
 	if err != nil {
 		return err
 	}
-	m.ETag = btsToMD5(d)
-	m.Path = "" // ?
-	m.Size = int64(len(d))
+
+	m, err := makeMetaFromJSON(meta)
+	if err != nil {
+		return err
+	}
 
 	m.HTag = strings.ToLower(m.HTag)
-	if !isHTag(m.HTag) {
-		return fmt.Errorf("core: proc: invalid htag %s", m.HTag)
+	err = checkHTag(m.HTag)
+	if err != nil {
+		return err
 	}
 
-	if m.Name != "" {
-		var l []linkAddr
-		l, err = findLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
-		if err != nil {
-			return err
-		}
-		m.Link = l[0]
+	m.Link, err = checkMeta(m)
+	if err != nil {
+		return err
 	}
 
-	b, err := mendIfGzipUTF8(data)
+	m.ETag = btsToMD5(data)
+	m.Size = int64(len(data))
+
+	b, err := gunzip(data)
+	if err != nil {
+		return err
+	}
+
+	b, err = mendIfUTF8(data)
 	if err != nil {
 		return err
 	}
@@ -92,16 +87,41 @@ func proc(rc io.ReadCloser) error {
 		return err
 	}
 
-	t, err := tarMetaData(m.makeReadCloser(), r.Body)
+	t, err := tarMetaData(m.makeReadCloser(), ioutil.NopCloser(bytes.NewReader(data)))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	goToStreamOut(m.ID, t)
 
 	//goToStreamErr(m.ID, ?)
 
-	return err
+	return nil
+}
+
+func checkHTag(t string) error {
+	if _, ok := htags[t]; ok {
+		return nil
+	}
+	return fmt.Errorf("core: proc: invalid htag %s", t)
+}
+
+func checkGzip(b []byte) error {
+	if isTypeGzip(b) {
+		return nil
+	}
+	return fmt.Errorf("core: content must contain gzip")
+}
+
+func checkMeta(m meta) (linkAddr, error) {
+	if m.Name == "" {
+		return linkAddr{}, nil
+	}
+	l, err := findLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
+	if err != nil {
+		return linkAddr{}, err
+	}
+	return l[0], nil
 }
 
 func mineLinks(t string, b []byte) ([]byte, error) {

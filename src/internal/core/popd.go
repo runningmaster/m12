@@ -1,14 +1,24 @@
 package core
 
 import (
-	"io"
 	"net/http"
 
 	"golang.org/x/net/context"
 )
 
+// Popd returns data from stream queues
 func Popd(_ context.Context, w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	meta, data, err := mineMetaData(r.Body)
+	b, err := readClose(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := makePairFromJSON(b)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, data, err := mineMetaData(p.Backet, p.Object)
 	if err != nil {
 		return nil, err
 	}
@@ -19,21 +29,10 @@ func Popd(_ context.Context, w http.ResponseWriter, r *http.Request) (interface{
 	return data, nil
 }
 
-func mineMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
-	b, err := readClose(rc)
+func mineMetaData(backet, object string) ([]byte, []byte, error) {
+	o, err := popObject(backet, object)
 	if err != nil {
-		return nil, err
-	}
-
-	p := pathS3{}
-	err = p.initFromJSON(b)
-	if err != nil {
-		return nil, err
-	}
-
-	o, err := popObject(p.Backet, p.Object)
-	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return untarMetaData(o)

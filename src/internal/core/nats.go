@@ -11,6 +11,8 @@ import (
 	"github.com/nats-io/nats"
 )
 
+const sendN = 10
+
 var natsCli *nats.Conn
 
 func initNATSCli() error {
@@ -22,14 +24,23 @@ func initNATSCli() error {
 	}
 
 	goListenToNATS()
-	goNotifyStream(10)
+	goNotifyStream(sendN)
 
 	return nil
 }
 
 func goListenToNATS() {
 	natsCli.Subscribe(flag.NATSSubjectSteamIn, func(m *nats.Msg) {
-		go proc(m.Data)
+		go func() {
+			p, err := makePairFromJSON(m.Data)
+			if err != nil {
+				log.Println(err)
+			}
+			err = proc(p.Backet, p.Object)
+			if err != nil {
+				log.Println(err)
+			}
+		}()
 	})
 }
 
@@ -56,8 +67,10 @@ func notifyStream(backet, subject string, n int) error {
 		return err
 	}
 
+	var b []byte
 	for i := range objs {
-		natsCli.Publish(subject, pathS3{backet, objs[i].Key}.makeReadCloser())
+		b, _ = pair{backet, objs[i].Key}.packToJSON()
+		natsCli.Publish(subject, b)
 	}
 
 	return nil

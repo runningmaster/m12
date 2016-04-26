@@ -50,13 +50,17 @@ func isTypeUTF8(b []byte) bool {
 	return strings.Contains(http.DetectContentType(b), "text/plain; charset=utf-8")
 }
 
+func gunzip(b []byte) ([]byte, error) {
+	b, err := gzutil.Gunzip(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
 func mendIfGzip(b []byte) ([]byte, error) {
 	if isTypeGzip(b) {
-		unz, err := gzutil.Gunzip(b)
-		if err != nil {
-			return nil, err
-		}
-		return unz, nil
+		return gunzip(b)
 	}
 
 	return b, nil
@@ -68,24 +72,6 @@ func mendIfUTF8(b []byte) ([]byte, error) {
 	}
 
 	return b, nil
-}
-
-func mendIfGzipUTF8(b []byte) ([]byte, error) {
-	u, err := mendIfGzip(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return mendIfUTF8(u)
-}
-
-func readMendClose(r io.ReadCloser) ([]byte, error) {
-	b, err := readClose(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return mendIfGzipUTF8(b)
 }
 
 func isEmpty(v []interface{}) bool {

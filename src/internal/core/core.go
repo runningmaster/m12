@@ -30,14 +30,18 @@ type (
 
 		Link linkAddr `json:"link,omitempty"` // ?
 
-		Time string `json:"time,omitempty"` // ?
 		ETag string `json:"etag,omitempty"` // ?
-		Path string `json:"path,omitempty"` // ?
 		Size int64  `json:"size,omitempty"` // ?
+		Time string `json:"time,omitempty"` // ?
 
 		SrcCE string `json:"src_ce,omitempty"` // Source ContentEncoding
 		SrcCT string `json:"src_ct,omitempty"` // Source ContentType
 		Debug bool   `json:"debug,omitempty"`  // for debug purpose only
+	}
+
+	pair struct {
+		Backet string `json:"backet,omitempty"`
+		Object string `json:"object,omitempty"`
 	}
 
 	itemGeoV3 struct {
@@ -92,19 +96,25 @@ type (
 	listGeoV3    []itemGeoV3
 	listSaleV3   []itemSaleV3
 	listSaleBYV3 []itemSaleBYV3
-
-	pathS3 struct {
-		Backet string `json:"backet,omitempty"`
-		Object string `json:"object,omitempty"`
-	}
 )
+
+func makeMetaFromJSON(b []byte) (meta, error) {
+	m := meta{}
+	err := m.initFromJSON(b)
+	return m, err
+}
+
+func (m meta) packToJSON() ([]byte, error) {
+	return json.Marshal(m)
+}
 
 func (m meta) initFromJSON(b []byte) error {
 	return json.Unmarshal(b, &m)
 }
 
-func (m meta) packToJSON() ([]byte, error) {
-	return json.Marshal(m)
+func (m meta) makeReadCloser() io.ReadCloser {
+	j, _ := m.packToJSON()
+	return ioutil.NopCloser(bytes.NewReader(j))
 }
 
 func (m meta) initFromBase64(s string) error {
@@ -123,20 +133,21 @@ func (m meta) packToBase64() (string, error) {
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 
-func (m meta) makeReadCloser() io.ReadCloser {
-	j, _ := m.packToJSON()
-	return ioutil.NopCloser(bytes.NewReader(j))
+func makePairFromJSON(b []byte) (pair, error) {
+	p := pair{}
+	err := p.initFromJSON(b)
+	return p, err
 }
 
-func (p pathS3) packToJSON() ([]byte, error) {
+func (p pair) packToJSON() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-func (p pathS3) initFromJSON(b []byte) error {
+func (p pair) initFromJSON(b []byte) error {
 	return json.Unmarshal(b, &p)
 }
 
-func (p pathS3) makeReadCloser() io.ReadCloser {
+func (p pair) makeReadCloser() io.ReadCloser {
 	j, _ := p.packToJSON()
 	return ioutil.NopCloser(bytes.NewReader(j))
 }
