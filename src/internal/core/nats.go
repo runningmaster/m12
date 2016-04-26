@@ -67,10 +67,8 @@ func notifyStream(backet, subject string, n int) error {
 		return err
 	}
 
-	var b []byte
 	for i := range objs {
-		b, _ = pair{backet, objs[i].Key}.packToJSON()
-		natsCli.Publish(subject, b)
+		natsCli.Publish(subject, pair{backet, objs[i].Key}.packToJSON())
 	}
 
 	return nil

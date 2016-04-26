@@ -74,11 +74,11 @@ func listObjectsN(bucket, prefix string, recursive bool, n int) ([]minio.ObjectI
 		if object.Err != nil {
 			return nil, object.Err
 		}
+		objs = append(objs, object)
 		i++
 		if i == n {
 			doneCh <- struct{}{}
 		}
-		objs = append(objs, object)
 	}
 
 	return objs, nil

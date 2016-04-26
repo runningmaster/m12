@@ -23,8 +23,13 @@ func Popd(_ context.Context, w http.ResponseWriter, r *http.Request) (interface{
 		return nil, err
 	}
 
+	m, err := makeMetaFromJSON(meta)
+	if err != nil {
+		return nil, err
+	}
+
 	w.Header().Set("Content-Encoding", "gzip")
-	w.Header().Set("Content-Meta", string(meta))
+	w.Header().Set("Content-Meta", m.packToBase64String()) // FIXME
 
 	return data, nil
 }

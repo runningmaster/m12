@@ -14,9 +14,7 @@ import (
 
 // Upld puts data to s3 interface
 func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
-	m := meta{}
-
-	err := m.initFromJSON([]byte(ctxutil.MetaFromContext(ctx)))
+	m, err := makeMetaFromBase64String(ctxutil.MetaFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +26,7 @@ func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interfac
 	m.SrcCE = r.Header.Get("Content-Encoding")
 	m.SrcCT = r.Header.Get("Content-Type")
 
-	t, err := tarMetaData(m.makeReadCloser(), r.Body)
+	t, err := tarMetaData(makeReadCloser(m.packToJSON()), r.Body) // FIXME base64?
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +90,7 @@ func untarMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
 		meta = new(bytes.Buffer)
 		data = new(bytes.Buffer)
 	)
+
 	for {
 		h, err := tr.Next()
 		if err != nil {
@@ -111,5 +110,6 @@ func untarMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
 			}
 		}
 	}
+
 	return meta.Bytes(), data.Bytes(), nil
 }

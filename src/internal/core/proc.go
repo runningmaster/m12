@@ -1,10 +1,8 @@
 package core
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -87,7 +85,7 @@ func proc(backet, object string) error {
 		return err
 	}
 
-	t, err := tarMetaData(m.makeReadCloser(), ioutil.NopCloser(bytes.NewReader(data)))
+	t, err := tarMetaData(makeReadCloser(m.packToJSON()), makeReadCloser(data))
 	if err != nil {
 		return err
 	}

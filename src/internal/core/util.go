@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
@@ -81,4 +82,8 @@ func isEmpty(v []interface{}) bool {
 		}
 	}
 	return true
+}
+
+func makeReadCloser(b []byte) io.ReadCloser {
+	return ioutil.NopCloser(bytes.NewReader(b))
 }

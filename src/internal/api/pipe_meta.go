@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -15,7 +13,7 @@ import (
 
 func pipeMeta(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		m, err := getMeta(r)
+		err := mustHeaderMeta(r)
 		if err != nil {
 			goto fail
 		}
@@ -35,7 +33,7 @@ func pipeMeta(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(ctxutil.WithMeta(ctx, m), w, r)
+		h(ctxutil.WithMeta(ctx, r.Header.Get("Content-Meta")), w, r)
 		return // success
 	fail:
 		h(ctxutil.WithCode(ctxutil.WithFail(ctx, err), http.StatusInternalServerError), w, r)
@@ -66,23 +64,10 @@ func mustHeaderUTF8(r *http.Request) error {
 	return nil
 }
 
-func getMeta(r *http.Request) ([]byte, error) {
-	m := r.Header.Get("Content-Meta")
-	if m == "" {
-		return nil, fmt.Errorf("api: content-meta not found")
+func mustHeaderMeta(r *http.Request) error {
+	if r.Header.Get("Content-Meta") == "" {
+		return fmt.Errorf("api: header must contain content-meta")
 	}
 
-	b, err := base64.StdEncoding.DecodeString(m)
-	if err != nil {
-		return nil, err
-	}
-
-	// check for correct json
-	var v struct{}
-	err = json.Unmarshal(b, &v)
-	if err != nil {
-		return nil, fmt.Errorf("api: content-meta must be correct json: %s", err)
-	}
-
-	return b, nil
+	return nil
 }

@@ -1,11 +1,8 @@
 package core
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"io"
-	"io/ioutil"
 	"net/http"
 
 	"golang.org/x/net/context"
@@ -41,37 +38,25 @@ type meta struct {
 
 func makeMetaFromJSON(b []byte) (meta, error) {
 	m := meta{}
-	err := m.initFromJSON(b)
+	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func (m meta) packToJSON() ([]byte, error) {
-	return json.Marshal(m)
-}
-
-func (m meta) initFromJSON(b []byte) error {
-	return json.Unmarshal(b, &m)
-}
-
-func (m meta) makeReadCloser() io.ReadCloser {
-	j, _ := m.packToJSON()
-	return ioutil.NopCloser(bytes.NewReader(j))
-}
-
-func (m meta) initFromBase64(s string) error {
+func makeMetaFromBase64String(s string) (meta, error) {
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return err
+		return meta{}, err
 	}
-	return json.Unmarshal(b, &m)
+	return makeMetaFromJSON(b)
 }
 
-func (m meta) packToBase64() (string, error) {
-	b, err := m.packToJSON()
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(b), nil
+func (m meta) packToJSON() []byte {
+	b, _ := json.Marshal(m)
+	return b
+}
+
+func (m meta) packToBase64String() string {
+	return base64.StdEncoding.EncodeToString(m.packToJSON())
 }
 
 type pair struct {
@@ -81,21 +66,13 @@ type pair struct {
 
 func makePairFromJSON(b []byte) (pair, error) {
 	p := pair{}
-	err := p.initFromJSON(b)
+	err := json.Unmarshal(b, &p)
 	return p, err
 }
 
-func (p pair) packToJSON() ([]byte, error) {
-	return json.Marshal(p)
-}
-
-func (p pair) initFromJSON(b []byte) error {
-	return json.Unmarshal(b, &p)
-}
-
-func (p pair) makeReadCloser() io.ReadCloser {
-	j, _ := p.packToJSON()
-	return ioutil.NopCloser(bytes.NewReader(j))
+func (p pair) packToJSON() []byte {
+	b, _ := json.Marshal(p)
+	return b
 }
 
 type itemV3Geoa struct {
