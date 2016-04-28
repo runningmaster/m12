@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -32,15 +31,23 @@ const (
 		package version
 
 		const (
-			buildtime  = %q
-			gitcommit  = %q
-		)
-
-		var (
-			major      = %d
-			minor      = %d
-			patch      = %d
-			prerelease = %q
+			// Major version when you make incompatible API changes.
+			Major = %d
+			
+			// Minor version when you add functionality in a backwards-compatible manner.
+			Minor = %d
+			
+			// Patch version when you make backwards-compatible bug fixes.
+			Patch = %d
+			
+			// PreRelease version may be denoted by appending a hyphen and a series of dot separated identifiers immediately following the patch version.
+			PreRelease = %q
+			
+			// BuildTime is build metadata and it may be denoted by appending a plus sign and a series of dot separated identifiers immediately following the patch or pre-release version.
+			BuildTime = %q
+			
+			// GitCommit is build metadata and it may be denoted by appending a plus sign and a series of dot separated identifiers immediately following the patch or pre-release version.
+			GitCommit = %q
 		)
 `
 )
@@ -51,36 +58,39 @@ func main() {
 	fmt.Printf("go:generate in %s -> %s\n", os.Getenv("GOFILE"), flagFile)
 
 	buildtime := time.Now().Format("20060102150405")
-	gitcommit := "0000000"
+	gitcommit := "00000000"
 	if isGitRepo() {
-		// execCmd("git", "log", "-n", "1", "--format=format: +%h %cd", "HEAD")
-		if res, err := execCmd("git", "rev-parse", "--short", "HEAD"); err == nil {
-			gitcommit = chomp(string(res))
+		//gitCommand := []string{"git", "log", "-n", "1", "--format=format: +%h %cd", "HEAD"}
+		gitCommand := []string{"git", "rev-parse", "HEAD"}
+		res := make([]byte, len(gitcommit))
+		err := execCmd(res, gitCommand...)
+		if err != nil {
 		}
+		gitcommit = string(res)
 	}
 
 	buf := &bytes.Buffer{}
 	fmt.Fprintf(buf, srcFormat,
-		buildtime,
-		gitcommit,
 		major,
 		minor,
 		patch,
 		prerelease,
+		buildtime,
+		gitcommit,
 	)
 
 	out, err := format.Source(buf.Bytes())
 	if err != nil {
-		goto fail
+		goto Fail
 	}
 
 	err = ioutil.WriteFile(flagFile, out, 0644)
 	if err != nil {
-		goto fail
+		goto Fail
 	}
 
 	return // success
-fail:
+Fail:
 	panic(fmt.Errorf("can not generate %s: %v", flagFile, err))
 }
 
@@ -101,11 +111,11 @@ func isGitRepo() bool {
 }
 
 // execCmd is simple wrapper for exec.Command
-func execCmd(cmd ...string) ([]byte, error) {
-	return exec.Command(cmd[0], cmd[1:]...).Output()
-}
-
-// chomp removes trailing spaces.
-func chomp(s string) string {
-	return strings.TrimRight(s, " \t\r\n")
+func execCmd(dst []byte, cmd ...string) error {
+	b, err := exec.Command(cmd[0], cmd[1:]...).Output()
+	if err != nil {
+		return err
+	}
+	copy(dst, b)
+	return nil
 }

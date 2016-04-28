@@ -26,7 +26,7 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	res := fmt.Sprintf("%s %s", version.Stamp.AppName(), version.Stamp.Extended())
+	res := fmt.Sprintf("%s %s", version.AppName(), version.String())
 	return with200(ctx, w, res)
 }
 
