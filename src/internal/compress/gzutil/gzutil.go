@@ -51,9 +51,13 @@ func GetReader() (*gzip.Reader, error) {
 }
 
 // PutReader closes reader and puts it back to the pool.
-func PutReader(c io.Closer) {
-	_ = c.Close()
+func PutReader(c io.Closer) error {
+	err := c.Close()
+	if err != nil {
+		return err
+	}
 	readerPool.Put(c)
+	return nil
 }
 
 // GetWriter gets writer from pool.
@@ -68,9 +72,13 @@ func GetWriter() (*gzip.Writer, error) {
 }
 
 // PutWriter closes writer and puts it back to the pool.
-func PutWriter(c io.Closer) {
-	_ = c.Close()
+func PutWriter(c io.Closer) error {
+	err := c.Close()
+	if err != nil {
+		return err
+	}
 	writerPool.Put(c)
+	return nil
 }
 
 // Gunzip decodes gzip-bytes.
@@ -79,7 +87,7 @@ func Gunzip(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer PutReader(z)
+	defer func() { _ = PutReader(z) }()
 
 	err = z.Reset(bytes.NewReader(data))
 	if err != nil {

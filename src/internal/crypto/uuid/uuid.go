@@ -38,7 +38,7 @@ func Next() string {
 	if err != nil {
 		// FIXME log err
 	}
-	defer putGenerator(g)
+	defer func() { putGenerator(g) }()
 
 	return fmt.Sprintf("%x", g.Next())
 }

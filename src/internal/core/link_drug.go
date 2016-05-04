@@ -178,7 +178,7 @@ func findLinkDrug(keys ...string) ([]linkDrug, error) {
 	}
 
 	c := redisGet()
-	defer redisPut(c)
+	defer func() { _ = redisPut(c) }()
 
 	v, err := decodeLinkDrug(b).get(c)
 	if err != nil {

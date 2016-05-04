@@ -83,14 +83,13 @@ func writeToTar(name string, rc io.ReadCloser, w *tar.Writer) error {
 }
 
 func untarMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
-	tr := tar.NewReader(rc)
-	defer rc.Close()
+	defer func() { _ = rc.Close() }()
 
+	tr := tar.NewReader(rc)
 	var (
 		meta = new(bytes.Buffer)
 		data = new(bytes.Buffer)
 	)
-
 	for {
 		h, err := tr.Next()
 		if err != nil {

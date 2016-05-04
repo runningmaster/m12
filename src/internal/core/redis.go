@@ -61,12 +61,7 @@ func dial(addr string) func() (redis.Conn, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		defer func() {
-			if err != nil && c != nil {
-				_ = c.Close()
-			}
-		}()
+		defer func() { _ = c.Close() }()
 
 		if u.User != nil {
 			if pw, ok := u.User.Password(); ok {
@@ -85,10 +80,8 @@ func redisGet() redis.Conn {
 	return redisServer.Get()
 }
 
-func redisPut(c io.Closer) {
-	if c != nil {
-		_ = c.Close()
-	}
+func redisPut(c io.Closer) error {
+	return c.Close()
 }
 
 func toInt64(v interface{}) int64 {

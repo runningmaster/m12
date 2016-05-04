@@ -44,7 +44,7 @@ func pipeGzip(h handlerFunc) handlerFunc {
 			if err != nil {
 				// FIXME log err
 			}
-			defer gzutil.PutReader(z)
+			defer func() { _ = gzutil.PutReader(z) }()
 			err = z.Reset(r.Body)
 			if err != nil {
 				// FIXME log err
@@ -57,7 +57,7 @@ func pipeGzip(h handlerFunc) handlerFunc {
 			if err != nil {
 				// FIXME TODO log err
 			}
-			defer gzutil.PutWriter(z)
+			defer func() { _ = gzutil.PutWriter(z) }()
 			z.Reset(w)
 			w = gzipResponseWriter{Writer: z, ResponseWriter: w}
 			w.Header().Add("Vary", "Accept-Encoding")

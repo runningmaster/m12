@@ -66,7 +66,7 @@ func popObject(bucket, object string) (io.ReadCloser, error) {
 
 func listObjectsN(bucket, prefix string, recursive bool, n int) ([]minio.ObjectInfo, error) {
 	doneCh := make(chan struct{}, 1)
-	defer close(doneCh)
+	defer func() { close(doneCh) }()
 
 	i := 0
 	objs := make([]minio.ObjectInfo, 0, n)

@@ -51,7 +51,7 @@ func makeGetSetDeler(base string, b []byte) (redisGetSetDelOper, error) {
 
 func execGetSetDeler(cmd string, gsd redisGetSetDelOper) (interface{}, error) {
 	c := redisGet()
-	defer redisPut(c)
+	defer func() { _ = redisPut(c) }()
 
 	switch cmd {
 	case "get":

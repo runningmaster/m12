@@ -36,10 +36,7 @@ func strToSHA1(s string) string {
 }
 
 func readClose(r io.ReadCloser) ([]byte, error) {
-	defer func(c io.Closer) {
-		_ = c.Close()
-	}(r)
-
+	defer func() { _ = r.Close() }()
 	return ioutil.ReadAll(r)
 }
 

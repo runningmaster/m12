@@ -13,7 +13,7 @@ import (
 // Info calls Redis INFO
 func Info(_ context.Context, _ http.ResponseWriter, _ *http.Request) (interface{}, error) {
 	c := redisGet()
-	defer redisPut(c)
+	defer func() { _ = redisPut(c) }()
 
 	b, err := redis.Bytes(c.Do("INFO"))
 	if err != nil {

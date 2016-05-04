@@ -174,7 +174,7 @@ func findLinkAddr(keys ...string) ([]linkAddr, error) {
 	}
 
 	c := redisGet()
-	defer redisPut(c)
+	defer func() { _ = redisPut(c) }()
 
 	v, err := decodeLinkAddr(b).get(c)
 	if err != nil {
