@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/base64"
-	"net/http"
 
 	"github.com/labstack/echo"
 )
@@ -22,20 +21,13 @@ const (
 	basic = "Basic"
 )
 
-var (
-	// DefaultBasicAuthConfig is the default basic auth middleware config.
-	DefaultBasicAuthConfig = BasicAuthConfig{}
-)
-
 // BasicAuth returns an HTTP basic auth middleware.
 //
 // For valid credentials it calls the next handler.
 // For invalid credentials, it sends "401 - Unauthorized" response.
 // For empty or invalid `Authorization` header, it sends "400 - Bad Request" response.
 func BasicAuth(fn BasicAuthValidator) echo.MiddlewareFunc {
-	c := DefaultBasicAuthConfig
-	c.Validator = fn
-	return BasicAuthWithConfig(c)
+	return BasicAuthWithConfig(BasicAuthConfig{fn})
 }
 
 // BasicAuthWithConfig returns an HTTP basic auth middleware from config.
@@ -58,12 +50,12 @@ func BasicAuthWithConfig(config BasicAuthConfig) echo.MiddlewareFunc {
 						if config.Validator(cred[:i], cred[i+1:]) {
 							return next(c)
 						}
-						c.Response().Header().Set(echo.HeaderWWWAuthenticate, basic+" realm=Restricted")
-						return echo.ErrUnauthorized
 					}
 				}
 			}
-			return echo.NewHTTPError(http.StatusBadRequest, "invalid basic-auth authorization header="+auth)
+			// Need to return `401` for browsers to pop-up login box.
+			c.Response().Header().Set(echo.HeaderWWWAuthenticate, basic+" realm=Restricted")
+			return echo.ErrUnauthorized
 		}
 	}
 }
