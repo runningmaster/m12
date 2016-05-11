@@ -9,6 +9,7 @@ import (
 	"internal/core"
 	"internal/flag"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
 )
 
@@ -49,6 +50,22 @@ func getKeyV3(r *http.Request) (string, bool) {
 	}
 
 	return key, key != ""
+}
+
+// JWT
+func getKeyV4(r *http.Request) (string, bool) {
+	t, err := jwt.ParseFromRequest(r, func(t *jwt.Token) (interface{}, error) {
+		return t.Header["kid"], nil
+	})
+	if err != nil {
+		return "", false
+	}
+
+	if v, ok := t.Header["kid"].(string); ok {
+		return v, true
+	}
+
+	return "", false
 }
 
 func getKey(r *http.Request) (string, error) {

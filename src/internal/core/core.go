@@ -16,20 +16,20 @@ type meta struct {
 	ID string `json:"id,omitempty"` // ?
 	IP string `json:"ip,omitempty"` // ?
 
-	Auth string   `json:"auth,omitempty"` // *
-	HTag string   `json:"htag,omitempty"` // *
-	Nick string   `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
-	Name string   `json:"name,omitempty"` // *
-	Head string   `json:"head,omitempty"` // *
-	Addr string   `json:"addr,omitempty"` // *
-	Code string   `json:"code,omitempty"` // egrpou (okpo)
-	Span []string `json:"span,omitempty"` // *
+	PKey string  `json:"pkey,omitempty"` // *
+	HTag string  `json:"htag,omitempty"` // *
+	Nick string  `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
+	Name string  `json:"name,omitempty"` // *
+	Head string  `json:"head,omitempty"` // *
+	Addr string  `json:"addr,omitempty"` // *
+	Code string  `json:"code,omitempty"` // egrpou (okpo)
+	Span []int64 `json:"span,omitempty"` // *
 
 	Link linkAddr `json:"link,omitempty"` // ?
 
 	ETag string `json:"etag,omitempty"` // ?
 	Size int64  `json:"size,omitempty"` // ?
-	Time string `json:"time,omitempty"` // ?
+	Time int64  `json:"time,omitempty"` // ?
 
 	SrcCE string `json:"src_ce,omitempty"` // Source ContentEncoding
 	SrcCT string `json:"src_ct,omitempty"` // Source ContentType

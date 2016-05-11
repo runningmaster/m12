@@ -20,7 +20,7 @@ func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interfac
 	//m.ID = ctxutil.IDFromContext(ctx)
 	//m.IP = ctxutil.IPFromContext(ctx)
 	//m.Auth = ctxutil.AuthFromContext(ctx)
-	m.Time = time.Now().Format("02.01.2006 15:04:05.999999999")
+	m.Time = time.Now().Unix()
 	m.SrcCE = r.Header.Get("Content-Encoding")
 	m.SrcCT = r.Header.Get("Content-Type")
 

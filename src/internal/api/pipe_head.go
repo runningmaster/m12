@@ -6,14 +6,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rogpeppe/fastuuid"
 	"golang.org/x/net/context"
 )
+
+var genUUID = fastuuid.MustNewGenerator()
 
 func pipeHead(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		ctx = withTime(ctx, time.Now())
 		ctx = withUUID(ctx, nextUUID())
-		ctx = withAddr(ctx, mineIP(r))
+		ctx = withAddr(ctx, mineAddr(r))
 		h(ctx, w, r)
 	}
 }
@@ -22,7 +25,7 @@ func nextUUID() string {
 	return fmt.Sprintf("%x", genUUID.Next())[:16]
 }
 
-func mineIP(r *http.Request) string {
+func mineAddr(r *http.Request) string {
 	var ip string
 	if ip = r.Header.Get("X-Forwarded-For"); ip == "" {
 		ip = r.Header.Get("X-Real-IP")
