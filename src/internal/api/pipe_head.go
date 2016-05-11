@@ -1,11 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"time"
-
-	"internal/crypto/uuid"
 
 	"golang.org/x/net/context"
 )
@@ -13,10 +12,14 @@ import (
 func pipeHead(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		ctx = withTime(ctx, time.Now())
-		ctx = withUUID(ctx, uuid.Next())
+		ctx = withUUID(ctx, nextUUID())
 		ctx = withAddr(ctx, mineIP(r))
 		h(ctx, w, r)
 	}
+}
+
+func nextUUID() string {
+	return fmt.Sprintf("%x", genUUID.Next())[:16]
 }
 
 func mineIP(r *http.Request) string {

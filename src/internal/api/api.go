@@ -5,11 +5,14 @@ import (
 	"strings"
 
 	"internal/core"
+
+	"github.com/rogpeppe/fastuuid"
 )
 
 //$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/upload
 
 var (
+	genUUID         *fastuuid.Generator
 	mapCoreHandlers map[string]core.Handler
 	mapHTTPHandlers = map[string]bundle{
 		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
@@ -52,7 +55,14 @@ var (
 
 // Init is caled from other package for manually initialization
 func Init(regFunc func(string, string, http.Handler)) error {
-	err := core.Init()
+	var err error
+
+	genUUID, err = fastuuid.NewGenerator()
+	if err != nil {
+		return err
+	}
+
+	err = core.Init()
 	if err != nil {
 		return err
 	}

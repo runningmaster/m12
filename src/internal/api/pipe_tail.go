@@ -13,7 +13,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
 		val := []interface{}{
-			markEmpty(inf.uuid()[:16]),
+			markEmpty(inf.uuid()),
 			markEmpty(inf.addr()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
@@ -72,7 +72,7 @@ func (i informer) auth() string {
 	return authFromContext(i.c)
 }
 
-func (i informer) code() int {
+func (i informer) code() int64 {
 	return codeFromContext(i.c)
 }
 

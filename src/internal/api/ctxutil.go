@@ -25,10 +25,7 @@ func withUUID(ctx context.Context, v string) context.Context {
 }
 
 func uuidFromContext(ctx context.Context) string {
-	if v, ok := ctx.Value(ctxUUID).(string); ok {
-		return v
-	}
-	return ""
+	return stringFromContext(ctx, ctxUUID)
 }
 
 func withAddr(ctx context.Context, v string) context.Context {
@@ -36,10 +33,7 @@ func withAddr(ctx context.Context, v string) context.Context {
 }
 
 func addrFromContext(ctx context.Context) string {
-	if v, ok := ctx.Value(ctxAddr).(string); ok {
-		return v
-	}
-	return ""
+	return stringFromContext(ctx, ctxAddr)
 }
 
 func withAuth(ctx context.Context, v string) context.Context {
@@ -47,10 +41,7 @@ func withAuth(ctx context.Context, v string) context.Context {
 }
 
 func authFromContext(ctx context.Context) string {
-	if v, ok := ctx.Value(ctxAuth).(string); ok {
-		return v
-	}
-	return ""
+	return stringFromContext(ctx, ctxAuth)
 }
 
 func withMeta(ctx context.Context, v string) context.Context {
@@ -58,10 +49,7 @@ func withMeta(ctx context.Context, v string) context.Context {
 }
 
 func metaFromContext(ctx context.Context) string {
-	if v, ok := ctx.Value(ctxMeta).(string); ok {
-		return v
-	}
-	return ""
+	return stringFromContext(ctx, ctxMeta)
 }
 
 func withFail(ctx context.Context, v error) context.Context {
@@ -69,10 +57,7 @@ func withFail(ctx context.Context, v error) context.Context {
 }
 
 func failFromContext(ctx context.Context) error {
-	if v, ok := ctx.Value(ctxFail).(error); ok {
-		return v
-	}
-	return nil
+	return errorFromContext(ctx, ctxFail)
 }
 
 func withSize(ctx context.Context, v int64) context.Context {
@@ -80,21 +65,15 @@ func withSize(ctx context.Context, v int64) context.Context {
 }
 
 func sizeFromContext(ctx context.Context) int64 {
-	if v, ok := ctx.Value(ctxSize).(int64); ok {
-		return v
-	}
-	return 0
+	return int64FromContext(ctx, ctxSize)
 }
 
-func withCode(ctx context.Context, v int) context.Context {
+func withCode(ctx context.Context, v int64) context.Context {
 	return context.WithValue(ctx, ctxCode, v)
 }
 
-func codeFromContext(ctx context.Context) int {
-	if v, ok := ctx.Value(ctxCode).(int); ok {
-		return v
-	}
-	return 0
+func codeFromContext(ctx context.Context) int64 {
+	return int64FromContext(ctx, ctxCode)
 }
 
 func withTime(ctx context.Context, v time.Time) context.Context {
@@ -106,6 +85,21 @@ func timeFromContext(ctx context.Context) time.Time {
 		return v
 	}
 	return time.Time{}
+}
+
+func errorFromContext(ctx context.Context, key ctxKey) error {
+	v, _ := ctx.Value(key).(error)
+	return v
+}
+
+func stringFromContext(ctx context.Context, key ctxKey) string {
+	v, _ := ctx.Value(key).(string)
+	return v
+}
+
+func int64FromContext(ctx context.Context, key ctxKey) int64 {
+	v, _ := ctx.Value(key).(int64)
+	return v
 }
 
 func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
