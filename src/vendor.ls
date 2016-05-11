@@ -38,6 +38,10 @@ github.com/minio/minio-go
 # https://godoc.org/github.com/nats-io/nats
 github.com/nats-io/nats
 
+# Package jwt is a Go implementation of JSON Web Tokens: http://self-issued.info/docs/draft-jones-json-web-token.html
+# https://godoc.org/github.com/dgrijalva/jwt-go
+github.com/dgrijalva/jwt-go
+
 ### Below some alternatives for consideration ###
 
 # A unique identifier generator that is high performance, very fast, and tries to be entropy pool friendly.
