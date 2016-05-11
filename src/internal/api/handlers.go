@@ -1,11 +1,13 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime"
 	"strings"
 
-	"internal/context/ctxutil"
 	"internal/core"
 	"internal/flag"
 	"internal/version"
@@ -51,20 +53,55 @@ func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 	if h, p := http.DefaultServeMux.Handler(r); p != "" {
 		h.ServeHTTP(w, r)
-		return ctxutil.WithCode(ctxutil.WithSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
+		return withCode(withSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
 	}
 
 	return withoutCode(ctx, fmt.Errorf("api: unreachable"), 0)
 }
 
 func e404(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	return ctxutil.WithCode(ctxutil.WithFail(ctx, estub("api: method %s", http.StatusNotFound)), http.StatusNotFound)
+	return withCode(withFail(ctx, estub("api: method %s", http.StatusNotFound)), http.StatusNotFound)
 }
 
 func e405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	return ctxutil.WithCode(ctxutil.WithFail(ctx, estub("api: %s", http.StatusMethodNotAllowed)), http.StatusMethodNotAllowed)
+	return withCode(withFail(ctx, estub("api: %s", http.StatusMethodNotAllowed)), http.StatusMethodNotAllowed)
 }
 
 func estub(format string, code int) error {
 	return fmt.Errorf(format, strings.ToLower(http.StatusText(code)))
+}
+
+func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface{}) (int64, error) {
+	b, err := json.Marshal(i)
+	if err != nil {
+		return 0, err
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Powered-By", runtime.Version())
+	w.Header().Set("X-Request-ID", uuidFromContext(ctx))
+	w.WriteHeader(code)
+
+	if true { // FIXME (flag?)
+		var tmp bytes.Buffer
+		err = json.Indent(&tmp, b, "", "\t")
+		if err != nil {
+			return 0, err
+		}
+		b = tmp.Bytes()
+	}
+
+	n, err := w.Write(b)
+	if err != nil {
+		return 0, err
+	}
+	size := int64(n)
+
+	_, err = w.Write([]byte("\n"))
+	if err != nil {
+		return 0, err
+	}
+	size++
+
+	return size, nil
 }

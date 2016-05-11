@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/context/ctxutil"
 	"internal/core"
 	"internal/flag"
 
@@ -25,10 +24,10 @@ func pipeAuth(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(ctxutil.WithAuth(ctx, key), w, r)
+		h(withAuth(ctx, key), w, r)
 		return // success
 	fail:
-		h(ctxutil.WithCode(ctxutil.WithFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"internal/compress/gzutil"
-	"internal/context/ctxutil"
 
 	"golang.org/x/net/context"
 )
@@ -33,10 +32,10 @@ func pipeMeta(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(ctxutil.WithMeta(ctx, r.Header.Get("Content-Meta")), w, r)
+		h(withMeta(ctx, r.Header.Get("Content-Meta")), w, r)
 		return // success
 	fail:
-		h(ctxutil.WithCode(ctxutil.WithFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 

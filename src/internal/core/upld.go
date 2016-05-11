@@ -7,21 +7,19 @@ import (
 	"net/http"
 	"time"
 
-	"internal/context/ctxutil"
-
 	"golang.org/x/net/context"
 )
 
 // Upld puts data to s3 interface
 func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
-	m, err := makeMetaFromBase64String(ctxutil.MetaFromContext(ctx))
+	m, err := makeMetaFromBase64String("FIXME ctxutil.MetaFromContext(ctx)")
 	if err != nil {
 		return nil, err
 	}
 
-	m.ID = ctxutil.IDFromContext(ctx)
-	m.IP = ctxutil.IPFromContext(ctx)
-	m.Auth = ctxutil.AuthFromContext(ctx)
+	//m.ID = ctxutil.IDFromContext(ctx)
+	//m.IP = ctxutil.IPFromContext(ctx)
+	//m.Auth = ctxutil.AuthFromContext(ctx)
 	m.Time = time.Now().Format("02.01.2006 15:04:05.999999999")
 	m.SrcCE = r.Header.Get("Content-Encoding")
 	m.SrcCT = r.Header.Get("Content-Type")

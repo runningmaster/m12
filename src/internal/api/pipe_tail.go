@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"internal/context/ctxutil"
-
 	"github.com/pivotal-golang/bytefmt"
 	"golang.org/x/net/context"
 )
@@ -15,8 +13,8 @@ func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
 		val := []interface{}{
-			markEmpty(inf.id()[:16]),
-			markEmpty(inf.ip()),
+			markEmpty(inf.uuid()[:16]),
+			markEmpty(inf.addr()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
 			markEmpty(inf.auth()),
@@ -58,32 +56,32 @@ func (i informer) method() string {
 	return i.r.Method
 }
 
-func (i informer) ip() string {
-	return ctxutil.IPFromContext(i.c)
+func (i informer) addr() string {
+	return addrFromContext(i.c)
 }
 
 func (i informer) agent() string {
 	return i.r.UserAgent()
 }
 
-func (i informer) id() string {
-	return ctxutil.IDFromContext(i.c)
+func (i informer) uuid() string {
+	return uuidFromContext(i.c)
 }
 
 func (i informer) auth() string {
-	return ctxutil.AuthFromContext(i.c)
+	return authFromContext(i.c)
 }
 
 func (i informer) code() int {
-	return ctxutil.CodeFromContext(i.c)
+	return codeFromContext(i.c)
 }
 
 func (i informer) size() int64 {
-	return ctxutil.SizeFromContext(i.c)
+	return sizeFromContext(i.c)
 }
 
 func (i informer) fail() string {
-	err := ctxutil.FailFromContext(i.c)
+	err := failFromContext(i.c)
 	if err != nil {
 		return err.Error()
 	}
@@ -91,7 +89,7 @@ func (i informer) fail() string {
 }
 
 func (i informer) time() string {
-	if t := ctxutil.TimeFromContext(i.c); !t.IsZero() {
+	if t := timeFromContext(i.c); !t.IsZero() {
 		return time.Since(t).String()
 	}
 	return ""
