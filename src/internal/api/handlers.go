@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
+	"internal/conf"
 	"internal/core"
-	"internal/flag"
 	"internal/version"
 
 	"golang.org/x/net/context"
@@ -47,7 +47,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 }
 
 func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	if !flag.Debug {
+	if !conf.Debug {
 		return with500(ctx, fmt.Errorf("api: flag debug not found"))
 	}
 

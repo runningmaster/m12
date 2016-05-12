@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"internal/flag"
+	"internal/conf"
 
 	"github.com/nats-io/nats"
 )
@@ -18,7 +18,7 @@ var natsCli *nats.Conn
 func initNATSCli() error {
 	var err error
 
-	natsCli, err = nats.Connect(flag.NATS, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
+	natsCli, err = nats.Connect(conf.NATS, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
 	if err != nil {
 		return fmt.Errorf("core: nats: %s", err)
 	}
@@ -30,7 +30,7 @@ func initNATSCli() error {
 }
 
 func goListenToNATS() {
-	natsCli.Subscribe(flag.NATSSubjectSteamIn, func(m *nats.Msg) {
+	natsCli.Subscribe(conf.NATSSubjectSteamIn, func(m *nats.Msg) {
 		go func() {
 			p, err := makePairFromJSON(m.Data)
 			if err != nil {
@@ -49,11 +49,11 @@ func goNotifyStream(n int) {
 		c := time.Tick(1 * time.Second)
 		var err error
 		for _ = range c {
-			err = notifyStream(backetStreamIn, flag.NATSSubjectSteamIn, n)
+			err = notifyStream(backetStreamIn, conf.NATSSubjectSteamIn, n)
 			if err != nil {
 				log.Println(err)
 			}
-			err = notifyStream(backetStreamOut, flag.NATSSubjectSteamOut, n)
+			err = notifyStream(backetStreamOut, conf.NATSSubjectSteamOut, n)
 			if err != nil {
 				log.Println(err)
 			}

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"internal/api"
-	"internal/flag"
+	"internal/conf"
 
 	"github.com/tylerb/graceful"
 )
@@ -15,7 +15,7 @@ func Run() error {
 		return err
 	}
 
-	s, err := makeServer(flag.Addr)
+	s, err := makeServer(conf.Addr)
 	if err != nil {
 		return err
 	}

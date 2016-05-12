@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"internal/conf"
 	"internal/core"
-	"internal/flag"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
@@ -55,7 +55,7 @@ func getKeyV3(r *http.Request) (string, bool) {
 // JWT experiment
 func getKeyV4(r *http.Request) (string, bool) {
 	keyFunc := func(t *jwt.Token) (interface{}, error) {
-		return []byte(flag.JWTSecretKey), nil
+		return []byte(conf.JWTSecretKey), nil
 	}
 	t, err := jwt.ParseFromRequest(r, keyFunc)
 	if err != nil {
@@ -124,5 +124,5 @@ func auth(key string) error {
 }
 
 func isMasterKey(key string) bool {
-	return strings.EqualFold(flag.Masterkey, key)
+	return strings.EqualFold(conf.Masterkey, key)
 }

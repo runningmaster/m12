@@ -8,27 +8,30 @@ import (
 	_ "expvar"
 	_ "net/http/pprof"
 
-	"internal/flag"
+	"internal/conf"
 	"internal/server"
 )
 
-func main() {
-	flag.Parse()
+func init() {
+	initConfig()
 	initLogger()
-	execServer()
+}
+
+func main() {
+	err := server.Run()
+	if err != nil {
+		log.Printf("main: %s", err)
+	}
+}
+
+func initConfig() {
+	conf.Parse()
 }
 
 func initLogger() {
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
-	if flag.Verbose {
+	if conf.Verbose {
 		log.SetOutput(os.Stderr)
-	}
-}
-
-func execServer() {
-	err := server.Run()
-	if err != nil {
-		log.Printf("main: %s", err)
 	}
 }

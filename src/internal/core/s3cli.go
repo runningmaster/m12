@@ -2,9 +2,10 @@ package core
 
 import (
 	"fmt"
-	"internal/flag"
 	"io"
 	"log"
+
+	"internal/conf"
 
 	minio "github.com/minio/minio-go"
 )
@@ -22,7 +23,7 @@ var (
 
 func initS3Cli() error {
 	var err error
-	s3cli, err = minio.New(flag.S3Address, flag.S3AccessKey, flag.S3SecretKey, true)
+	s3cli, err = minio.New(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey, true)
 	if err != nil {
 		return fmt.Errorf("core: s3cli: %s", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"internal/flag"
+	"internal/conf"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -25,7 +25,7 @@ type redisGetSetDelOper interface {
 
 func initRedis() error {
 	var err error
-	redisServer, err = newRedis(flag.Redis)
+	redisServer, err = newRedis(conf.Redis)
 	if err != nil {
 		return fmt.Errorf("core: redis: %s", err)
 	}
