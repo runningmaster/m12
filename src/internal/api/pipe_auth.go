@@ -52,16 +52,17 @@ func getKeyV3(r *http.Request) (string, bool) {
 	return key, key != ""
 }
 
-// JWT
+// JWT experiment
 func getKeyV4(r *http.Request) (string, bool) {
-	t, err := jwt.ParseFromRequest(r, func(t *jwt.Token) (interface{}, error) {
-		return t.Header["kid"], nil
-	})
+	keyFunc := func(t *jwt.Token) (interface{}, error) {
+		return []byte(flag.JWTSecretKey), nil
+	}
+	t, err := jwt.ParseFromRequest(r, keyFunc)
 	if err != nil {
 		return "", false
 	}
 
-	if v, ok := t.Header["kid"].(string); ok {
+	if v, ok := t.Header["skey"].(string); ok {
 		return v, true
 	}
 
@@ -74,6 +75,9 @@ func getKey(r *http.Request) (string, error) {
 		ok  bool
 	)
 
+	if key, ok = getKeyV4(r); ok {
+		goto success
+	}
 	if key, ok = getKeyV3(r); ok {
 		goto success
 	}

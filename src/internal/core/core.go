@@ -16,14 +16,15 @@ type meta struct {
 	ID string `json:"id,omitempty"` // ?
 	IP string `json:"ip,omitempty"` // ?
 
-	PKey string  `json:"pkey,omitempty"` // *
-	HTag string  `json:"htag,omitempty"` // *
-	Nick string  `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
-	Name string  `json:"name,omitempty"` // *
-	Head string  `json:"head,omitempty"` // *
-	Addr string  `json:"addr,omitempty"` // *
-	Code string  `json:"code,omitempty"` // egrpou (okpo)
-	Span []int64 `json:"span,omitempty"` // *
+	SKey string `json:"skey,omitempty"` // *
+	HTag string `json:"htag,omitempty"` // *
+	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
+	Name string `json:"name,omitempty"` // *
+	Head string `json:"head,omitempty"` // *
+	Addr string `json:"addr,omitempty"` // *
+	Code string `json:"code,omitempty"` // egrpou (okpo)
+	Spn1 int64  `json:"spn1,omitempty"` // *
+	Spn2 int64  `json:"spn2,omitempty"` // *
 
 	Link linkAddr `json:"link,omitempty"` // ?
 
