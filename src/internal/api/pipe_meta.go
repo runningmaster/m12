@@ -12,11 +12,7 @@ import (
 
 func pipeMeta(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		err := mustHeaderMeta(r)
-		if err != nil {
-			goto fail
-		}
-
+		var err error
 		err = mustHeaderGzip(r)
 		if err != nil {
 			goto fail
@@ -32,7 +28,7 @@ func pipeMeta(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(withMeta(ctx, r.Header.Get("Content-Meta")), w, r)
+		h(ctx, w, r)
 		return // success
 	fail:
 		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
@@ -43,7 +39,6 @@ func mustHeaderGzip(r *http.Request) error {
 	if !gzutil.IsGzipInString(r.Header.Get("Content-Encoding")) {
 		return fmt.Errorf("api: content-encoding must contain gzip")
 	}
-
 	return nil
 }
 
@@ -51,7 +46,6 @@ func mustHeaderJSON(r *http.Request) error {
 	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 		return fmt.Errorf("api: content-type must contain application/json")
 	}
-
 	return nil
 }
 
@@ -59,14 +53,5 @@ func mustHeaderUTF8(r *http.Request) error {
 	if !strings.Contains(r.Header.Get("Content-Type"), "charset=utf-8") {
 		return fmt.Errorf("api: content-type must contain charset=utf-8")
 	}
-
-	return nil
-}
-
-func mustHeaderMeta(r *http.Request) error {
-	if r.Header.Get("Content-Meta") == "" {
-		return fmt.Errorf("api: header must contain content-meta")
-	}
-
 	return nil
 }

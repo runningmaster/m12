@@ -45,11 +45,11 @@ func authFromContext(ctx context.Context) string {
 }
 
 func withMeta(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, ctxMeta, v)
+	return context.WithValue(ctx, "ctxMeta", v)
 }
 
 func metaFromContext(ctx context.Context) string {
-	return stringFromContext(ctx, ctxMeta)
+	return stringFromContext(ctx, "ctxMeta")
 }
 
 func withFail(ctx context.Context, v error) context.Context {
@@ -87,17 +87,17 @@ func timeFromContext(ctx context.Context) time.Time {
 	return time.Time{}
 }
 
-func errorFromContext(ctx context.Context, key ctxKey) error {
+func errorFromContext(ctx context.Context, key interface{}) error {
 	v, _ := ctx.Value(key).(error)
 	return v
 }
 
-func stringFromContext(ctx context.Context, key ctxKey) string {
+func stringFromContext(ctx context.Context, key interface{}) string {
 	v, _ := ctx.Value(key).(string)
 	return v
 }
 
-func int64FromContext(ctx context.Context, key ctxKey) int64 {
+func int64FromContext(ctx context.Context, key interface{}) int64 {
 	v, _ := ctx.Value(key).(int64)
 	return v
 }

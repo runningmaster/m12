@@ -25,19 +25,19 @@ const (
 )
 
 var htags = map[string]struct{}{
-	"data.geoapt.ru":           {},
-	"data.geoapt.ua":           {},
-	"data.sale-in.monthly.kz":  {},
-	"data.sale-in.monthly.ua":  {},
-	"data.sale-in.weekly.ua":   {},
-	"data.sale-in.daily.kz":    {},
-	"data.sale-in.daily.ua":    {},
-	"data.sale-out.monthly.kz": {},
-	"data.sale-out.monthly.ua": {},
-	"data.sale-out.weekly.ua":  {},
-	"data.sale-out.daily.by":   {},
-	"data.sale-out.daily.kz":   {},
-	"data.sale-out.daily.ua":   {},
+	"geoapt.ru":           {},
+	"geoapt.ua":           {},
+	"sale-in.monthly.kz":  {},
+	"sale-in.monthly.ua":  {},
+	"sale-in.weekly.ua":   {},
+	"sale-in.daily.kz":    {},
+	"sale-in.daily.ua":    {},
+	"sale-out.monthly.kz": {},
+	"sale-out.monthly.ua": {},
+	"sale-out.weekly.ua":  {},
+	"sale-out.daily.by":   {},
+	"sale-out.daily.kz":   {},
+	"sale-out.daily.ua":   {},
 }
 
 func proc(backet, object string) error {

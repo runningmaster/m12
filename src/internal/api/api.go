@@ -7,7 +7,14 @@ import (
 	"internal/core"
 )
 
-//$ curl --verbose --insecure --request 'POST' --header 'Content-Encoding: application/x-gzip' --header 'Content-Type: application/json; charset=utf-8' --header 'Content-Meta: eyJuYW1lIjoi0JDQv9GC0LXQutCwIDMiLCAiaGVhZCI6ItCR0IbQm9CQINCg0J7QnNCQ0KjQmtCQIiwiYWRkciI6ItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsImNvZGUiOiIxMjM0NTYifQ==' --upload-file 'data.json.gz' --user 'api:key-masterkey' --url http://localhost:8080/upload
+/*
+curl -v -k -X 'POST' \
+-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJza2V5IjoibWFzdGVya2V5IiwiaHRhZyI6Imdlb2FwdC51YSIsIm5hbWUiOiLQkNC_0YLQtdC60LAgMyIsImhlYWQiOiLQkdCG0JvQkCDQoNCe0JzQkNCo0JrQkCIsImFkZHIiOiLQkdC-0YDQuNGB0L_QvtC70Ywg0YPQuy4g0JrQuNC10LLRgdC60LjQuSDQqNC70Y_RhSwgOTgiLCJjb2RlIjoiMTIzNDU2In0.EaVgSUK2oYWyEunPkc9HhmOtjNOyTjdlyQMe81slBHM' \
+-H 'Content-Encoding: gzip' \
+-H 'Content-Type: application/json; charset=utf-8' \
+-T 'data.json.gz' \
+http://localhost:8080/upload
+*/
 
 var (
 	mapCoreHandlers map[string]core.Handler

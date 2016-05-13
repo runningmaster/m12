@@ -43,6 +43,7 @@ func newRedis(addr string) (connGetter, error) {
 
 	var c redis.Conn
 	if c = pool.Get(); c.Err() != nil {
+		fmt.Println(c.Err())
 		return nil, c.Err()
 	}
 	_ = c.Close()
@@ -61,7 +62,11 @@ func dial(addr string) func() (redis.Conn, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer func() { _ = c.Close() }()
+		defer func() {
+			if err != nil && c != nil {
+				_ = c.Close()
+			}
+		}()
 
 		if u.User != nil {
 			if pw, ok := u.User.Password(); ok {

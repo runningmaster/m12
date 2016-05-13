@@ -12,6 +12,8 @@ import (
 
 // Upld puts data to s3 interface
 func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
+	v, _ := ctx.Value("ctxMeta").(string)
+
 	m, err := makeMetaFromBase64String("FIXME ctxutil.MetaFromContext(ctx)")
 	if err != nil {
 		return nil, err

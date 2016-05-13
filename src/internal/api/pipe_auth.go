@@ -15,83 +15,41 @@ import (
 
 func pipeAuth(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		key, err := getKey(r)
+		var (
+			tkn *jwt.Token
+			key string
+			src []byte
+			err error
+		)
+
+		tkn, err = getJWT(r)
 		if err != nil {
 			goto fail
 		}
 
+		key = tkn.Claims["skey"].(string)
 		err = auth(key)
 		if err != nil {
 			goto fail
 		}
 
-		h(withAuth(ctx, key), w, r)
+		src, err = json.Marshal(tkn.Claims)
+		if err != nil {
+			goto fail
+		}
+
+		h(withAuth(withMeta(ctx, string(src)), key), w, r)
 		return // success
 	fail:
 		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 
-func getKeyV1(r *http.Request) (string, bool) {
-	key := r.FormValue("key")
-	return key, key != ""
-}
-
-func getKeyV2(r *http.Request) (string, bool) {
-	key := r.Header.Get("X-Morion-Skynet-Key")
-	return key, key != ""
-}
-
-// api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
-func getKeyV3(r *http.Request) (string, bool) {
-	var key string
-	if _, pass, ok := r.BasicAuth(); ok {
-		key = pass[4:]
-	}
-
-	return key, key != ""
-}
-
-// JWT experiment
-func getKeyV4(r *http.Request) (string, bool) {
+func getJWT(r *http.Request) (*jwt.Token, error) {
 	keyFunc := func(t *jwt.Token) (interface{}, error) {
 		return []byte(conf.JWTSecretKey), nil
 	}
-	t, err := jwt.ParseFromRequest(r, keyFunc)
-	if err != nil {
-		return "", false
-	}
-
-	if v, ok := t.Header["skey"].(string); ok {
-		return v, true
-	}
-
-	return "", false
-}
-
-func getKey(r *http.Request) (string, error) {
-	var (
-		key string
-		ok  bool
-	)
-
-	if key, ok = getKeyV4(r); ok {
-		goto success
-	}
-	if key, ok = getKeyV3(r); ok {
-		goto success
-	}
-	if key, ok = getKeyV2(r); ok {
-		goto success
-	}
-	if key, ok = getKeyV1(r); ok {
-		goto success
-	}
-
-	return "", fmt.Errorf("api: auth key (as param) not found")
-
-success:
-	return key, nil
+	return jwt.ParseFromRequest(r, keyFunc)
 }
 
 func auth(key string) error {
@@ -120,7 +78,7 @@ func auth(key string) error {
 		return err
 	}
 
-	return fmt.Errorf("api: auth key (as value) not found: %s: forbidden", string(b))
+	return fmt.Errorf("api: auth key not found: %s: forbidden", string(b))
 }
 
 func isMasterKey(key string) bool {
