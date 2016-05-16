@@ -68,6 +68,7 @@ var (
 	ErrReconnectBufExceeded = errors.New("nats: outbound buffer limit exceeded")
 	ErrInvalidConnection    = errors.New("nats: invalid connection")
 	ErrInvalidMsg           = errors.New("nats: invalid message or message nil")
+	ErrInvalidArg           = errors.New("nats: invalid argument")
 	ErrStaleConnection      = errors.New("nats: " + STALE_CONNECTION)
 )
 
@@ -1409,7 +1410,8 @@ func (nc *Conn) processMsg(data []byte) {
 	}
 
 	// Check for a Slow Consumer
-	if sub.pMsgs > sub.pMsgsLimit || sub.pBytes > sub.pBytesLimit {
+	if (sub.pMsgsLimit > 0 && sub.pMsgs > sub.pMsgsLimit) ||
+		(sub.pBytesLimit > 0 && sub.pBytes > sub.pBytesLimit) {
 		goto slowConsumer
 	}
 
@@ -2084,6 +2086,8 @@ const (
 )
 
 // PendingLimits returns the current limits for this subscription.
+// If no error is returned, a negative value indicates that the
+// given metric is not limited.
 func (s *Subscription) PendingLimits() (int, int, error) {
 	if s == nil {
 		return -1, -1, ErrBadSubscription
@@ -2100,6 +2104,7 @@ func (s *Subscription) PendingLimits() (int, int, error) {
 }
 
 // SetPendingLimits sets the limits for pending msgs and bytes for this subscription.
+// Zero is not allowed. Any negative value means that the given metric is not limited.
 func (s *Subscription) SetPendingLimits(msgLimit, bytesLimit int) error {
 	if s == nil {
 		return ErrBadSubscription
@@ -2111,6 +2116,9 @@ func (s *Subscription) SetPendingLimits(msgLimit, bytesLimit int) error {
 	}
 	if s.typ == ChanSubscription {
 		return ErrTypeSubscription
+	}
+	if msgLimit == 0 || bytesLimit == 0 {
+		return ErrInvalidArg
 	}
 	s.pMsgsLimit, s.pBytesLimit = msgLimit, bytesLimit
 	return nil
@@ -2423,4 +2431,18 @@ func (nc *Conn) MaxPayload() int64 {
 	nc.mu.Lock()
 	defer nc.mu.Unlock()
 	return nc.info.MaxPayload
+}
+
+// AuthRequired will return if the connected server requires authorization.
+func (nc *Conn) AuthRequired() bool {
+	nc.mu.Lock()
+	defer nc.mu.Unlock()
+	return nc.info.AuthRequired
+}
+
+// TLSRequired will return if the connected server requires TLS connections.
+func (nc *Conn) TLSRequired() bool {
+	nc.mu.Lock()
+	defer nc.mu.Unlock()
+	return nc.info.TLSRequired
 }
