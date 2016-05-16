@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"internal/strutil"
+	"internal/util/strutil"
 )
 
 const (
