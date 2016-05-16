@@ -9,7 +9,7 @@ import (
 
 /*
 curl -v -k -X 'POST' \
--H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJza2V5IjoibWFzdGVya2V5IiwiaHRhZyI6Imdlb2FwdC51YSIsIm5hbWUiOiLQkNC_0YLQtdC60LAgMyIsImhlYWQiOiLQkdCG0JvQkCDQoNCe0JzQkNCo0JrQkCIsImFkZHIiOiLQkdC-0YDQuNGB0L_QvtC70Ywg0YPQuy4g0JrQuNC10LLRgdC60LjQuSDQqNC70Y_RhSwgOTgiLCJjb2RlIjoiMTIzNDU2In0.EaVgSUK2oYWyEunPkc9HhmOtjNOyTjdlyQMe81slBHM' \
+-H 'Authorization: Bearer eyJhbGciOiJub25lIn0.eyJza2V5IjoibWFzdGVya2V5IiwiaHRhZyI6Imdlb2FwdC51YSIsIm5hbWUiOiLQkNC_0YLQtdC60LAgMyIsImhlYWQiOiLQkdCG0JvQkCDQoNCe0JzQkNCo0JrQkCIsImFkZHIiOiLQkdC-0YDQuNGB0L_QvtC70Ywg0YPQuy4g0JrQuNC10LLRgdC60LjQuSDQqNC70Y_RhSwgOTgiLCJjb2RlIjoiMTIzNDU2In0.' \
 -H 'Content-Encoding: gzip' \
 -H 'Content-Type: application/json; charset=utf-8' \
 -T 'data.json.gz' \
