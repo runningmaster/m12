@@ -41,9 +41,6 @@ var (
 
 	// NATSSubjectSteamOut is NATS subject for publishing stream-out
 	NATSSubjectSteamOut = *flag.String("nats-subj-stream-out", "stream-out.0566ce58", "NATS subject for publishing stream-out")
-
-	// JWTSecretKey is JWT secret key (experiment, https://jwt.io/)
-	JWTSecretKey = *flag.String("jwtskey", "", "JWT secret key")
 )
 
 // Parse is wrapper for std flag.Parse()

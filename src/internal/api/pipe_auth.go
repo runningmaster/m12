@@ -9,25 +9,16 @@ import (
 	"internal/conf"
 	"internal/core"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
 )
 
 func pipeAuth(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		var (
-			tkn *jwt.Token
-			key string
-			src []byte
-			err error
-		)
-
-		tkn, err = getJWT(r)
+		key, err := getKey(r)
 		if err != nil {
 			goto fail
 		}
 
-		key = tkn.Claims["skey"].(string)
 		err = auth(key)
 		if err != nil {
 			goto fail
@@ -38,18 +29,20 @@ func pipeAuth(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(withAuth(withMeta(ctx, string(src)), key), w, r)
+		h(withAuth(ctx, key), w, r)
 		return // success
 	fail:
 		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 
-func getJWT(r *http.Request) (*jwt.Token, error) {
-	keyFunc := func(t *jwt.Token) (interface{}, error) {
-		return []byte(conf.JWTSecretKey), nil
+// api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
+func getKey(r *http.Request) (string, error) {
+	if key, pass, ok := r.BasicAuth(); ok {
+		return pass[4:], nil
 	}
-	return jwt.ParseFromRequest(r, keyFunc)
+
+	return "", fmt.Errorf("api: key not found")
 }
 
 func auth(key string) error {
@@ -78,7 +71,7 @@ func auth(key string) error {
 		return err
 	}
 
-	return fmt.Errorf("api: auth key not found: %s: forbidden", string(b))
+	return fmt.Errorf("api: invalid key: %s: forbidden", string(b))
 }
 
 func isMasterKey(key string) bool {

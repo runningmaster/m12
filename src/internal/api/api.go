@@ -9,9 +9,10 @@ import (
 
 /*
 curl -v -k -X 'POST' \
--H 'Authorization: Bearer eyJhbGciOiJub25lIn0.eyJza2V5IjoibWFzdGVya2V5IiwiaHRhZyI6Imdlb2FwdC51YSIsIm5hbWUiOiLQkNC_0YLQtdC60LAgMyIsImhlYWQiOiLQkdCG0JvQkCDQoNCe0JzQkNCo0JrQkCIsImFkZHIiOiLQkdC-0YDQuNGB0L_QvtC70Ywg0YPQuy4g0JrQuNC10LLRgdC60LjQuSDQqNC70Y_RhSwgOTgiLCJjb2RlIjoiMTIzNDU2In0.' \
+-u 'api:key-masterkey' \
 -H 'Content-Encoding: gzip' \
 -H 'Content-Type: application/json; charset=utf-8' \
+-H 'Content-Meta: ewogICJwa2V5IjogIm1hc3RlcmtleSIsCiAgImh0YWciOiAiZ2VvYXB0LnVhIiwKICAibmFtZSI6ICLQkNC/0YLQtdC60LAgMyIsCiAgImhlYWQiOiAi0JHQhtCb0JAg0KDQntCc0JDQqNCa0JAiLAogICJhZGRyIjogItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsCiAgImNvZGUiOiAiMTIzNDU2Igp9' \
 -T 'data.json.gz' \
 http://localhost:8080/upload
 */
