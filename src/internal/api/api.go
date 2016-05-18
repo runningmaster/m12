@@ -60,11 +60,6 @@ var (
 
 // Init is caled from other package for manually initialization
 func Init(regFunc func(string, string, http.Handler)) error {
-	err := core.Init()
-	if err != nil {
-		return err
-	}
-
 	regHTTPHandlers(regFunc)
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/util/gzutil"
+	"internal/gzutil"
 
 	"golang.org/x/net/context"
 )

@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"internal/util/strutil"
+	"internal/s3"
+	"internal/strutil"
 )
 
 const (
@@ -40,8 +41,13 @@ var htags = map[string]struct{}{
 	"sale-out.daily.ua":   {},
 }
 
-func proc(backet, object string) error {
-	meta, data, err := mineMetaData(backet, object)
+func proc(p []byte) error {
+	o, err := s3.PopObjectByPathJSON(p)
+	if err != nil {
+		return err
+	}
+
+	meta, data, err := untarMetaData(o)
 	if err != nil {
 		return err
 	}
@@ -85,12 +91,12 @@ func proc(backet, object string) error {
 		return err
 	}
 
-	t, err := tarMetaData(makeReadCloser(m.packToJSON()), makeReadCloser(data))
+	_, err = tarMetaData(makeReadCloser(m.packToJSON()), makeReadCloser(data))
 	if err != nil {
 		return err
 	}
 
-	goToStreamOut(m.ID, t)
+	//goToStreamOut(m.ID, t)
 
 	//goToStreamErr(m.ID, ?)
 

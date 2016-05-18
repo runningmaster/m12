@@ -5,11 +5,50 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"internal/conf"
-
 	"golang.org/x/net/context"
 )
 
+/*
+const (
+	backetStreamIn  = "stream-in"
+	backetStreamOut = "stream-out"
+	backetStreamErr = "stream-err"
+	backets = [...]string{backetStreamIn, backetStreamOut, backetStreamErr}
+)
+
+	subjectSteamIn  = "stream-in.67a7ea16"
+	subjectSteamOut = "stream-out.0566ce58"
+
+
+func goNotifyStream(n int) {
+	go func() {
+		c := time.Tick(1 * time.Second)
+		var err error
+		for _ = range c {
+			err = notifyStream(backetStreamIn, subjectSteamIn, n)
+			if err != nil {
+				log.Println(err)
+			}
+			err = notifyStream(backetStreamOut, subjectSteamOut, n)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}()
+}
+
+func notifyStream(backet, subject string, n int) error {
+	objs, err := s3.listObjectsN(backet, "", false, n)
+	if err != nil {
+		return err
+	}
+
+
+
+	return nil
+}
+
+*/
 // Handler is func for processing data from api.
 
 type Handler func(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
@@ -60,22 +99,6 @@ func (m meta) packToJSON() []byte {
 
 func (m meta) packToBase64String() string {
 	return base64.StdEncoding.EncodeToString(m.packToJSON())
-}
-
-type pair struct {
-	Backet string `json:"backet,omitempty"`
-	Object string `json:"object,omitempty"`
-}
-
-func makePairFromJSON(b []byte) (pair, error) {
-	p := pair{}
-	err := json.Unmarshal(b, &p)
-	return p, err
-}
-
-func (p pair) packToJSON() []byte {
-	b, _ := json.Marshal(p)
-	return b
 }
 
 type itemV3Geoa struct {
@@ -173,24 +196,4 @@ func (l listV3Soby) getName(i int) string {
 
 func (l listV3Soby) setLinkDrug(i int, link linkDrug) {
 	l[i].Link = link
-}
-
-// Init is caled from other package for manually initialization
-func Init() error {
-	err := initRedis(conf.RedisAddress)
-	if err != nil {
-		return err
-	}
-
-	err = initS3Cli(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey)
-	if err != nil {
-		return err
-	}
-
-	err = initNATSCli(conf.NATSAddress)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

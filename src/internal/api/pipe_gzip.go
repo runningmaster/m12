@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"internal/util/gzutil"
+	"internal/gzutil"
 
 	"github.com/klauspost/compress/gzip"
 	"golang.org/x/net/context"

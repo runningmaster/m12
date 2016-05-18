@@ -12,7 +12,7 @@ import (
 
 // Upld puts data to s3 interface
 func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
-	v, _ := ctx.Value("ctxMeta").(string)
+	_ = ctx.Value("ctxMeta").(string)
 
 	m, err := makeMetaFromBase64String("FIXME ctxutil.MetaFromContext(ctx)")
 	if err != nil {
@@ -26,12 +26,12 @@ func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interfac
 	m.SrcCE = r.Header.Get("Content-Encoding")
 	m.SrcCT = r.Header.Get("Content-Type")
 
-	t, err := tarMetaData(makeReadCloser(m.packToJSON()), r.Body) // FIXME base64?
+	_, err = tarMetaData(makeReadCloser(m.packToJSON()), r.Body) // FIXME base64?
 	if err != nil {
 		return nil, err
 	}
 
-	goToStreamIn(m.ID, t)
+	//goToStreamIn(m.ID, t)
 
 	return m.ID, nil
 }
@@ -82,8 +82,8 @@ func writeToTar(name string, rc io.ReadCloser, w *tar.Writer) error {
 	return nil
 }
 
-func untarMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
-	defer func() { _ = rc.Close() }()
+func untarMetaData(rc io.Reader) ([]byte, []byte, error) {
+	//defer func() { _ = rc.Close() }()
 
 	tr := tar.NewReader(rc)
 	var (

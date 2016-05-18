@@ -9,8 +9,8 @@ import (
 // NOTE: about priority: default <- key/value store <- config <- env <- flag <-explicit set
 
 var (
-	// HostAddr is HTTP service address
-	HostAddr = *flag.String("host", "127.0.0.1:8080", "service address '[host]:port'")
+	// ServerAddress is HTTP service address
+	ServerAddress = *flag.String("host", "127.0.0.1:8080", "service address '[host]:port'")
 
 	// RedisAddress is a TCP network address for Redis server
 	RedisAddress = *flag.String("redis", "redis://127.0.0.1:6379", "network address for Redis server 'scheme://[user:pass]@host[:port]'")

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/util/gzutil"
+	"internal/gzutil"
 
 	"github.com/spkg/bom"
 )

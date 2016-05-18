@@ -3,6 +3,8 @@ package core
 import (
 	"net/http"
 
+	"internal/s3"
+
 	"golang.org/x/net/context"
 )
 
@@ -13,12 +15,12 @@ func Popd(_ context.Context, w http.ResponseWriter, r *http.Request) (interface{
 		return nil, err
 	}
 
-	p, err := makePairFromJSON(b)
+	o, err := s3.PopObjectByPathJSON(b)
 	if err != nil {
 		return nil, err
 	}
 
-	meta, data, err := mineMetaData(p.Backet, p.Object)
+	meta, data, err := untarMetaData(o)
 	if err != nil {
 		return nil, err
 	}
@@ -32,13 +34,4 @@ func Popd(_ context.Context, w http.ResponseWriter, r *http.Request) (interface{
 	w.Header().Set("Content-Meta", m.packToBase64String()) // FIXME
 
 	return data, nil
-}
-
-func mineMetaData(backet, object string) ([]byte, []byte, error) {
-	o, err := popObject(backet, object)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return untarMetaData(o)
 }
