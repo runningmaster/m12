@@ -6,8 +6,6 @@ import (
 	"net/url"
 	"time"
 
-	"internal/conf"
-
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -23,9 +21,9 @@ type redisGetSetDelOper interface {
 	del(redis.Conn) (interface{}, error)
 }
 
-func initRedis() error {
+func initRedis(addr string) error {
 	var err error
-	redisServer, err = newRedis(conf.Redis)
+	redisServer, err = newRedis(addr)
 	if err != nil {
 		return fmt.Errorf("core: redis: %s", err)
 	}

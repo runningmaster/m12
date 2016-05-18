@@ -4,18 +4,17 @@ import (
 	"time"
 
 	"internal/api"
-	"internal/conf"
 
 	"github.com/tylerb/graceful"
 )
 
-func Run() error {
+func Run(addr string) error {
 	err := api.Init(regFunc)
 	if err != nil {
 		return err
 	}
 
-	s, err := makeServer(conf.Addr)
+	s, err := makeServer(addr)
 	if err != nil {
 		return err
 	}

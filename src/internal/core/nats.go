@@ -6,19 +6,22 @@ import (
 	"log"
 	"time"
 
-	"internal/conf"
-
 	"github.com/nats-io/nats"
 )
 
-const sendN = 10
+const (
+	sendN = 10
+
+	subjectSteamIn  = backetStreamIn + ".67a7ea16"
+	subjectSteamOut = backetStreamOut + ".0566ce58"
+)
 
 var natsCli *nats.Conn
 
-func initNATSCli() error {
+func initNATSCli(addr string) error {
 	var err error
 
-	natsCli, err = nats.Connect(conf.NATS, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
+	natsCli, err = nats.Connect(addr, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
 	if err != nil {
 		return fmt.Errorf("core: nats: %s", err)
 	}
@@ -30,7 +33,7 @@ func initNATSCli() error {
 }
 
 func goListenToNATS() {
-	natsCli.Subscribe(conf.NATSSubjectSteamIn, func(m *nats.Msg) {
+	natsCli.Subscribe(subjectSteamIn, func(m *nats.Msg) {
 		go func() {
 			p, err := makePairFromJSON(m.Data)
 			if err != nil {
@@ -49,11 +52,11 @@ func goNotifyStream(n int) {
 		c := time.Tick(1 * time.Second)
 		var err error
 		for _ = range c {
-			err = notifyStream(backetStreamIn, conf.NATSSubjectSteamIn, n)
+			err = notifyStream(backetStreamIn, subjectSteamIn, n)
 			if err != nil {
 				log.Println(err)
 			}
-			err = notifyStream(backetStreamOut, conf.NATSSubjectSteamOut, n)
+			err = notifyStream(backetStreamOut, subjectSteamOut, n)
 			if err != nil {
 				log.Println(err)
 			}

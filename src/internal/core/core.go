@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"internal/conf"
+
 	"golang.org/x/net/context"
 )
 
@@ -175,17 +177,17 @@ func (l listV3Soby) setLinkDrug(i int, link linkDrug) {
 
 // Init is caled from other package for manually initialization
 func Init() error {
-	err := initRedis()
+	err := initRedis(conf.RedisAddress)
 	if err != nil {
 		return err
 	}
 
-	err = initS3Cli()
+	err = initS3Cli(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey)
 	if err != nil {
 		return err
 	}
 
-	err = initNATSCli()
+	err = initNATSCli(conf.NATSAddress)
 	if err != nil {
 		return err
 	}

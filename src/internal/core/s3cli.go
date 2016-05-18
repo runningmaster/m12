@@ -5,8 +5,6 @@ import (
 	"io"
 	"log"
 
-	"internal/conf"
-
 	minio "github.com/minio/minio-go"
 )
 
@@ -21,9 +19,9 @@ var (
 	backets = [...]string{backetStreamIn, backetStreamOut, backetStreamErr}
 )
 
-func initS3Cli() error {
+func initS3Cli(addr, akey, skey string) error {
 	var err error
-	s3cli, err = minio.New(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey, true)
+	s3cli, err = minio.New(addr, akey, skey, true)
 	if err != nil {
 		return fmt.Errorf("core: s3cli: %s", err)
 	}
