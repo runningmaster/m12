@@ -3,7 +3,7 @@ package core
 import (
 	"encoding/json"
 
-	"github.com/garyburd/redigo/redis"
+	"internal/redis"
 )
 
 // Redis scheme:

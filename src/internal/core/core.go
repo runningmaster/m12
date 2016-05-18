@@ -9,6 +9,19 @@ import (
 )
 
 /*
+
+var redisServer connGetter
+
+type connGetter interface {
+	Get() redis.Conn
+}
+
+type redisGetSetDelOper interface {
+	get(redis.Conn) ([]interface{}, error)
+	set(redis.Conn) (interface{}, error)
+	del(redis.Conn) (interface{}, error)
+}
+
 const (
 	backetStreamIn  = "stream-in"
 	backetStreamOut = "stream-out"
