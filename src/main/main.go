@@ -18,7 +18,7 @@ func init() {
 }
 
 func main() {
-	err := server.Run()
+	err := server.Run(conf.HostAddr)
 	if err != nil {
 		log.Printf("main: %s", err)
 	}
