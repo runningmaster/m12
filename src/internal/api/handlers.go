@@ -17,6 +17,7 @@ import (
 
 type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
 type handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
+type handlerFuncRes func(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
 type handlerPipe func(h handlerFunc) handlerFunc
 type bundle struct {
 	h http.Handler
@@ -27,18 +28,22 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f(context.Background(), w, r)
 }
 
+func (f handlerFuncRes) ServeHTTPRes(ctx context.Context, w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	return f(ctx, w, r)
+}
+
 func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	res := fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo())
 	return with200(ctx, w, res)
 }
 
 func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	f, ok := mapCoreHandlers[r.URL.Path]
+	h, ok := mapCoreHandlers[r.URL.Path]
 	if !ok {
 		return with500(ctx, fmt.Errorf("api: core method not found"))
 	}
 
-	res, err := f(ctx, w, r)
+	res, err := h.ServeHTTPRes(ctx, w, r)
 	if err != nil {
 		return with500(ctx, err)
 	}

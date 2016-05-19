@@ -21,7 +21,7 @@ var (
 	mapCoreHandlers map[string]core.Handler
 	mapHTTPHandlers = map[string]bundle{
 		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
-		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Ping},
+		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), handlerFuncRes(core.Ping)},
 
 		"POST:/system/get-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("get", "auth")},
 		"POST:/system/set-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("set", "auth")},

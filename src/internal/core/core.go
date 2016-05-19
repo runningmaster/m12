@@ -64,7 +64,15 @@ func notifyStream(backet, subject string, n int) error {
 */
 // Handler is func for processing data from api.
 
-type Handler func(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
+type Handler interface {
+	ServeHTTPRes(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
+}
+
+//type HandlerFunc func(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
+
+//func (f HandlerFunc) ServeHTTPCtx(ctx context.Context, w http.ResponseWriter, r *http.Request) (interface{}, error) {
+//	return f(ctx, w, r)
+//}
 
 type meta struct {
 	ID string `json:"id,omitempty"` // ?
