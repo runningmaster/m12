@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"golang.org/x/net/http2/hpack"
+	"golang.org/x/net/lex/httplex"
 )
 
 const (
@@ -153,6 +154,8 @@ type ClientConn struct {
 	bw           *bufio.Writer
 	br           *bufio.Reader
 	fr           *Framer
+	lastActive   time.Time
+
 	// Settings from peer:
 	maxFrameSize         uint32
 	maxConcurrentStreams uint32
@@ -170,6 +173,7 @@ type ClientConn struct {
 type clientStream struct {
 	cc            *ClientConn
 	req           *http.Request
+	trace         *clientTrace // or nil
 	ID            uint32
 	resc          chan resAndError
 	bufPipe       pipe // buffered pipe with the flow-controlled response payload
@@ -288,6 +292,7 @@ func (t *Transport) RoundTripOpt(req *http.Request, opt RoundTripOpt) (*http.Res
 			t.vlogf("http2: Transport failed to get client conn for %s: %v", addr, err)
 			return nil, err
 		}
+		traceGotConn(req, cc)
 		res, err := cc.RoundTrip(req)
 		if shouldRetryRequest(req, err) {
 			continue
@@ -622,16 +627,14 @@ func (cc *ClientConn) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	cc.mu.Lock()
+	cc.lastActive = time.Now()
 	if cc.closed || !cc.canTakeNewRequestLocked() {
 		cc.mu.Unlock()
 		return nil, errClientConnUnusable
 	}
 
-	cs := cc.newStream()
-	cs.req = req
-	hasBody := body != nil
-
 	// TODO(bradfitz): this is a copy of the logic in net/http. Unify somewhere?
+	var requestedGzip bool
 	if !cc.t.disableCompression() &&
 		req.Header.Get("Accept-Encoding") == "" &&
 		req.Header.Get("Range") == "" &&
@@ -648,17 +651,29 @@ func (cc *ClientConn) RoundTrip(req *http.Request) (*http.Response, error) {
 		// We don't request gzip if the request is for a range, since
 		// auto-decoding a portion of a gzipped document will just fail
 		// anyway. See https://golang.org/issue/8923
-		cs.requestedGzip = true
+		requestedGzip = true
 	}
 
 	// we send: HEADERS{1}, CONTINUATION{0,} + DATA{0,} (DATA is
 	// sent by writeRequestBody below, along with any Trailers,
 	// again in form HEADERS{1}, CONTINUATION{0,})
-	hdrs := cc.encodeHeaders(req, cs.requestedGzip, trailers, contentLen)
+	hdrs, err := cc.encodeHeaders(req, requestedGzip, trailers, contentLen)
+	if err != nil {
+		cc.mu.Unlock()
+		return nil, err
+	}
+
+	cs := cc.newStream()
+	cs.req = req
+	cs.trace = requestTrace(req)
+	hasBody := body != nil
+	cs.requestedGzip = requestedGzip
+
 	cc.wmu.Lock()
 	endStream := !hasBody && !hasTrailers
 	werr := cc.writeHeaders(cs.ID, endStream, hdrs)
 	cc.wmu.Unlock()
+	traceWroteHeaders(cs.trace)
 	cc.mu.Unlock()
 
 	if werr != nil {
@@ -668,6 +683,7 @@ func (cc *ClientConn) RoundTrip(req *http.Request) (*http.Response, error) {
 		cc.forgetStreamID(cs.ID)
 		// Don't bother sending a RST_STREAM (our write already failed;
 		// no need to keep writing)
+		traceWroteRequest(cs.trace, werr)
 		return nil, werr
 	}
 
@@ -679,6 +695,7 @@ func (cc *ClientConn) RoundTrip(req *http.Request) (*http.Response, error) {
 			bodyCopyErrc <- cs.writeRequestBody(body, req.Body)
 		}()
 	} else {
+		traceWroteRequest(cs.trace, nil)
 		if d := cc.responseHeaderTimeout(); d != 0 {
 			timer := time.NewTimer(d)
 			defer timer.Stop()
@@ -743,6 +760,7 @@ func (cc *ClientConn) RoundTrip(req *http.Request) (*http.Response, error) {
 			// forgetStreamID.
 			return nil, cs.resetErr
 		case err := <-bodyCopyErrc:
+			traceWroteRequest(cs.trace, err)
 			if err != nil {
 				return nil, err
 			}
@@ -926,12 +944,26 @@ type badStringError struct {
 func (e *badStringError) Error() string { return fmt.Sprintf("%s %q", e.what, e.str) }
 
 // requires cc.mu be held.
-func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trailers string, contentLength int64) []byte {
+func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trailers string, contentLength int64) ([]byte, error) {
 	cc.hbuf.Reset()
 
 	host := req.Host
 	if host == "" {
 		host = req.URL.Host
+	}
+
+	// Check for any invalid headers and return an error before we
+	// potentially pollute our hpack state. (We want to be able to
+	// continue to reuse the hpack encoder for future requests)
+	for k, vv := range req.Header {
+		if !httplex.ValidHeaderFieldName(k) {
+			return nil, fmt.Errorf("invalid HTTP header name %q", k)
+		}
+		for _, v := range vv {
+			if !httplex.ValidHeaderFieldValue(v) {
+				return nil, fmt.Errorf("invalid HTTP header value %q for header %q", v, k)
+			}
+		}
 	}
 
 	// 8.1.2.3 Request Pseudo-Header Fields
@@ -990,7 +1022,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 	if !didUA {
 		cc.writeHeader("user-agent", defaultUserAgent)
 	}
-	return cc.hbuf.Bytes()
+	return cc.hbuf.Bytes(), nil
 }
 
 // shouldSendReqContentLength reports whether the http2.Transport should send
@@ -1068,6 +1100,7 @@ func (cc *ClientConn) streamByID(id uint32, andRemove bool) *clientStream {
 	defer cc.mu.Unlock()
 	cs := cc.streams[id]
 	if andRemove && cs != nil && !cc.closed {
+		cc.lastActive = time.Now()
 		delete(cc.streams, id)
 		close(cs.done)
 	}
@@ -1196,6 +1229,13 @@ func (rl *clientConnReadLoop) processHeaders(f *MetaHeadersFrame) error {
 	} else {
 		return rl.processTrailers(cs, f)
 	}
+	if cs.trace != nil {
+		// TODO(bradfitz): move first response byte earlier,
+		// when we first read the 9 byte header, not waiting
+		// until all the HEADERS+CONTINUATION frames have been
+		// merged. This works for now.
+		traceFirstResponseByte(cs.trace)
+	}
 
 	res, err := rl.handleResponse(cs, f)
 	if err != nil {
@@ -1243,6 +1283,7 @@ func (rl *clientConnReadLoop) handleResponse(cs *clientStream, f *MetaHeadersFra
 	if statusCode == 100 {
 		// Just skip 100-continue response headers for now.
 		// TODO: golang.org/issue/13851 for doing it properly.
+		// TODO: also call the httptrace.ClientTrace hooks
 		cs.pastHeaders = false // do it all again
 		return nil, nil
 	}
