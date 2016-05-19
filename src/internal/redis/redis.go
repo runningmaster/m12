@@ -14,6 +14,8 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+const statusOK = "OK"
+
 var (
 	cli    *redis.Pool
 	logger = log.New(ioutil.Discard, "", log.LstdFlags)
@@ -64,11 +66,11 @@ func dial(addr string) func() (redis.Conn, error) {
 	}
 }
 
-func Get() redis.Conn {
+func getConn() redis.Conn {
 	return cli.Get()
 }
 
-func Put(c io.Closer) {
+func putConn(c io.Closer) {
 	if c != nil {
 		_ = c.Close() // log ?
 	}
@@ -84,12 +86,22 @@ func ToStringSafely(v interface{}) string {
 	return res
 }
 
+func Ping() (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("PING")
+}
+
 // TODO: parse keyspace
 //	"keyspace": {
 //		"db0": "keys=1,expires=0,avg_ttl=0"
 //	},
-func InfoToJSON(reply interface{}, err error) (interface{}, error) {
-	b, err := redis.Bytes(reply, err)
+func Info() (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	b, err := redis.Bytes(c.Do("INFO"))
 	if err != nil {
 		return nil, err
 	}
@@ -122,4 +134,178 @@ func InfoToJSON(reply interface{}, err error) (interface{}, error) {
 	}
 
 	return mapper, nil
+}
+
+func ConvInt64sToIntfs(src ...int64) []interface{} {
+	dst := make([]interface{}, len(src))
+	for i := range src {
+		dst[i] = src[i]
+	}
+	return dst
+}
+
+// HMSET is wrapper func and returns "simple string reply". Key must be first in array.
+func HMSET(keyAndFieldVals ...interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("HMSET", keyAndFieldVals...)
+}
+
+// HMGET is wrapper func and returns "array reply". Key must be first in array.
+func HMGET(keyAndFields ...interface{}) ([]interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return redis.Values(c.Do("HMGET", keyAndFields...))
+}
+
+// HDEL is wrapper func and returns "integer reply". Key must be first in array.
+func HDEL(keyAndFields ...interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("HDEL", keyAndFields...)
+}
+
+// HMSETM is wrapper func and returns "simple string reply". Key must be first in array.
+func HMSETM(keyAndFieldVals ...[]interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	var err error
+	for i := range keyAndFieldVals {
+		if len(keyAndFieldVals[i]) == 0 {
+			continue
+		}
+		err = c.Send("DEL", keyAndFieldVals[i][0])
+		if err != nil {
+			return nil, err
+		}
+		err = c.Send("HMSET", keyAndFieldVals[i]...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = c.Flush()
+	if err != nil {
+		return nil, err
+	}
+
+	return statusOK, nil
+}
+
+// HMGETM is wrapper func and returns "array reply". Key must be first in array.
+func HMGETM(keyAndFields ...[]interface{}) ([][]interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	var err error
+	for i := range keyAndFields {
+		if len(keyAndFields[i]) == 0 {
+			continue
+		}
+		err = c.Send("HMGET", keyAndFields[i]...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = c.Flush()
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([][]interface{}, len(keyAndFields))
+	var res interface{}
+	for i := 0; i < len(out); i++ {
+		res, err = c.Receive()
+		if err != nil {
+			return nil, err
+		}
+		out[i], err = redis.Values(res, err)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return out, nil
+}
+
+// DEL is wrapper func and returns "integer reply".
+func DEL(keys ...interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("DEL", keys...)
+}
+
+// SMEMBERS is wrapper func and returns "array reply".
+func SMEMBERS(key interface{}) ([]interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return redis.Values(c.Do("SMEMBERS", key))
+}
+
+// SISMEMBER is wrapper func and returns "integer reply". Key must be first in array.
+func SISMEMBER(key, member interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("SISMEMBER", key, member)
+}
+
+// SISMEMBERM is wrapper func and returns "array reply". Key must be first in array.
+func SISMEMBERM(keyAndMembers ...interface{}) ([]interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	var (
+		err error
+		key interface{}
+	)
+	for i := range keyAndMembers {
+		if i == 0 {
+			key = keyAndMembers[0]
+		}
+		err = c.Send("SISMEMBER", key, keyAndMembers[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = c.Flush()
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]interface{}, len(keyAndMembers)-1)
+	var res interface{}
+	for i := 0; i < len(out); i++ {
+		res, err = c.Receive()
+		if err != nil {
+			return nil, err
+		}
+		out[i] = res
+	}
+
+	return out, nil
+}
+
+// SADD is wrapper func and returns "integer reply". Key must be first in array.
+func SADD(keyAndMembers ...interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("SADD", keyAndMembers...)
+}
+
+// SREM is wrapper func and returns "integer reply". Key must be first in array.
+func SREM(keyAndMembers ...interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("SREM", keyAndMembers...)
 }

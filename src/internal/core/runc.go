@@ -4,8 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/garyburd/redigo/redis"
 	"golang.org/x/net/context"
 )
+
+type redisGetSetDelOper interface {
+	get(redis.Conn) ([]interface{}, error)
+	set(redis.Conn) (interface{}, error)
+	del(redis.Conn) (interface{}, error)
+}
 
 // RunC is "print-like" operation.
 func RunC(cmd, base string) Handler {
@@ -37,30 +44,31 @@ func RunC(cmd, base string) Handler {
 func makeGetSetDeler(base string, b []byte) (redisGetSetDelOper, error) {
 	switch base {
 	case "auth":
-		return decodeAuth(b), nil
+		return nil /*decodeAuth(b)*/, nil
 	case "addr":
-		return decodeLinkAddr(b), nil
+		return nil /*decodeLinkAddr(b)*/, nil
 	case "drug":
-		return decodeLinkDrug(b), nil
+		return nil /*decodeLinkDrug(b)*/, nil
 	case "stat":
-		return decodeLinkStat(b), nil
+		return nil /*decodeLinkStat(b)*/, nil
 	}
 
 	return nil, fmt.Errorf("core: unknown base %s", base)
 }
 
 func execGetSetDeler(cmd string, gsd redisGetSetDelOper) (interface{}, error) {
-	c := redisGet()
-	defer func() { _ = redisPut(c) }()
+	/*
+		c := redis2.Get()
+		defer redis2.Put(c)
 
-	switch cmd {
-	case "get":
-		return gsd.get(c)
-	case "set":
-		return gsd.set(c)
-	case "del":
-		return gsd.del(c)
-	}
-
+		switch cmd {
+		case "get":
+			return gsd.get(c)
+		case "set":
+			return gsd.set(c)
+		case "del":
+			return gsd.del(c)
+		}
+	*/
 	return nil, fmt.Errorf("core: unknown command %s", cmd)
 }

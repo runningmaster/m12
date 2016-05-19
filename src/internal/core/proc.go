@@ -41,6 +41,14 @@ var htags = map[string]struct{}{
 	"sale-out.daily.ua":   {},
 }
 
+func findLinkAddr(keys ...string) ([]linkAddr, error) {
+	return nil, nil
+}
+
+func findLinkDrug(keys ...string) ([]linkDrug, error) {
+	return nil, nil
+}
+
 func proc(p []byte) error {
 	o, err := s3.PopObjectByPathJSON(p)
 	if err != nil {

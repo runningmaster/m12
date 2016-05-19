@@ -114,6 +114,48 @@ func (m meta) packToBase64String() string {
 	return base64.StdEncoding.EncodeToString(m.packToJSON())
 }
 
+// Redis scheme:
+// SET => key="auth"
+// SADD key v [v...]
+// SREM key v [v...]
+// SISMEMBER key v
+type auth string
+
+// Redis scheme:
+// HASH => key=ID (SHA1)
+// HMSET key l/v a/v s/v e/v (if exists in json)
+// HMGET key l a s e
+// JSON array: [{"id":"key1","id_link":1,"id_addr":2,"id_stat":0,"egrpou":"egrpou1"}]
+type linkAddr struct {
+	ID     string `json:"id,omitempty"      redis:"key"`
+	IDLink int64  `json:"id_link,omitempty" redis:"l"`
+	IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
+	IDStat int64  `json:"id_stat,omitempty" redis:"s"`
+	EGRPOU string `json:"egrpou,omitempty"  redis:"e"`
+}
+
+// Redis scheme:
+// HASH => key=ID (SHA1)
+// HMSET key l/v d/v b/v c/v s/v (if exists in json)
+// HMGET key l d b c s
+type linkDrug struct {
+	ID     string `json:"id,omitempty"      redis:"key"`
+	IDLink int64  `json:"id_link,omitempty" redis:"l"`
+	IDDrug int64  `json:"id_drug,omitempty" redis:"d"`
+	IDBrnd int64  `json:"id_brnd,omitempty" redis:"b"`
+	IDCatg int64  `json:"id_catg,omitempty" redis:"c"`
+	IDStat int64  `json:"id_stat,omitempty" redis:"s"`
+}
+
+// Redis scheme:
+// HASH => key="stat"
+// HMSET key i->n [i->n...]
+// HMGET key i [i..]
+type linkStat struct {
+	ID   int64  `json:"id,omitempty"   redis:"i"`
+	Name string `json:"name,omitempty" redis:"n"`
+}
+
 type itemV3Geoa struct {
 	ID    string   `json:"id,omitempty"`
 	Name  string   `json:"name,omitempty"`
