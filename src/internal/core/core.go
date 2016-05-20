@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"golang.org/x/net/context"
+	"internal/redis"
 )
 
 /*
@@ -62,17 +62,31 @@ func notifyStream(backet, subject string, n int) error {
 }
 
 */
-// Handler is func for processing data from api.
 
-type Handler interface {
-	ServeHTTPRes(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
+type HeadReadWriter interface {
+	Read(*http.Header)
+	Write(*http.Header)
 }
 
-//type HandlerFunc func(context.Context, http.ResponseWriter, *http.Request) (interface{}, error)
+type Worker interface {
+	Work([]byte) (interface{}, error)
+}
 
-//func (f HandlerFunc) ServeHTTPCtx(ctx context.Context, w http.ResponseWriter, r *http.Request) (interface{}, error) {
-//	return f(ctx, w, r)
-//}
+type WorkFunc func([]byte) (interface{}, error)
+
+func (f WorkFunc) Work(b []byte) (interface{}, error) {
+	return f(b)
+}
+
+// Ping calls Redis PING
+func Ping(_ []byte) (interface{}, error) {
+	return redis.Ping()
+}
+
+// Info calls Redis INFO
+func Info(_ []byte) (interface{}, error) {
+	return redis.Info()
+}
 
 type meta struct {
 	ID string `json:"id,omitempty"` // ?

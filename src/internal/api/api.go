@@ -1,10 +1,19 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"runtime"
 	"strings"
 
+	"internal/conf"
 	"internal/core"
+	"internal/version"
+
+	"golang.org/x/net/context"
 )
 
 /*
@@ -18,43 +27,43 @@ http://localhost:8080/upload
 */
 
 var (
-	mapCoreHandlers map[string]core.Handler
+	mapCoreWorkers  map[string]core.Worker
 	mapHTTPHandlers = map[string]bundle{
 		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
-		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), handlerFuncRes(core.Ping)},
+		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
 
-		"POST:/system/get-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("get", "auth")},
-		"POST:/system/set-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("set", "auth")},
-		"POST:/system/del-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("del", "auth")},
-		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("get", "addr")},
-		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("set", "addr")},
-		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("del", "addr")},
-		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("get", "drug")},
-		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("set", "drug")},
-		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("del", "drug")},
-		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("get", "stat")},
-		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("set", "stat")},
-		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.RunC("del", "stat")},
-		"POST:/system/pop-data":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Popd},
+		"POST:/system/get-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/set-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/del-auth":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.SysW},
+		"POST:/system/pop-data":      {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
 
-		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Upld},
+		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
 
 		// => Debug mode only, when flag.Debug == true
-		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Info}, // ?
-		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // expvar
-		"GET:/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // net/http/pprof
-		"GET:/debug/pprof/cmdline":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // net/http/pprof
-		"GET:/debug/pprof/profile":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // net/http/pprof
-		"GET:/debug/pprof/symbol":       {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // net/http/pprof
-		"GET:/debug/pprof/trace":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // net/http/pprof
-		"GET:/debug/pprof/goroutine":    {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // runtime/pprof
-		"GET:/debug/pprof/threadcreate": {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // runtime/pprof
-		"GET:/debug/pprof/heap":         {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // runtime/pprof
-		"GET:/debug/pprof/block":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},       // runtime/pprof
+		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
+		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
+		"GET:/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/debug/pprof/cmdline":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/debug/pprof/profile":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/debug/pprof/symbol":       {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/debug/pprof/trace":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/debug/pprof/goroutine":    {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/debug/pprof/threadcreate": {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/debug/pprof/heap":         {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/debug/pprof/block":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
 
 		// => Workarounds for 404/405
-		"GET:/error/404": {use(pipeHead, pipe(e404), pipeFail, pipeTail), nil},
-		"GET:/error/405": {use(pipeHead, pipe(e405), pipeFail, pipeTail), nil},
+		"GET:/error/404": {use(pipeHead, pipe(with404), pipeFail, pipeTail), nil},
+		"GET:/error/405": {use(pipeHead, pipe(with405), pipeFail, pipeTail), nil},
 	}
 )
 
@@ -70,12 +79,130 @@ func regHTTPHandlers(regFunc func(string, string, http.Handler)) {
 		return
 	}
 
-	mapCoreHandlers = make(map[string]core.Handler, len(mapHTTPHandlers))
+	mapCoreWorkers = make(map[string]core.Worker, len(mapHTTPHandlers))
 	for k, v := range mapHTTPHandlers {
 		s := strings.Split(k, ":")
 		regFunc(s[0], s[1], v.h)
-		if v.f != nil {
-			mapCoreHandlers[s[1]] = v.f
+		if v.w != nil {
+			mapCoreWorkers[s[1]] = v.w
 		}
 	}
+}
+
+type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
+type handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
+type handlerPipe func(h handlerFunc) handlerFunc
+type bundle struct {
+	h http.Handler
+	w core.Worker
+}
+
+func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f(context.Background(), w, r)
+}
+
+func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	res := fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo())
+	return with200(ctx, w, res)
+}
+
+func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	defer func() { _ = r.Body.Close() }()
+
+	wrk, ok := mapCoreWorkers[r.URL.Path]
+	if !ok || wrk == nil {
+		return with500(ctx, fmt.Errorf("api: core method not found"))
+	}
+
+	var (
+		buf = new(bytes.Buffer)
+		err error
+	)
+	if r.Method == "POST" {
+		_, err = io.Copy(buf, r.Body)
+		if err != nil {
+			return with500(ctx, err)
+		}
+	}
+
+	res, err := wrk.Work(buf.Bytes())
+	if err != nil {
+		return with500(ctx, err)
+	}
+
+	return with200(ctx, w, res)
+}
+
+func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	if !conf.Debug {
+		return with500(ctx, fmt.Errorf("api: flag debug not found"))
+	}
+
+	if h, p := http.DefaultServeMux.Handler(r); p != "" {
+		h.ServeHTTP(w, r)
+		return ctxWithCode(ctxWithSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
+	}
+
+	return withoutCode(ctx, fmt.Errorf("api: unreachable"), 0)
+}
+
+func writeJSON(ctx context.Context, w http.ResponseWriter, code int, i interface{}) (int64, error) {
+	b, err := json.Marshal(i)
+	if err != nil {
+		return 0, err
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Powered-By", runtime.Version())
+	w.Header().Set("X-Request-ID", uuidFromCtx(ctx))
+	w.WriteHeader(code)
+
+	if true { // FIXME (flag?)
+		var tmp bytes.Buffer
+		err = json.Indent(&tmp, b, "", "\t")
+		if err != nil {
+			return 0, err
+		}
+		b = tmp.Bytes()
+	}
+
+	n, err := w.Write(b)
+	if err != nil {
+		return 0, err
+	}
+	size := int64(n)
+
+	_, err = w.Write([]byte("\n"))
+	if err != nil {
+		return 0, err
+	}
+	size++
+
+	return size, nil
+}
+
+func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
+	size, err := writeJSON(ctx, w, http.StatusOK, res)
+	if err != nil {
+		return withoutCode(ctx, err, size)
+	}
+	return ctxWithCode(ctxWithSize(ctx, size), http.StatusOK)
+}
+
+func with404(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusNotFound)))
+	return ctxWithCode(ctxWithFail(ctx, err), http.StatusNotFound)
+}
+
+func with405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusMethodNotAllowed)))
+	return ctxWithCode(ctxWithFail(ctx, err), http.StatusMethodNotAllowed)
+}
+
+func with500(ctx context.Context, err error) context.Context {
+	return ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError)
+}
+
+func withoutCode(ctx context.Context, err error, size int64) context.Context {
+	return ctxWithSize(ctxWithFail(ctx, err), size)
 }

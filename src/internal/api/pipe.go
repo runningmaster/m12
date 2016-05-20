@@ -17,7 +17,7 @@ func use(pipes ...handlerPipe) http.Handler {
 func pipe(h handlerFuncCtx) handlerPipe {
 	return func(next handlerFunc) handlerFunc {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-			err := failFromContext(ctx)
+			err := failFromCtx(ctx)
 			if err != nil {
 				next(ctx, w, r)
 				return

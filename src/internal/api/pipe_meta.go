@@ -31,7 +31,7 @@ func pipeMeta(h handlerFunc) handlerFunc {
 		h(ctx, w, r)
 		return // success
 	fail:
-		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 

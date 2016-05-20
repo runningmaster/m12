@@ -8,15 +8,15 @@ import (
 
 func pipeFail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		err := failFromContext(ctx)
+		err := failFromCtx(ctx)
 		if err != nil {
-			if code := codeFromContext(ctx); code != 0 {
+			if code := codeFromCtx(ctx); code != 0 {
 				var size int64
 				size, err = writeJSON(ctx, w, http.StatusInternalServerError, err.Error())
 				if err != nil {
-					ctx = withFail(ctx, err)
+					ctx = ctxWithFail(ctx, err)
 				}
-				ctx = withSize(ctx, size)
+				ctx = ctxWithSize(ctx, size)
 			}
 		}
 		h(ctx, w, r)

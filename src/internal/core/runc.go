@@ -1,13 +1,26 @@
 package core
 
 import (
+	"fmt"
 	"net/http"
-
-	"golang.org/x/net/context"
 )
 
-func DelAuth(_ context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
-	return nil, nil
+var SysW = &systemWorker{}
+
+type systemWorker struct {
+	path string
+}
+
+func (w *systemWorker) Read(h *http.Header) {
+
+}
+
+func (w *systemWorker) Write(h *http.Header) {
+
+}
+
+func (w *systemWorker) Work([]byte) (interface{}, error) {
+	return nil, fmt.Errorf("FIXME")
 }
 
 // RunC is "print-like" operation.

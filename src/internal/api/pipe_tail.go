@@ -57,7 +57,7 @@ func (i informer) method() string {
 }
 
 func (i informer) addr() string {
-	return addrFromContext(i.c)
+	return addrFromCtx(i.c)
 }
 
 func (i informer) agent() string {
@@ -65,23 +65,23 @@ func (i informer) agent() string {
 }
 
 func (i informer) uuid() string {
-	return uuidFromContext(i.c)
+	return uuidFromCtx(i.c)
 }
 
 func (i informer) auth() string {
-	return authFromContext(i.c)
+	return authFromCtx(i.c)
 }
 
 func (i informer) code() int64 {
-	return codeFromContext(i.c)
+	return codeFromCtx(i.c)
 }
 
 func (i informer) size() int64 {
-	return sizeFromContext(i.c)
+	return sizeFromCtx(i.c)
 }
 
 func (i informer) fail() string {
-	err := failFromContext(i.c)
+	err := failFromCtx(i.c)
 	if err != nil {
 		return err.Error()
 	}
@@ -89,7 +89,7 @@ func (i informer) fail() string {
 }
 
 func (i informer) time() string {
-	if t := timeFromContext(i.c); !t.IsZero() {
+	if t := timeFromCtx(i.c); !t.IsZero() {
 		return time.Since(t).String()
 	}
 	return ""

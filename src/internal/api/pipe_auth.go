@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"internal/conf"
-	"internal/core"
+	"internal/redis"
 
 	"golang.org/x/net/context"
 )
@@ -24,10 +24,10 @@ func pipeAuth(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
-		h(withAuth(ctx, key), w, r)
+		h(ctxWithAuth(ctx, key), w, r)
 		return // success
 	fail:
-		h(withCode(withFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
 }
 
@@ -41,20 +41,13 @@ func getKey(r *http.Request) (string, error) {
 }
 
 func auth(key string) error {
-	req, err := http.NewRequest("", "", strings.NewReader(fmt.Sprintf("[%q]", key)))
+	res, err := redis.SISMEMBER("key", "key")
 	if err != nil {
 		return err
 	}
 
-	res, err := core.RunC("get", "auth")(context.Background(), nil, req)
-	if err != nil {
-		return err
-	}
-
-	if src, ok := res.([]interface{}); ok && len(src) > 0 {
-		if val, ok := src[0].(string); ok && strings.EqualFold(val, key) {
-			return nil
-		}
+	if res != nil {
+		return nil
 	}
 
 	if isMasterKey(key) {

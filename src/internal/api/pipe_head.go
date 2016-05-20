@@ -14,9 +14,9 @@ var genUUID = fastuuid.MustNewGenerator()
 
 func pipeHead(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = withTime(ctx, time.Now())
-		ctx = withUUID(ctx, nextUUID())
-		ctx = withAddr(ctx, mineAddr(r))
+		ctx = ctxWithTime(ctx, time.Now())
+		ctx = ctxWithUUID(ctx, nextUUID())
+		ctx = ctxWithAddr(ctx, mineAddr(r))
 		h(ctx, w, r)
 	}
 }
