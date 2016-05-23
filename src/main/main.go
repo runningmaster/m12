@@ -9,9 +9,9 @@ import (
 	_ "net/http/pprof"
 
 	"internal/conf"
-	"internal/nats"
-	"internal/redis"
-	"internal/s3"
+	//	"internal/nats"
+	//	"internal/redis"
+	//	"internal/s3"
 	"internal/server"
 )
 
@@ -23,20 +23,20 @@ func init() {
 func main() {
 	var err error
 
-	err = s3.Run(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey, nil)
-	if err != nil {
-		goto fail
-	}
+	//	err = s3.Run(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey, nil)
+	//	if err != nil {
+	//		goto fail
+	//	}
 
-	err = nats.Run(conf.NATSAddress, nil)
-	if err != nil {
-		goto fail
-	}
+	//	err = nats.Run(conf.NATSAddress, nil)
+	//	if err != nil {
+	//		goto fail
+	//	}
 
-	err = redis.Run(conf.RedisAddress, nil)
-	if err != nil {
-		goto fail
-	}
+	//	err = redis.Run(conf.RedisAddress, nil)
+	//	if err != nil {
+	//		goto fail
+	//	}
 
 	err = server.Run(conf.ServerAddress)
 	if err != nil {

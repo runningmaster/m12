@@ -63,9 +63,12 @@ func notifyStream(backet, subject string, n int) error {
 
 */
 
-type HeadReadWriter interface {
-	Read(*http.Header)
-	Write(*http.Header)
+type HTTPHeadReader interface {
+	Read(http.Header)
+}
+
+type HTTPHeadWriter interface {
+	Write(http.Header)
 }
 
 type Worker interface {
@@ -89,18 +92,19 @@ func Info(_ []byte) (interface{}, error) {
 }
 
 type meta struct {
-	ID string `json:"id,omitempty"` // ?
-	IP string `json:"ip,omitempty"` // ?
-
+	ID   string `json:"id,omitempty"`   // ?
+	IP   string `json:"ip,omitempty"`   // ?
 	PKey string `json:"pkey,omitempty"` // *
+
 	HTag string `json:"htag,omitempty"` // *
+	Spn1 int64  `json:"spn1,omitempty"` // *
+	Spn2 int64  `json:"spn2,omitempty"` // *
 	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
+
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *
 	Addr string `json:"addr,omitempty"` // *
 	Code string `json:"code,omitempty"` // egrpou (okpo)
-	Spn1 int64  `json:"spn1,omitempty"` // *
-	Spn2 int64  `json:"spn2,omitempty"` // *
 
 	Link linkAddr `json:"link,omitempty"` // ?
 

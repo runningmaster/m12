@@ -1,13 +1,12 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"internal/conf"
-	"internal/redis"
+	//"internal/redis"
 
 	"golang.org/x/net/context"
 )
@@ -41,25 +40,20 @@ func getKey(r *http.Request) (string, error) {
 }
 
 func auth(key string) error {
-	res, err := redis.SISMEMBER("key", "key")
-	if err != nil {
-		return err
-	}
+	//res, err := redis.SISMEMBER("key", "key")
+	//if err != nil {
+	//	return err
+	//}
 
-	if res != nil {
-		return nil
-	}
+	//if res != nil {
+	//	return nil
+	//}
 
 	if isMasterKey(key) {
 		return nil
 	}
 
-	b, err := json.Marshal(res)
-	if err != nil {
-		return err
-	}
-
-	return fmt.Errorf("api: invalid key: %s: forbidden", string(b))
+	return fmt.Errorf("api: invalid key: %s: forbidden", key)
 }
 
 func isMasterKey(key string) bool {

@@ -197,7 +197,7 @@ func mineLinkDrug(t string, l linkDruger) error {
 	}
 
 	if len(lds) != l.len() {
-		return fmt.Errorf("core: proc: invalid len (name): got %d, want %d ", len(lds), l.len())
+		return fmt.Errorf("core: proc: invalid len (name): got %d, want %d", len(lds), l.len())
 	}
 
 	for i := 0; i < l.len(); i++ {
@@ -219,7 +219,7 @@ func mineLinkAddr(l linkAddrer) error {
 	}
 
 	if len(lds) != l.len() {
-		return fmt.Errorf("core: proc: invalid len (supp): got %d, want %d ", len(lds), l.len())
+		return fmt.Errorf("core: proc: invalid len (supp): got %d, want %d", len(lds), l.len())
 	}
 
 	for i := 0; i < l.len(); i++ {

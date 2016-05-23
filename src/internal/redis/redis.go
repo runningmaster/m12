@@ -136,9 +136,41 @@ func Info() (interface{}, error) {
 	return mapper, nil
 }
 
-func ConvInt64sToIntfs(src ...int64) []interface{} {
+func ConvFromInt64s(src ...int64) []interface{} {
 	dst := make([]interface{}, len(src))
-	for i := range src {
+	for i := range dst {
+		dst[i] = src[i]
+	}
+	return dst
+}
+
+func ConvFromInt64sWithKey(key string, src ...int64) []interface{} {
+	dst := make([]interface{}, len(src)+1)
+	dst[0] = key
+	for i := range dst {
+		if i == 0 {
+			continue
+		}
+		dst[i] = src[i]
+	}
+	return dst
+}
+
+func ConvFromStrings(src ...string) []interface{} {
+	dst := make([]interface{}, len(src))
+	for i := range dst {
+		dst[i] = src[i]
+	}
+	return dst
+}
+
+func ConvFromStringsWithKey(key string, src ...string) []interface{} {
+	dst := make([]interface{}, len(src)+1)
+	dst[0] = key
+	for i := range dst {
+		if i == 0 {
+			continue
+		}
 		dst[i] = src[i]
 	}
 	return dst
