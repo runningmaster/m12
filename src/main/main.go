@@ -44,7 +44,9 @@ func main() {
 	}
 
 fail:
-	log.Fatal("main: %s", err)
+	if err != nil { // workaround for Ctrl+C
+		log.Fatalf("main: %v", err)
+	}
 }
 
 func initConfig() {
