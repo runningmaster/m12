@@ -10,7 +10,7 @@ import (
 
 	"internal/conf"
 	//	"internal/nats"
-
+	"internal/redis"
 	//	"internal/s3"
 	"internal/server"
 )

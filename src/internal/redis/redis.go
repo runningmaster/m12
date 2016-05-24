@@ -284,16 +284,18 @@ func SISMEMBER(key, member interface{}) (interface{}, error) {
 
 // SISMEMBERM is wrapper func and returns "array reply". Key must be first in array.
 func SISMEMBERM(keyAndMembers ...interface{}) ([]interface{}, error) {
-	if len(keyAndMembers) == 0 {
-		return nil, fmt.Errorf("no arguments")
-	}
-
 	c := getConn()
 	defer putConn(c)
 
-	key := keyAndMembers[0]
-	var err error
-	for i := 1; i < len(keyAndMembers); i++ {
+	var (
+		key interface{}
+		err error
+	)
+	for i := range keyAndMembers {
+		if i == 0 {
+			key = keyAndMembers[0]
+			continue
+		}
 		err = c.Send("SISMEMBER", key, keyAndMembers[i])
 		if err != nil {
 			return nil, err

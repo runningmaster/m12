@@ -13,7 +13,7 @@ import (
 	"internal/core"
 	"internal/version"
 
-	"vendor/golang.org/x/net/context"
+	"golang.org/x/net/context"
 )
 
 var (
