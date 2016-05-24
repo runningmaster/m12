@@ -1,0 +1,32 @@
+curl -i http://localhost:8080
+curl -i http://localhost:8080/debug/ping
+curl -i http://localhost:8080/debug/info
+curl -i http://localhost:8080/debug/vars
+
+
+
+curl -i -k -X 'POST' \
+-u 'api:key-masterkey' \
+-H 'Content-Type: application/json; charset=utf-8' \
+-d '["foo", "bar", "xyz", "1", "2"]' \
+http://localhost:8080/system/get-auth
+
+
+curl -i -k -X 'POST' \
+-u 'api:key-masterkey' \
+-H 'Content-Type: application/json; charset=utf-8' \
+-d '["1", "2"]' \
+http://localhost:8080/system/get-link-addr
+
+
+{"id": "1", "id_link": 123, "id_addr": 456, "id_stat": 789, "egrpou": "20"}, nil
+
+
+curl -v -k -X 'POST' \
+-u 'api:key-masterkey' \
+-H 'Content-Encoding: gzip' \
+-H 'Content-Type: application/json; charset=utf-8' \
+-H 'Content-Meta: ewogICJwa2V5IjogIm1hc3RlcmtleSIsCiAgImh0YWciOiAiZ2VvYXB0LnVhIiwKICAibmFtZSI6ICLQkNC/0YLQtdC60LAgMyIsCiAgImhlYWQiOiAi0JHQhtCb0JAg0KDQntCc0JDQqNCa0JAiLAogICJhZGRyIjogItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsCiAgImNvZGUiOiAiMTIzNDU2Igp9' \
+-T 'data.json.gz' \
+http://localhost:8080/upload
+

@@ -10,7 +10,7 @@ import (
 
 	"internal/conf"
 	//	"internal/nats"
-	//	"internal/redis"
+
 	//	"internal/s3"
 	"internal/server"
 )
@@ -33,10 +33,10 @@ func main() {
 	//		goto fail
 	//	}
 
-	//	err = redis.Run(conf.RedisAddress, nil)
-	//	if err != nil {
-	//		goto fail
-	//	}
+	err = redis.Run(conf.RedisAddress, nil)
+	if err != nil {
+		goto fail
+	}
 
 	err = server.Run(conf.ServerAddress)
 	if err != nil {

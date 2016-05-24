@@ -147,11 +147,8 @@ func ConvFromInt64s(src ...int64) []interface{} {
 func ConvFromInt64sWithKey(key string, src ...int64) []interface{} {
 	dst := make([]interface{}, len(src)+1)
 	dst[0] = key
-	for i := range dst {
-		if i == 0 {
-			continue
-		}
-		dst[i] = src[i]
+	for i, j := 0, 1; i < len(dst)-1; i, j = i+1, j+1 {
+		dst[j] = src[i]
 	}
 	return dst
 }
@@ -167,11 +164,8 @@ func ConvFromStrings(src ...string) []interface{} {
 func ConvFromStringsWithKey(key string, src ...string) []interface{} {
 	dst := make([]interface{}, len(src)+1)
 	dst[0] = key
-	for i := range dst {
-		if i == 0 {
-			continue
-		}
-		dst[i] = src[i]
+	for i, j := 0, 1; i < len(dst)-1; i, j = i+1, j+1 {
+		dst[j] = src[i]
 	}
 	return dst
 }
@@ -210,10 +204,12 @@ func HMSETM(keyAndFieldVals ...[]interface{}) (interface{}, error) {
 		if len(keyAndFieldVals[i]) == 0 {
 			continue
 		}
+
 		err = c.Send("DEL", keyAndFieldVals[i][0])
 		if err != nil {
 			return nil, err
 		}
+
 		err = c.Send("HMSET", keyAndFieldVals[i]...)
 		if err != nil {
 			return nil, err
@@ -235,9 +231,6 @@ func HMGETM(keyAndFields ...[]interface{}) ([][]interface{}, error) {
 
 	var err error
 	for i := range keyAndFields {
-		if len(keyAndFields[i]) == 0 {
-			continue
-		}
 		err = c.Send("HMGET", keyAndFields[i]...)
 		if err != nil {
 			return nil, err
@@ -291,17 +284,16 @@ func SISMEMBER(key, member interface{}) (interface{}, error) {
 
 // SISMEMBERM is wrapper func and returns "array reply". Key must be first in array.
 func SISMEMBERM(keyAndMembers ...interface{}) ([]interface{}, error) {
+	if len(keyAndMembers) == 0 {
+		return nil, fmt.Errorf("no arguments")
+	}
+
 	c := getConn()
 	defer putConn(c)
 
-	var (
-		err error
-		key interface{}
-	)
-	for i := range keyAndMembers {
-		if i == 0 {
-			key = keyAndMembers[0]
-		}
+	key := keyAndMembers[0]
+	var err error
+	for i := 1; i < len(keyAndMembers); i++ {
 		err = c.Send("SISMEMBER", key, keyAndMembers[i])
 		if err != nil {
 			return nil, err

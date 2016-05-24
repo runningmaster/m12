@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"internal/conf"
-	//"internal/redis"
+	"internal/core"
 
 	"golang.org/x/net/context"
 )
@@ -26,7 +26,7 @@ func pipeAuth(h handlerFunc) handlerFunc {
 		h(ctxWithAuth(ctx, key), w, r)
 		return // success
 	fail:
-		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusForbidden), w, r)
 	}
 }
 
@@ -40,14 +40,14 @@ func getKey(r *http.Request) (string, error) {
 }
 
 func auth(key string) error {
-	//res, err := redis.SISMEMBER("key", "key")
-	//if err != nil {
-	//	return err
-	//}
+	ok, err := core.AuthOK(key)
+	if err != nil {
+		return err
+	}
 
-	//if res != nil {
-	//	return nil
-	//}
+	if ok {
+		return nil
+	}
 
 	if isMasterKey(key) {
 		return nil

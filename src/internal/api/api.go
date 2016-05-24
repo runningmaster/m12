@@ -13,24 +13,13 @@ import (
 	"internal/core"
 	"internal/version"
 
-	"golang.org/x/net/context"
+	"vendor/golang.org/x/net/context"
 )
-
-/*
-curl -v -k -X 'POST' \
--u 'api:key-masterkey' \
--H 'Content-Encoding: gzip' \
--H 'Content-Type: application/json; charset=utf-8' \
--H 'Content-Meta: ewogICJwa2V5IjogIm1hc3RlcmtleSIsCiAgImh0YWciOiAiZ2VvYXB0LnVhIiwKICAibmFtZSI6ICLQkNC/0YLQtdC60LAgMyIsCiAgImhlYWQiOiAi0JHQhtCb0JAg0KDQntCc0JDQqNCa0JAiLAogICJhZGRyIjogItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsCiAgImNvZGUiOiAiMTIzNDU2Igp9' \
--T 'data.json.gz' \
-http://localhost:8080/upload
-*/
 
 var (
 	mapCoreWorkers  map[string]core.Worker
 	mapHTTPHandlers = map[string]bundle{
-		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
-		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
+		"GET:/": {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
 
 		"POST:/system/get-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetAuth)},
 		"POST:/system/set-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
@@ -53,6 +42,7 @@ var (
 		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
 
 		// => Debug mode only, when flag.Debug == true
+		"GET:/debug/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
 		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
 		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
 		"GET:/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
