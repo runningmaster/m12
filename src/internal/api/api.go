@@ -21,39 +21,39 @@ var (
 	mapHTTPHandlers = map[string]bundle{
 		"GET:/": {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
 
-		"POST:/system/get-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetAuth)},
-		"POST:/system/set-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
-		"POST:/system/del-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelAuth)},
+		"POST:/sys/get-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetAuth)},
+		"POST:/sys/set-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
+		"POST:/sys/del-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelAuth)},
 
-		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkAddr)},
-		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkAddr)},
-		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkAddr)},
+		"POST:/sys/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkAddr)},
+		"POST:/sys/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkAddr)},
+		"POST:/sys/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkAddr)},
 
-		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkDrug)},
-		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkDrug)},
-		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkDrug)},
+		"POST:/sys/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkDrug)},
+		"POST:/sys/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkDrug)},
+		"POST:/sys/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkDrug)},
 
-		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkStat)},
-		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkStat)},
-		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkStat)},
+		"POST:/sys/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkStat)},
+		"POST:/sys/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkStat)},
+		"POST:/sys/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkStat)},
 
-		"POST:/system/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/sys/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
 
 		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
 
 		// => Debug mode only, when flag.Debug == true
-		"GET:/debug/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
-		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
-		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
-		"GET:/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
-		"GET:/debug/pprof/cmdline":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
-		"GET:/debug/pprof/profile":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
-		"GET:/debug/pprof/symbol":       {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
-		"GET:/debug/pprof/trace":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
-		"GET:/debug/pprof/goroutine":    {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
-		"GET:/debug/pprof/threadcreate": {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
-		"GET:/debug/pprof/heap":         {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
-		"GET:/debug/pprof/block":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/dbg/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
+		"GET:/dbg/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
+		"GET:/dbg/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
+		"GET:/dbg/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/dbg/pprof/cmdline":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/dbg/pprof/profile":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/dbg/pprof/symbol":       {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/dbg/pprof/trace":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
+		"GET:/dbg/pprof/goroutine":    {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/dbg/pprof/threadcreate": {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/dbg/pprof/heap":         {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
+		"GET:/dbg/pprof/block":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
 
 		// => Workarounds for 404/405
 		"GET:/error/404": {use(pipeHead, pipe(with404), pipeFail, pipeTail), nil},

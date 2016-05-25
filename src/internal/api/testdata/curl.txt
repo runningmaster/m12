@@ -1,7 +1,7 @@
 curl -i http://localhost:8080
-curl -i http://localhost:8080/debug/ping
-curl -i http://localhost:8080/debug/info
-curl -i http://localhost:8080/debug/vars
+curl -i http://localhost:8080/dbg/ping
+curl -i http://localhost:8080/dbg/info
+curl -i http://localhost:8080/dbg/vars
 
 
 
@@ -9,17 +9,26 @@ curl -i -k -X 'POST' \
 -u 'api:key-masterkey' \
 -H 'Content-Type: application/json; charset=utf-8' \
 -d '["foo", "bar", "xyz", "1", "2"]' \
-http://localhost:8080/system/get-auth
+http://localhost:8080/sys/get-auth
 
 
 curl -i -k -X 'POST' \
 -u 'api:key-masterkey' \
 -H 'Content-Type: application/json; charset=utf-8' \
 -d '["1", "2"]' \
-http://localhost:8080/system/get-link-addr
+http://localhost:8080/sys/get-link-addr
 
 
-{"id": "1", "id_link": 123, "id_addr": 456, "id_stat": 789, "egrpou": "20"}, nil
+{"id": "1", "id_link": 123, "id_addr": 456, "id_stat": 789, "egrpou": "20"}, null
+{"id": "2", "id_link": 321, "id_addr": 654, "id_stat": 987, "egrpou": "02"}, null
+
+
+{"id": "1", "id_link": 123, "id_drug": 456, "id_brnd": 789, "id_catg": 987, "id_stat": 765}
+{"id": "2", "id_link": 321, "id_drug": 654, "id_brnd": 987, "id_catg": 789, "id_stat": 567}
+
+
+{"id": 1, "name": "foo"}
+{"id": 2, "name": "bar"}
 
 
 curl -v -k -X 'POST' \
