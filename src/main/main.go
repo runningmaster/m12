@@ -8,6 +8,7 @@ import (
 	_ "expvar"
 	_ "net/http/pprof"
 
+	"internal/api"
 	"internal/conf"
 	//	"internal/nats"
 	"internal/redis"
@@ -34,6 +35,11 @@ func main() {
 	//	}
 
 	err = redis.Run(conf.RedisAddress, nil)
+	if err != nil {
+		goto fail
+	}
+
+	err = api.Reg()
 	if err != nil {
 		goto fail
 	}

@@ -145,7 +145,7 @@ func (m meta) packToBase64String() string {
 // SADD key v [v...]
 // SREM key v [v...]
 // SISMEMBER key v
-type auth string
+// type auth string
 
 // Redis scheme:
 // HASH => key=ID (SHA1)

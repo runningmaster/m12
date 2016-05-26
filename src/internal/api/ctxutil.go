@@ -12,7 +12,6 @@ const (
 	ctxUUID ctxKey = iota
 	ctxAddr
 	ctxAuth
-	ctxMeta
 	ctxFail
 	ctxSize
 	ctxCode
@@ -41,14 +40,6 @@ func ctxWithAuth(ctx context.Context, v string) context.Context {
 
 func authFromCtx(ctx context.Context) string {
 	return stringFromContext(ctx, ctxAuth)
-}
-
-func ctxWithMeta(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, "ctxMeta", v)
-}
-
-func metaFromCtx(ctx context.Context) string {
-	return stringFromContext(ctx, "ctxMeta")
 }
 
 func ctxWithFail(ctx context.Context, v error) context.Context {

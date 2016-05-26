@@ -11,10 +11,23 @@ import (
 
 	"internal/conf"
 	"internal/core"
+	"internal/server"
 	"internal/version"
 
 	"golang.org/x/net/context"
 )
+
+type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
+type handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
+type handlerPipe func(h handlerFunc) handlerFunc
+type bundle struct {
+	h http.Handler
+	w core.Worker
+}
+
+func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f(context.Background(), w, r)
+}
 
 var (
 	mapCoreWorkers  map[string]core.Worker
@@ -61,38 +74,18 @@ var (
 	}
 )
 
-// Init is caled from other package for manually initialization
-func Init(regFunc func(string, string, http.Handler)) error {
-	regHTTPHandlers(regFunc)
-
-	return nil
-}
-
-func regHTTPHandlers(regFunc func(string, string, http.Handler)) {
-	if regFunc == nil {
-		return
-	}
-
+// Reg is caled from main package for manually initialization
+func Reg() error {
 	mapCoreWorkers = make(map[string]core.Worker, len(mapHTTPHandlers))
 	for k, v := range mapHTTPHandlers {
 		s := strings.Split(k, ":")
-		regFunc(s[0], s[1], v.h)
+		server.RegHandler(s[0], s[1], v.h)
 		if v.w != nil {
 			mapCoreWorkers[s[1]] = v.w
 		}
 	}
-}
 
-type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
-type handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
-type handlerPipe func(h handlerFunc) handlerFunc
-type bundle struct {
-	h http.Handler
-	w core.Worker
-}
-
-func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	f(context.Background(), w, r)
+	return nil
 }
 
 func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
@@ -197,14 +190,17 @@ func with200(ctx context.Context, w http.ResponseWriter, res interface{}) contex
 	return ctxWithCode(ctxWithSize(ctx, size), http.StatusOK)
 }
 
+func withErr(ctx context.Context, code int) context.Context {
+	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
+	return ctxWithCode(ctxWithFail(ctx, err), int64(code))
+}
+
 func with404(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	err := fmt.Errorf("api: method %s", strings.ToLower(http.StatusText(http.StatusNotFound)))
-	return ctxWithCode(ctxWithFail(ctx, err), http.StatusNotFound)
+	return withErr(ctx, http.StatusNotFound)
 }
 
 func with405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusMethodNotAllowed)))
-	return ctxWithCode(ctxWithFail(ctx, err), http.StatusMethodNotAllowed)
+	return withErr(ctx, http.StatusMethodNotAllowed)
 }
 
 func with500(ctx context.Context, err error) context.Context {

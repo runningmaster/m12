@@ -15,10 +15,6 @@ import (
 	"github.com/spkg/bom"
 )
 
-func stringOK() string {
-	return http.StatusText(http.StatusOK)
-}
-
 func btsToMD5(b []byte) string {
 	return fmt.Sprintf("%x", md5.Sum(b))
 }
