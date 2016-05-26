@@ -28,6 +28,11 @@ func pipeMeta(h handlerFunc) handlerFunc {
 			goto fail
 		}
 
+		err = mustHeaderMETA(r)
+		if err != nil {
+			goto fail
+		}
+
 		h(ctx, w, r)
 		return // success
 	fail:
@@ -52,6 +57,13 @@ func mustHeaderJSON(r *http.Request) error {
 func mustHeaderUTF8(r *http.Request) error {
 	if !strings.Contains(r.Header.Get("Content-Type"), "charset=utf-8") {
 		return fmt.Errorf("api: content-type must contain charset=utf-8")
+	}
+	return nil
+}
+
+func mustHeaderMETA(r *http.Request) error {
+	if len(r.Header.Get("Content-Meta")) == 0 {
+		return fmt.Errorf("api: content-meta must contain value")
 	}
 	return nil
 }

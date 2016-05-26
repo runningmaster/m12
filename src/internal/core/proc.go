@@ -99,7 +99,7 @@ func proc(p []byte) error {
 		return err
 	}
 
-	_, err = tarMetaData(makeReadCloser(m.packToJSON()), makeReadCloser(data))
+	_, err = tarMetaData(m.packToJSON(), data)
 	if err != nil {
 		return err
 	}

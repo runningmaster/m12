@@ -64,11 +64,11 @@ func notifyStream(backet, subject string, n int) error {
 */
 
 type HTTPHeadReader interface {
-	Read(http.Header)
+	ReadHeader(http.Header)
 }
 
 type HTTPHeadWriter interface {
-	Write(http.Header)
+	WriteHeader(http.Header)
 }
 
 type Worker interface {
@@ -112,9 +112,7 @@ type meta struct {
 	Size int64  `json:"size,omitempty"` // ?
 	Time int64  `json:"time,omitempty"` // ?
 
-	SrcCE string `json:"src_ce,omitempty"` // Source ContentEncoding
-	SrcCT string `json:"src_ct,omitempty"` // Source ContentType
-	Debug bool   `json:"debug,omitempty"`  // for debug purpose only
+	Test bool `json:"test,omitempty"` // for test purpose only
 }
 
 func makeMetaFromJSON(b []byte) (meta, error) {

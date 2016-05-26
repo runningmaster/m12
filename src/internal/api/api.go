@@ -52,10 +52,10 @@ var (
 
 		"POST:/sys/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
 
-		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
+		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Upld},
 
 		// => Debug mode only, when flag.Debug == true
-		"GET:/dbg/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
+		"GET:/dbg/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail) /*core.WorkFunc(core.Ping)*/, core.Upld},
 		"GET:/dbg/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
 		"GET:/dbg/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
 		"GET:/dbg/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
@@ -114,7 +114,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 	var hr core.HTTPHeadReader
 	if hr, ok = wrk.(core.HTTPHeadReader); ok {
-		hr.Read(r.Header)
+		hr.ReadHeader(r.Header)
 	}
 
 	res, err := wrk.Work(buf.Bytes())
@@ -124,7 +124,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 
 	var hw core.HTTPHeadWriter
 	if hw, ok = wrk.(core.HTTPHeadWriter); ok {
-		hw.Write(w.Header())
+		hw.WriteHeader(w.Header())
 	}
 
 	return with200(ctx, w, res)

@@ -5,26 +5,40 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"time"
-
-	"golang.org/x/net/context"
 )
 
+var Upld = &uploader{}
+
+type uploader struct {
+	test string
+}
+
+func (u *uploader) ReadHeader(h http.Header) {
+	_ = h.Get("Content-Meta")
+	u.test = h.Get("Content-Test")
+}
+
+func (u *uploader) WriteHeader(h http.Header) {
+	h.Set("Content-Test", u.test+" DEBUG")
+}
+
+func (u *uploader) Work([]byte) (interface{}, error) {
+	return nil, nil
+}
+
+/*
 // Upld puts data to s3 interface
 func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interface{}, error) {
-	_ = ctx.Value("ctxMeta").(string)
-
 	m, err := makeMetaFromBase64String("FIXME ctxutil.MetaFromContext(ctx)")
 	if err != nil {
 		return nil, err
 	}
 
-	//m.ID = ctxutil.IDFromContext(ctx)
-	//m.IP = ctxutil.IPFromContext(ctx)
-	//m.Auth = ctxutil.AuthFromContext(ctx)
+	????
+	m.ID = ctxutil.IDFromContext(ctx)
+	m.IP = ctxutil.IPFromContext(ctx)
+	m.Auth = ctxutil.AuthFromContext(ctx)
 	m.Time = time.Now().Unix()
-	m.SrcCE = r.Header.Get("Content-Encoding")
-	m.SrcCT = r.Header.Get("Content-Type")
 
 	_, err = tarMetaData(makeReadCloser(m.packToJSON()), r.Body) // FIXME base64?
 	if err != nil {
@@ -35,8 +49,8 @@ func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interfac
 
 	return m.ID, nil
 }
-
-func tarMetaData(m, d io.ReadCloser) (io.Reader, error) {
+*/
+func tarMetaData(m, d []byte) (io.Reader, error) {
 	b := new(bytes.Buffer)
 	t := tar.NewWriter(b)
 
@@ -58,23 +72,18 @@ func tarMetaData(m, d io.ReadCloser) (io.Reader, error) {
 	return b, nil
 }
 
-func writeToTar(name string, rc io.ReadCloser, w *tar.Writer) error {
-	b, err := readClose(rc)
-	if err != nil {
-		return err
-	}
-
+func writeToTar(name string, data []byte, w *tar.Writer) error {
 	h := &tar.Header{
 		Name: name,
-		Size: int64(len(b)),
+		Size: int64(len(data)),
 	}
 
-	err = w.WriteHeader(h)
+	err := w.WriteHeader(h)
 	if err != nil {
 		return err
 	}
 
-	_, err = w.Write(b)
+	_, err = w.Write(data)
 	if err != nil {
 		return err
 	}

@@ -17,6 +17,7 @@ func pipeHead(h handlerFunc) handlerFunc {
 		ctx = ctxWithTime(ctx, time.Now())
 		ctx = ctxWithUUID(ctx, nextUUID())
 		ctx = ctxWithAddr(ctx, mineAddr(r))
+		r.Header.Set("Content-Test", uuidFromCtx(ctx))
 		h(ctx, w, r)
 	}
 }
