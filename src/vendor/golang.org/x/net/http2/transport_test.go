@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -51,6 +50,51 @@ func TestTransportExternal(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	res.Write(os.Stdout)
+}
+
+func startH2cServer(t *testing.T) net.Listener {
+	h2Server := &Server{}
+	l := newLocalListener(t)
+	go func() {
+		conn, err := l.Accept()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		h2Server.ServeConn(conn, &ServeConnOpts{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, "Hello, %v", r.URL.Path)
+		})})
+	}()
+	return l
+}
+
+func TestTransportH2c(t *testing.T) {
+	l := startH2cServer(t)
+	defer l.Close()
+	req, err := http.NewRequest("GET", "http://"+l.Addr().String()+"/foobar", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := &Transport{
+		AllowHTTP: true,
+		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+			return net.Dial(network, addr)
+		},
+	}
+	res, err := tr.RoundTrip(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.ProtoMajor != 2 {
+		t.Fatal("proto not h2c")
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(body), "Hello, /foobar"; got != want {
+		t.Fatalf("response got %v, want %v", got, want)
+	}
 }
 
 func TestTransport(t *testing.T) {
@@ -742,7 +786,6 @@ func testTransportReqBodyAfterResponse(t *testing.T, status int) {
 				return fmt.Errorf("Unexpected client frame %v", f)
 			}
 		}
-		return nil
 	}
 	ct.run()
 }
@@ -764,12 +807,12 @@ func TestTransportFullDuplex(t *testing.T) {
 	pr, pw := io.Pipe()
 	req, err := http.NewRequest("PUT", st.ts.URL, ioutil.NopCloser(pr))
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	req.ContentLength = -1
 	res, err := c.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
@@ -1533,7 +1576,6 @@ func testTransportResponseHeaderTimeout(t *testing.T, body bool) {
 				}
 			}
 		}
-		return nil
 	}
 	ct.run()
 }
@@ -1860,7 +1902,6 @@ func TestTransportReadHeadResponse(t *testing.T) {
 			<-clientDone
 			return nil
 		}
-		return nil
 	}
 	ct.run()
 }
@@ -1904,7 +1945,7 @@ func TestTransportHandlerBodyClose(t *testing.T) {
 		n, err := io.Copy(ioutil.Discard, res.Body)
 		res.Body.Close()
 		if n != bodySize || err != nil {
-			t.Fatalf("req#d: Copy = %d, %v; want %d, nil", i, n, err, bodySize)
+			t.Fatalf("req#%d: Copy = %d, %v; want %d, nil", i, n, err, bodySize)
 		}
 	}
 	tr.CloseIdleConnections()
