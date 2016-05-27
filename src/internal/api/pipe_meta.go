@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,22 +14,30 @@ import (
 func pipeMeta(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		var err error
-		err = mustHeaderGzip(r)
+
+		err = mustHeaderGzip(r.Header)
 		if err != nil {
 			goto fail
 		}
 
-		err = mustHeaderJSON(r)
+		err = mustHeaderJSON(r.Header)
 		if err != nil {
 			goto fail
 		}
 
-		err = mustHeaderUTF8(r)
+		err = mustHeaderUTF8(r.Header)
 		if err != nil {
 			goto fail
 		}
 
-		err = mustHeaderMETA(r)
+		err = mustHeaderMETA(r.Header)
+		if err != nil {
+			goto fail
+		}
+
+		// --------------------
+
+		err = injectIntoMETA(r.Header)
 		if err != nil {
 			goto fail
 		}
@@ -40,30 +49,41 @@ func pipeMeta(h handlerFunc) handlerFunc {
 	}
 }
 
-func mustHeaderGzip(r *http.Request) error {
-	if !gzutil.IsGzipInString(r.Header.Get("Content-Encoding")) {
+func mustHeaderGzip(h http.Header) error {
+	if !gzutil.IsGzipInString(h.Get("Content-Encoding")) {
 		return fmt.Errorf("api: content-encoding must contain gzip")
 	}
 	return nil
 }
 
-func mustHeaderJSON(r *http.Request) error {
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+func mustHeaderJSON(h http.Header) error {
+	if !strings.Contains(h.Get("Content-Type"), "application/json") {
 		return fmt.Errorf("api: content-type must contain application/json")
 	}
 	return nil
 }
 
-func mustHeaderUTF8(r *http.Request) error {
-	if !strings.Contains(r.Header.Get("Content-Type"), "charset=utf-8") {
+func mustHeaderUTF8(h http.Header) error {
+	if !strings.Contains(h.Get("Content-Type"), "charset=utf-8") {
 		return fmt.Errorf("api: content-type must contain charset=utf-8")
 	}
 	return nil
 }
 
-func mustHeaderMETA(r *http.Request) error {
-	if len(r.Header.Get("Content-Meta")) == 0 {
+func mustHeaderMETA(h http.Header) error {
+	if len(h.Get("Content-Meta")) == 0 {
 		return fmt.Errorf("api: content-meta must contain value")
 	}
 	return nil
+}
+
+func injectIntoMETA(h http.Header) error {
+	meta := h.Get("Content-Meta")
+	b, err := base64.StdEncoding.DecodeString(s)
+
+	//m.ID = ctxutil.IDFromContext(ctx)
+	//m.IP = ctxutil.IPFromContext(ctx)
+	//m.Auth = ctxutil.AuthFromContext(ctx)
+	//m.Time = time.Now().Unix()
+
 }

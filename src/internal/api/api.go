@@ -50,12 +50,11 @@ var (
 		"POST:/sys/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkStat)},
 		"POST:/sys/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkStat)},
 
-		"POST:/sys/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), nil},
-
-		"POST:/upload": {use(pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Upld},
+		"POST:/put-data": {use(pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Putd},
+		"POST:/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Popd},
 
 		// => Debug mode only, when flag.Debug == true
-		"GET:/dbg/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail) /*core.WorkFunc(core.Ping)*/, core.Upld},
+		"GET:/dbg/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
 		"GET:/dbg/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
 		"GET:/dbg/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
 		"GET:/dbg/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof

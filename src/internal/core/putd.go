@@ -7,22 +7,22 @@ import (
 	"net/http"
 )
 
-var Upld = &uploader{}
+var Putd = &putd{}
 
-type uploader struct {
+type putd struct {
 	test string
 }
 
-func (u *uploader) ReadHeader(h http.Header) {
+func (u *putd) ReadHeader(h http.Header) {
 	_ = h.Get("Content-Meta")
 	u.test = h.Get("Content-Test")
 }
 
-func (u *uploader) WriteHeader(h http.Header) {
+func (u *putd) WriteHeader(h http.Header) {
 	h.Set("Content-Test", u.test+" DEBUG")
 }
 
-func (u *uploader) Work([]byte) (interface{}, error) {
+func (u *putd) Work([]byte) (interface{}, error) {
 	return nil, nil
 }
 
@@ -34,11 +34,6 @@ func Upld(ctx context.Context, _ http.ResponseWriter, r *http.Request) (interfac
 		return nil, err
 	}
 
-	????
-	m.ID = ctxutil.IDFromContext(ctx)
-	m.IP = ctxutil.IPFromContext(ctx)
-	m.Auth = ctxutil.AuthFromContext(ctx)
-	m.Time = time.Now().Unix()
 
 	_, err = tarMetaData(makeReadCloser(m.packToJSON()), r.Body) // FIXME base64?
 	if err != nil {
