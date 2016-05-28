@@ -4,36 +4,21 @@ import (
 	"net/http"
 
 	"internal/s3"
-
-	"golang.org/x/net/context"
 )
 
 var Popd = &popd{}
 
 type popd struct {
-	test string
+	meta []byte
 }
 
-func (u *popd) ReadHeader(h http.Header) {
-	_ = h.Get("Content-Meta")
-	u.test = h.Get("Content-Test")
+func (p *popd) WriteHeader(h http.Header) {
+	h.Set("Content-Encoding", "gzip")
+	h.Set("Content-Meta", string(p.meta))
 }
 
-func (u *popd) WriteHeader(h http.Header) {
-	h.Set("Content-Test", u.test+" DEBUG")
-}
-
-func (u *popd) Work([]byte) (interface{}, error) {
-	return nil, nil
-}
-
-func Popd2(_ context.Context, w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	b, err := readClose(r.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	o, err := s3.PopObjectByPathJSON(b)
+func (p *popd) Work(data []byte) (interface{}, error) {
+	o, err := s3.PopObjectByPathJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +27,7 @@ func Popd2(_ context.Context, w http.ResponseWriter, r *http.Request) (interface
 	if err != nil {
 		return nil, err
 	}
-
-	m, err := makeMetaFromJSON(meta)
-	if err != nil {
-		return nil, err
-	}
-
-	w.Header().Set("Content-Encoding", "gzip")
-	w.Header().Set("Content-Meta", m.packToBase64String()) // FIXME
+	p.meta = meta
 
 	return data, nil
 }

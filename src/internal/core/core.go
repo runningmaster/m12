@@ -6,31 +6,42 @@ import (
 	"net/http"
 
 	"internal/redis"
+	"internal/s3"
 )
-
-/*
-
-var redisServer connGetter
-
-type connGetter interface {
-	Get() redis.Conn
-}
-
-type redisGetSetDelOper interface {
-	get(redis.Conn) ([]interface{}, error)
-	set(redis.Conn) (interface{}, error)
-	del(redis.Conn) (interface{}, error)
-}
 
 const (
 	backetStreamIn  = "stream-in"
 	backetStreamOut = "stream-out"
 	backetStreamErr = "stream-err"
-	backets = [...]string{backetStreamIn, backetStreamOut, backetStreamErr}
+
+	subjectSteamIn  = backetStreamIn + ".67a7ea16"
+	subjectSteamOut = backetStreamOut + ".0566ce58"
 )
 
-	subjectSteamIn  = "stream-in.67a7ea16"
-	subjectSteamOut = "stream-out.0566ce58"
+type HTTPHeadReader interface {
+	ReadHeader(http.Header)
+}
+
+type HTTPHeadWriter interface {
+	WriteHeader(http.Header)
+}
+
+type Worker interface {
+	Work([]byte) (interface{}, error)
+}
+
+type WorkFunc func([]byte) (interface{}, error)
+
+func (f WorkFunc) Work(b []byte) (interface{}, error) {
+	return f(b)
+}
+
+func Init() error {
+	return s3.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
+}
+
+/*
+
 
 
 func goNotifyStream(n int) {
@@ -55,31 +66,10 @@ func notifyStream(backet, subject string, n int) error {
 	if err != nil {
 		return err
 	}
-
-
-
 	return nil
 }
 
 */
-
-type HTTPHeadReader interface {
-	ReadHeader(http.Header)
-}
-
-type HTTPHeadWriter interface {
-	WriteHeader(http.Header)
-}
-
-type Worker interface {
-	Work([]byte) (interface{}, error)
-}
-
-type WorkFunc func([]byte) (interface{}, error)
-
-func (f WorkFunc) Work(b []byte) (interface{}, error) {
-	return f(b)
-}
 
 // Ping calls Redis PING
 func Ping(_ []byte) (interface{}, error) {
@@ -92,9 +82,11 @@ func Info(_ []byte) (interface{}, error) {
 }
 
 type meta struct {
-	ID   string `json:"id,omitempty"`   // ?
-	IP   string `json:"ip,omitempty"`   // ?
-	PKey string `json:"pkey,omitempty"` // *
+	UUID string `json:"uuid,omitempty"`
+	Host string `json:"host,omitempty"`
+	Auth string `json:"auth,omitempty"`
+	Time int64  `json:"time,omitempty"`
+	Test bool   `json:"test,omitempty"`
 
 	HTag string `json:"htag,omitempty"` // *
 	Spn1 int64  `json:"spn1,omitempty"` // *
@@ -108,11 +100,8 @@ type meta struct {
 
 	Link linkAddr `json:"link,omitempty"` // ?
 
-	ETag string `json:"etag,omitempty"` // ?
-	Size int64  `json:"size,omitempty"` // ?
-	Time int64  `json:"time,omitempty"` // ?
-
-	Test bool `json:"test,omitempty"` // for test purpose only
+	ETag string `json:"etag,omitempty"`
+	Size int64  `json:"size,omitempty"`
 }
 
 func makeMetaFromJSON(b []byte) (meta, error) {

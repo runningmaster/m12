@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -13,31 +14,12 @@ import (
 
 func pipeMeta(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		var err error
-
-		err = mustHeaderGzip(r.Header)
+		err := validateHeader(r.Header)
 		if err != nil {
 			goto fail
 		}
 
-		err = mustHeaderJSON(r.Header)
-		if err != nil {
-			goto fail
-		}
-
-		err = mustHeaderUTF8(r.Header)
-		if err != nil {
-			goto fail
-		}
-
-		err = mustHeaderMETA(r.Header)
-		if err != nil {
-			goto fail
-		}
-
-		// --------------------
-
-		err = injectIntoMETA(r.Header)
+		err = injectIntoMETA(ctx, r.Header)
 		if err != nil {
 			goto fail
 		}
@@ -47,6 +29,26 @@ func pipeMeta(h handlerFunc) handlerFunc {
 	fail:
 		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError), w, r)
 	}
+}
+
+func validateHeader(h http.Header) error {
+	err := mustHeaderGzip(h)
+	if err != nil {
+		return err
+	}
+
+	err = mustHeaderJSON(h)
+	if err != nil {
+		return err
+	}
+
+	err = mustHeaderUTF8(h)
+	if err != nil {
+		return err
+	}
+
+	return mustHeaderMETA(h)
+
 }
 
 func mustHeaderGzip(h http.Header) error {
@@ -77,13 +79,21 @@ func mustHeaderMETA(h http.Header) error {
 	return nil
 }
 
-func injectIntoMETA(h http.Header) error {
-	meta := h.Get("Content-Meta")
-	b, err := base64.StdEncoding.DecodeString(s)
+func injectIntoMETA(ctx context.Context, h http.Header) error {
+	uuid := uuidFromCtx(ctx)
+	info := fmt.Sprintf(`{ "uuid": %q, "host": %q, "auth": %q, "time": %d, `,
+		uuid,
+		addrFromCtx(ctx),
+		authFromCtx(ctx),
+		timeFromCtx(ctx).Unix(),
+	)
 
-	//m.ID = ctxutil.IDFromContext(ctx)
-	//m.IP = ctxutil.IPFromContext(ctx)
-	//m.Auth = ctxutil.AuthFromContext(ctx)
-	//m.Time = time.Now().Unix()
+	meta, err := base64.StdEncoding.DecodeString(h.Get("Content-Meta"))
+	if err != nil {
+		return err
+	}
 
+	meta = bytes.Replace(bytes.TrimSpace(meta), []byte("{"), []byte(info), -1)
+	h.Set("Content-Meta", fmt.Sprintf("%s.%s", uuid, base64.StdEncoding.EncodeToString(meta)))
+	return nil
 }

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"archive/tar"
 	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
@@ -79,4 +80,76 @@ func isEmpty(v []interface{}) bool {
 
 func makeReadCloser(b []byte) io.ReadCloser {
 	return ioutil.NopCloser(bytes.NewReader(b))
+}
+
+func tarMetaData(m, d []byte) (io.Reader, error) {
+	b := new(bytes.Buffer)
+	t := tar.NewWriter(b)
+
+	err := writeToTar("meta", m, t)
+	if err != nil {
+		return nil, err
+	}
+
+	err = writeToTar("data", d, t)
+	if err != nil {
+		return nil, err
+	}
+
+	err = t.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func writeToTar(name string, data []byte, w *tar.Writer) error {
+	h := &tar.Header{
+		Name: name,
+		Size: int64(len(data)),
+	}
+
+	err := w.WriteHeader(h)
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func untarMetaData(rc io.Reader) ([]byte, []byte, error) {
+	//defer func() { _ = rc.Close() }()
+
+	tr := tar.NewReader(rc)
+	var (
+		meta = new(bytes.Buffer)
+		data = new(bytes.Buffer)
+	)
+	for {
+		h, err := tr.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, nil, err
+		}
+		switch {
+		case h.Name == "meta":
+			if _, err := io.Copy(meta, tr); err != nil {
+				return nil, nil, err
+			}
+		case h.Name == "data":
+			if _, err := io.Copy(data, tr); err != nil {
+				return nil, nil, err
+			}
+		}
+	}
+
+	return meta.Bytes(), data.Bytes(), nil
 }

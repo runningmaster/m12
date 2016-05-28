@@ -84,7 +84,7 @@ func Reg() error {
 		}
 	}
 
-	return nil
+	return core.Init()
 }
 
 func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
