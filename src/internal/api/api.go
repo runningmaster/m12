@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	"internal/conf"
 	"internal/core"
+	"internal/pref"
 	"internal/server"
 	"internal/version"
 
@@ -130,7 +130,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 }
 
 func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	if !conf.Debug {
+	if !pref.Debug {
 		return with500(ctx, fmt.Errorf("api: flag debug not found"))
 	}
 

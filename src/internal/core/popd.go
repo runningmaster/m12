@@ -18,7 +18,7 @@ func (p *popd) WriteHeader(h http.Header) {
 }
 
 func (p *popd) Work(data []byte) (interface{}, error) {
-	o, err := s3.PopObjectByPathJSON(data)
+	o, err := s3.PopObjectUnmarshal(data)
 	if err != nil {
 		return nil, err
 	}

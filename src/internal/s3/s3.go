@@ -87,24 +87,24 @@ func PopObject(bucket, object string) (io.Reader, error) {
 	return obj, nil
 }
 
-type path struct {
+type pair struct {
 	Backet string `json:"backet,omitempty"`
 	Object string `json:"object,omitempty"`
 }
 
-func (p path) packToJSON() []byte {
+func (p pair) marshalJSON() []byte {
 	b, _ := json.Marshal(p)
 	return b
 }
 
-func pathFromJSON(b []byte) (path, error) {
-	p := path{}
-	err := json.Unmarshal(b, &p)
+func unmarshaJSON(data []byte) (pair, error) {
+	p := pair{}
+	err := json.Unmarshal(data, &p)
 	return p, err
 }
 
 // GetPathJSONList FIXME
-func GetPathJSONList(backet string, n int) ([][]byte, error) {
+func ListObjectsMarshal(backet string, n int) ([][]byte, error) {
 	objs, err := listObjectsN(backet, "", false, n)
 	if err != nil {
 		return nil, err
@@ -112,15 +112,15 @@ func GetPathJSONList(backet string, n int) ([][]byte, error) {
 
 	list := make([][]byte, n)
 	for i := range list {
-		list[i] = path{backet, objs[i].Key}.packToJSON()
+		list[i] = pair{backet, objs[i].Key}.marshalJSON()
 	}
 
 	return list, nil
 }
 
-// PopObjectByPathJSON FIXME
-func PopObjectByPathJSON(b []byte) (io.Reader, error) {
-	p, err := pathFromJSON(b)
+// PopObject FIXME
+func PopObjectUnmarshal(data []byte) (io.Reader, error) {
+	p, err := unmarshaJSON(data)
 	if err != nil {
 		return nil, err
 	}

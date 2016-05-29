@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,60 +10,60 @@ import (
 	_ "net/http/pprof"
 
 	"internal/api"
-	"internal/conf"
 	"internal/nats"
+	"internal/pref"
 	"internal/redis"
 	"internal/s3"
 	"internal/server"
 )
 
-func init() {
-	initConfig()
-	initLogger()
-}
+var (
+	flagS3     = *flag.String("s3", "127.0.0.1:9000", "S3 object storage address")
+	flagS3ak   = *flag.String("s3ak", "", "S3 access key")
+	flagS3sk   = *flag.String("s3sk", "", "S3 secret key")
+	flagNATS   = *flag.String("nats", "nats://user:pass@ip:4222", "network address for NATS server 'scheme://[user:pass]@host[:port]'")
+	flagRedis  = *flag.String("redis", "redis://127.0.0.1:6379", "network address for Redis server 'scheme://[user:pass]@host[:port]'")
+	flagServer = *flag.String("server", "127.0.0.1:8080", "server address '[host]:port'")
+)
 
 func main() {
-	var err error
+	flag.Parse()
+	l := makeLogger(pref.Verbose)
 
-	err = s3.Run(conf.S3Address, conf.S3AccessKey, conf.S3SecretKey, nil)
+	err := initDepend(l)
 	if err != nil {
-		goto fail
-	}
-
-	err = nats.Run(conf.NATSAddress, nil)
-	if err != nil {
-		goto fail
-	}
-
-	err = redis.Run(conf.RedisAddress, nil)
-	if err != nil {
-		goto fail
-	}
-
-	err = api.Reg()
-	if err != nil {
-		goto fail
-	}
-
-	err = server.Run(conf.ServerAddress)
-	if err != nil {
-		goto fail
-	}
-
-fail:
-	if err != nil { // workaround for Ctrl+C
 		log.Fatalf("main: %v", err)
 	}
 }
 
-func initConfig() {
-	conf.Parse()
+func initDepend(l *log.Logger) error {
+	err := s3.Run(flagS3, flagS3ak, flagS3sk, l)
+	if err != nil {
+		return err
+	}
+
+	err = nats.Run(flagNATS, l)
+	if err != nil {
+		return err
+	}
+
+	err = redis.Run(flagRedis, l)
+	if err != nil {
+		return err
+	}
+
+	err = api.Reg()
+	if err != nil {
+		return err
+	}
+
+	return server.Run(flagServer)
 }
 
-func initLogger() {
-	log.SetFlags(0)
-	log.SetOutput(ioutil.Discard)
-	if conf.Verbose {
-		log.SetOutput(os.Stderr)
+func makeLogger(v bool) *log.Logger {
+	out := ioutil.Discard
+	if v {
+		out = os.Stderr
 	}
+	return log.New(out, "", 0)
 }

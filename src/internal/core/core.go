@@ -3,8 +3,11 @@ package core
 import (
 	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
+	"time"
 
+	"internal/nats"
 	"internal/redis"
 	"internal/s3"
 )
@@ -16,6 +19,9 @@ const (
 
 	subjectSteamIn  = backetStreamIn + ".67a7ea16"
 	subjectSteamOut = backetStreamOut + ".0566ce58"
+
+	listN = 10
+	tickD = time.Second
 )
 
 type HTTPHeadReader interface {
@@ -37,39 +43,35 @@ func (f WorkFunc) Work(b []byte) (interface{}, error) {
 }
 
 func Init() error {
-	return s3.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
-}
-
-/*
-
-
-
-func goNotifyStream(n int) {
-	go func() {
-		c := time.Tick(1 * time.Second)
-		var err error
-		for _ = range c {
-			err = notifyStream(backetStreamIn, subjectSteamIn, n)
-			if err != nil {
-				log.Println(err)
-			}
-			err = notifyStream(backetStreamOut, subjectSteamOut, n)
-			if err != nil {
-				log.Println(err)
-			}
-		}
-	}()
-}
-
-func notifyStream(backet, subject string, n int) error {
-	objs, err := s3.listObjectsN(backet, "", false, n)
+	err := s3.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
 	if err != nil {
 		return err
 	}
+
+	go nats.ListenAndServe(backetStreamIn, serveFunc)
+	go publishing(backetStreamOut, subjectSteamOut, listN, tickD)
+	go publishing(backetStreamIn, subjectSteamIn, listN, tickD)
+
 	return nil
 }
 
-*/
+func publishing(backet, subject string, n int, d time.Duration) {
+	var err error
+	for _ = range time.Tick(d) {
+		err = publish(backet, subject, n)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+func publish(backet, subject string, n int) error {
+	m, err := s3.ListObjectsMarshal(backet, n)
+	if err != nil {
+		return err
+	}
+	return nats.PublishEach(subject, m...)
+}
 
 // Ping calls Redis PING
 func Ping(_ []byte) (interface{}, error) {
@@ -104,27 +106,27 @@ type meta struct {
 	Size int64  `json:"size,omitempty"`
 }
 
-func makeMetaFromJSON(b []byte) (meta, error) {
-	m := meta{}
+func unmarshalJSON(b []byte) (*meta, error) {
+	m := &meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func makeMetaFromBase64String(s string) (meta, error) {
+func unmarshalBase64(s string) (*meta, error) {
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return meta{}, err
+		return nil, err
 	}
-	return makeMetaFromJSON(b)
+	return unmarshalJSON(b)
 }
 
-func (m meta) packToJSON() []byte {
+func (m *meta) marshalJSON() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m meta) packToBase64String() string {
-	return base64.StdEncoding.EncodeToString(m.packToJSON())
+func (m *meta) marshalBase64() string {
+	return base64.StdEncoding.EncodeToString(m.marshalJSON())
 }
 
 // Redis scheme:

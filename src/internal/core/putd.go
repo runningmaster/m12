@@ -28,9 +28,9 @@ func (p *putd) Work(data []byte) (interface{}, error) {
 	}
 
 	go func() { // ?
-		err := s3.PutObject("stream-in", "uuid", t)
+		err := s3.PutObject(backetStreamIn, "uuid", t)
 		if err != nil {
-			// log
+			// log.
 		}
 	}()
 

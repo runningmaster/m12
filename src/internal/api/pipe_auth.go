@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/conf"
 	"internal/core"
+	"internal/pref"
 
 	"golang.org/x/net/context"
 )
@@ -57,5 +57,5 @@ func auth(key string) error {
 }
 
 func isMasterKey(key string) bool {
-	return strings.EqualFold(conf.Masterkey, key)
+	return strings.EqualFold(pref.Masterkey, key)
 }
