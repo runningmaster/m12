@@ -81,20 +81,39 @@ func PutWriter(c io.Closer) error {
 	return nil
 }
 
-// Gunzip decodes gzip-bytes.
+// Gzip encodes bytes to gzip-bytes.
+func Gzip(data []byte) ([]byte, error) {
+	w, err := GetWriter()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = PutWriter(w) }()
+
+	buf := new(bytes.Buffer)
+	w.Reset(buf)
+
+	_, err = io.Copy(w, bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// Gunzip decodes bytes from gzip-bytes.
 func Gunzip(data []byte) ([]byte, error) {
-	z, err := GetReader()
+	r, err := GetReader()
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = PutReader(z) }()
+	defer func() { _ = PutReader(r) }()
 
-	err = z.Reset(bytes.NewReader(data))
+	err = r.Reset(bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadAll(z)
+	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

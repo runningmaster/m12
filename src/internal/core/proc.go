@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"internal/gzutil"
 	"internal/s3"
 	"internal/strutil"
 )
@@ -151,7 +152,12 @@ func procData(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return mineLinks("m.HTag", data)
+	data, err = mineLinks("m.HTag", data)
+	if err != nil {
+		return nil, err
+	}
+
+	return gzutil.Gzip(data)
 }
 
 func checkGzip(b []byte) error {
