@@ -21,9 +21,9 @@ var (
 	logger = log.New(ioutil.Discard, "", log.LstdFlags)
 )
 
-func Run(addr string, log *log.Logger) error {
-	if log != nil {
-		logger = log
+func Run(addr string, l *log.Logger) error {
+	if l != nil {
+		logger = l
 	}
 
 	cli = &redis.Pool{

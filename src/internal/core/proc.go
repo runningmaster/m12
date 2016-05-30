@@ -1,10 +1,9 @@
 package core
 
 import (
-	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -51,8 +50,17 @@ func findLinkDrug(keys ...string) ([]linkDrug, error) {
 	return nil, nil
 }
 
-func serveFunc(p []byte) error {
-	o, err := s3.PopObjectUnmarshal(p)
+func popObjectByJSON(data []byte) (io.Reader, error) {
+	p, err := unmarshaJSONpair(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return s3.PopObject(p.Backet, p.Object)
+}
+
+func proc(data []byte) error {
+	o, err := popObjectByJSON(data)
 	if err != nil {
 		return err
 	}
@@ -62,16 +70,17 @@ func serveFunc(p []byte) error {
 		return err
 	}
 
-	meta, err = procMeta(meta, btsToMD5(data), int64(len(data)))
-	if err != nil {
-		return err
-	}
-	data, err = procData(data)
+	m, err := procMeta(meta, btsToMD5(data), int64(len(data)))
 	if err != nil {
 		return err
 	}
 
-	t, err := tarMetaData(m.marshalJSON(), b)
+	d, err := procData(data)
+	if err != nil {
+		return err
+	}
+
+	t, err := tarMetaData(m.marshalBase64(), d)
 	if err != nil {
 		return err
 	}
@@ -89,33 +98,26 @@ func serveFunc(p []byte) error {
 	return nil
 }
 
-func procMeta(data []byte, etag string, size in64) ([]byte, error) {
-	buf = new(bytes.Buffer)
-	_, err := base64.StdEncoding.Decode(buf, data)
+func procMeta(data []byte, etag string, size int64) (meta, error) {
+	m, err := unmarshalBase64meta(data)
 	if err != nil {
-		return err
-	}
-
-	m := &meta{}
-	err = json.Unmarshal(buf.Bytes(), &m)
-	if err != nil {
-		return nil, err
+		return meta{}, err
 	}
 
 	err = checkHTag(m.HTag)
 	if err != nil {
-		return nil, err
+		return m, err
 	}
 
-	link, err = findLinkMeta(m)
+	l, err := findLinkMeta(m)
 	if err != nil {
-		return err
+		return m, err
 	}
 	m.Link = l
 	m.ETag = etag
 	m.Size = size
 
-	return meta, nil
+	return m, nil
 }
 
 func checkHTag(t string) error {
@@ -125,7 +127,7 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
-func findLinkMeta(m *meta) (linkAddr, error) {
+func findLinkMeta(m meta) (linkAddr, error) {
 	if m.Name == "" {
 		return linkAddr{}, nil
 	}
@@ -137,20 +139,19 @@ func findLinkMeta(m *meta) (linkAddr, error) {
 }
 
 func procData(data []byte) ([]byte, error) {
-	b, err := gunzip(data)
+	var err error
+
+	data, err = gunzip(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	b, err = mendIfUTF8(data)
+	data, err = mendIfUTF8(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	b, err = mineLinks(m.HTag, b)
-	if err != nil {
-		return err
-	}
+	return mineLinks("m.HTag", data)
 }
 
 func checkGzip(b []byte) error {
@@ -160,7 +161,7 @@ func checkGzip(b []byte) error {
 	return fmt.Errorf("core: content must contain gzip")
 }
 
-func mineLinks(t string, b []byte) ([]byte, error) {
+func mineLinks(t string, data []byte) ([]byte, error) {
 	var src interface{}
 
 	switch {
@@ -172,7 +173,7 @@ func mineLinks(t string, b []byte) ([]byte, error) {
 		src = listV3Sale{}
 	}
 
-	err := json.Unmarshal(b, &src)
+	err := json.Unmarshal(data, &src)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +183,7 @@ func mineLinks(t string, b []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if t {
+	if isSaleIn(t) {
 		err = mineLinkAddr(src.(linkAddrer))
 		if err != nil {
 			return nil, err

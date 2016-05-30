@@ -48,7 +48,7 @@ func Init() error {
 		return err
 	}
 
-	go nats.ListenAndServe(backetStreamIn, serveFunc)
+	go nats.ListenAndServe(backetStreamIn, proc)
 	go publishing(backetStreamOut, subjectSteamOut, listN, tickD)
 	go publishing(backetStreamIn, subjectSteamIn, listN, tickD)
 
@@ -66,10 +66,16 @@ func publishing(backet, subject string, n int, d time.Duration) {
 }
 
 func publish(backet, subject string, n int) error {
-	m, err := s3.ListObjectsMarshal(backet, n)
+	l, err := s3.ListObjects(backet, n)
 	if err != nil {
 		return err
 	}
+
+	m := make([][]byte, len(l))
+	for i := range l {
+		m[i] = pair{backet, l[i]}.marshalJSON()
+	}
+
 	return nats.PublishEach(subject, m...)
 }
 
@@ -106,27 +112,43 @@ type meta struct {
 	Size int64  `json:"size,omitempty"`
 }
 
-func unmarshalJSON(b []byte) (*meta, error) {
-	m := &meta{}
+func unmarshalJSONmeta(b []byte) (meta, error) {
+	m := meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func unmarshalBase64(s string) (*meta, error) {
-	b, err := base64.StdEncoding.DecodeString(s)
+func unmarshalBase64meta(b []byte) (meta, error) {
+	b, err := base64.StdEncoding.DecodeString(string(b))
 	if err != nil {
-		return nil, err
+		return meta{}, err
 	}
-	return unmarshalJSON(b)
+	return unmarshalJSONmeta(b)
 }
 
-func (m *meta) marshalJSON() []byte {
+func (m meta) marshalJSON() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m *meta) marshalBase64() string {
-	return base64.StdEncoding.EncodeToString(m.marshalJSON())
+func (m meta) marshalBase64() []byte {
+	return []byte(base64.StdEncoding.EncodeToString(m.marshalJSON()))
+}
+
+type pair struct {
+	Backet string `json:"backet,omitempty"`
+	Object string `json:"object,omitempty"`
+}
+
+func (p pair) marshalJSON() []byte {
+	b, _ := json.Marshal(p)
+	return b
+}
+
+func unmarshaJSONpair(data []byte) (pair, error) {
+	p := pair{}
+	err := json.Unmarshal(data, &p)
+	return p, err
 }
 
 // Redis scheme:

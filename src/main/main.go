@@ -57,7 +57,7 @@ func initDepend(l *log.Logger) error {
 		return err
 	}
 
-	return server.Run(flagServer)
+	return server.Run(flagServer, nil)
 }
 
 func makeLogger(v bool) *log.Logger {

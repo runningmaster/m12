@@ -1,7 +1,6 @@
 package s3
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,9 +15,9 @@ var (
 )
 
 // Run FIXME
-func Run(addr, akey, skey string, log *log.Logger) error {
-	if log != nil {
-		logger = log
+func Run(addr, akey, skey string, l *log.Logger) error {
+	if l != nil {
+		logger = l
 	}
 
 	var err error
@@ -87,43 +86,17 @@ func PopObject(bucket, object string) (io.Reader, error) {
 	return obj, nil
 }
 
-type pair struct {
-	Backet string `json:"backet,omitempty"`
-	Object string `json:"object,omitempty"`
-}
-
-func (p pair) marshalJSON() []byte {
-	b, _ := json.Marshal(p)
-	return b
-}
-
-func unmarshaJSON(data []byte) (pair, error) {
-	p := pair{}
-	err := json.Unmarshal(data, &p)
-	return p, err
-}
-
-// GetPathJSONList FIXME
-func ListObjectsMarshal(backet string, n int) ([][]byte, error) {
+// ListObjects FIXME
+func ListObjects(backet string, n int) ([]string, error) {
 	objs, err := listObjectsN(backet, "", false, n)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make([][]byte, n)
+	list := make([]string, n)
 	for i := range list {
-		list[i] = pair{backet, objs[i].Key}.marshalJSON()
+		list[i] = objs[i].Key
 	}
 
 	return list, nil
-}
-
-// PopObject FIXME
-func PopObjectUnmarshal(data []byte) (io.Reader, error) {
-	p, err := unmarshaJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return PopObject(p.Backet, p.Object)
 }

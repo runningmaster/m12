@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -17,10 +18,16 @@ type regHandler struct {
 	h http.Handler
 }
 
-var regHandlers []regHandler
+var (
+	regHandlers []regHandler
+	logger      = log.New(ioutil.Discard, "", log.LstdFlags)
+)
 
 // Run starts a server with router
-func Run(addr string) error {
+func Run(addr string, l *log.Logger) error {
+	if l != nil {
+		logger = l
+	}
 	s, err := makeServer(addr)
 	if err != nil {
 		return err
