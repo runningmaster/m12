@@ -76,7 +76,7 @@ func proc(data []byte) error {
 		return err
 	}
 
-	d, err := procData(data)
+	d, err := procData(m.HTag, data)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func proc(data []byte) error {
 func procMeta(data []byte, etag string, size int64) (meta, error) {
 	m, err := unmarshalBase64meta(data)
 	if err != nil {
-		return meta{}, err
+		return m, err
 	}
 
 	err = checkHTag(m.HTag)
@@ -114,6 +114,7 @@ func procMeta(data []byte, etag string, size int64) (meta, error) {
 	if err != nil {
 		return m, err
 	}
+
 	m.Link = l
 	m.ETag = etag
 	m.Size = size
@@ -139,7 +140,7 @@ func findLinkMeta(m meta) (linkAddr, error) {
 	return l[0], nil
 }
 
-func procData(data []byte) ([]byte, error) {
+func procData(htag string, data []byte) ([]byte, error) {
 	var err error
 
 	data, err = gunzip(data)
@@ -152,7 +153,7 @@ func procData(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	data, err = mineLinks("m.HTag", data)
+	data, err = mineLinks(htag, data)
 	if err != nil {
 		return nil, err
 	}
