@@ -10,13 +10,13 @@ import (
 
 var (
 	// Verbose is flag for output
-	Verbose = *flag.Bool("verbose", true, "Verbose output")
+	Verbose = flag.Bool("verbose", true, "Verbose output")
 
 	// Debug mode
-	Debug = *flag.Bool("debug", false, "Debug mode")
+	Debug = flag.Bool("debug", false, "Debug mode")
 
 	// Masterkey is default secret key for sysdba
-	Masterkey = *flag.String("masterkey", "masterkey", "secret key for sysdba")
+	Masterkey = flag.String("masterkey", "masterkey", "secret key for sysdba")
 )
 
 func init() {
@@ -26,5 +26,5 @@ func init() {
 func experimentWithExpVarFIXME() {
 	expvar.NewInt("debug").Set(1)
 	d, _ := strconv.Atoi(expvar.Get("debug").String())
-	Debug = d == 1
+	*Debug = d == 1
 }

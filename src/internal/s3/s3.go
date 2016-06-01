@@ -26,7 +26,7 @@ func Run(addr, akey, skey string, l *log.Logger) error {
 		return err
 	}
 
-	cli, err = minio.New(u.Host, akey, skey, true)
+	cli, err = minio.New(u.Host, akey, skey, u.Scheme == "https")
 	if err != nil {
 		return fmt.Errorf("s3: %s", err)
 	}

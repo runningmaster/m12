@@ -53,9 +53,9 @@ const (
 )
 
 func main() {
-	flagFile := *flag.String("o", "tip.go", "output file name")
+	flagFile := flag.String("o", "tip.go", "output file name")
 	flag.Parse()
-	fmt.Printf("go:generate in %s -> %s\n", os.Getenv("GOFILE"), flagFile)
+	fmt.Printf("go:generate in %s -> %s\n", os.Getenv("GOFILE"), *flagFile)
 
 	buildtime := time.Now().Format("20060102150405")
 	gitcommit := "00000000"
@@ -84,14 +84,14 @@ func main() {
 		goto Fail
 	}
 
-	err = ioutil.WriteFile(flagFile, out, 0644)
+	err = ioutil.WriteFile(*flagFile, out, 0644)
 	if err != nil {
 		goto Fail
 	}
 
 	return // success
 Fail:
-	panic(fmt.Errorf("can not generate %s: %v", flagFile, err))
+	panic(fmt.Errorf("can not generate %s: %v", *flagFile, err))
 }
 
 // isGitRepo reports whether the working directory is inside a Git repository.
