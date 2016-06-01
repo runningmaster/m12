@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	flagNATS      = flag.String("nats", "nats://user:pass@host:4222", "network address for NATS server 'scheme://[user:pass]@host[:port]'")
-	flagMinio     = flag.String("minio", "minio://127.0.0.1:9000", "Minio (S3) object storage address")
-	flagMinioAKey = flag.String("minio-akey", "", "Minio (S3) access key")
-	flagMinioSKey = flag.String("minio-skey", "", "Minio (S3) secret key")
-	flagRedis     = flag.String("redis", "redis://127.0.0.1:6379", "network address for Redis server 'scheme://[user:pass]@host[:port]'")
-	flagServer    = flag.String("server", "http://127.0.0.1:8080", "server address '[host]:port'")
+	flagNATS      = flag.String("nats", "nats://user:pass@host:4222", "NATS server address")
+	flagMinio     = flag.String("minio", "http://127.0.0.1:9000", "Minio S3 object storage address")
+	flagMinioAKey = flag.String("minio-akey", "", "Minio S3 access key")
+	flagMinioSKey = flag.String("minio-skey", "", "Minio S3 secret key")
+	flagRedis     = flag.String("redis", "redis://127.0.0.1:6379", "Redis server address")
+	flagHost      = flag.String("host", "http://127.0.0.1:8080", "Host server address")
 )
 
 func main() {
@@ -57,7 +57,7 @@ func initDepend(l *log.Logger) error {
 		return err
 	}
 
-	return server.Run(*flagServer, nil)
+	return server.Run(*flagHost, nil)
 }
 
 func makeLogger(v bool) *log.Logger {
