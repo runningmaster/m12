@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/url"
 
 	minio "github.com/minio/minio-go"
 )
@@ -20,8 +21,12 @@ func Run(addr, akey, skey string, l *log.Logger) error {
 		logger = l
 	}
 
-	var err error
-	cli, err = minio.New(addr, akey, skey, true)
+	u, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+
+	cli, err = minio.New(u.Host, akey, skey, true)
 	if err != nil {
 		return fmt.Errorf("s3: %s", err)
 	}

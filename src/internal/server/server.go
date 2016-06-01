@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/labstack/echo"
@@ -28,7 +29,13 @@ func Run(addr string, l *log.Logger) error {
 	if l != nil {
 		logger = l
 	}
-	s, err := makeServer(addr)
+
+	u, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+
+	s, err := makeServer(u.Host)
 	if err != nil {
 		return err
 	}

@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	flagS3     = *flag.String("s3", "127.0.0.1:9000", "S3 object storage address")
-	flagS3ak   = *flag.String("s3ak", "", "S3 access key")
-	flagS3sk   = *flag.String("s3sk", "", "S3 secret key")
-	flagNATS   = *flag.String("nats", "nats://user:pass@ip:4222", "network address for NATS server 'scheme://[user:pass]@host[:port]'")
-	flagRedis  = *flag.String("redis", "redis://127.0.0.1:6379", "network address for Redis server 'scheme://[user:pass]@host[:port]'")
-	flagServer = *flag.String("server", "127.0.0.1:8080", "server address '[host]:port'")
+	flagMinio     = *flag.String("minio", "minio://127.0.0.1:9000", "Minio (S3) object storage address")
+	flagMinioAKey = *flag.String("minio-akey", "", "Minio (S3) access key")
+	flagMinioSKey = *flag.String("minio-skey", "", "Minio (S3) secret key")
+	flagNATS      = *flag.String("nats", "nats://user:pass@ip:4222", "network address for NATS server 'scheme://[user:pass]@host[:port]'")
+	flagRedis     = *flag.String("redis", "redis://127.0.0.1:6379", "network address for Redis server 'scheme://[user:pass]@host[:port]'")
+	flagServer    = *flag.String("server", "http://127.0.0.1:8080", "server address '[host]:port'")
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 }
 
 func initDepend(l *log.Logger) error {
-	err := s3.Run(flagS3, flagS3ak, flagS3sk, l)
+	err := s3.Run(flagMinio, flagMinioAKey, flagMinioSKey, l)
 	if err != nil {
 		return err
 	}
