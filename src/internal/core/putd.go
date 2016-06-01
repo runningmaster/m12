@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net/http"
 
-	"internal/s3"
+	"internal/minio"
 )
 
 var Putd = &putd{}
@@ -28,7 +28,7 @@ func (p *putd) Work(data []byte) (interface{}, error) {
 	}
 
 	go func() { // ?
-		err := s3.PutObject(backetStreamIn, uuid, t)
+		err := minio.PutObject(backetStreamIn, uuid, t)
 		if err != nil {
 			// log.
 		}

@@ -10,10 +10,10 @@ import (
 	_ "net/http/pprof"
 
 	"internal/api"
+	"internal/minio"
 	"internal/nats"
 	"internal/pref"
 	"internal/redis"
-	"internal/s3"
 	"internal/server"
 )
 
@@ -42,7 +42,7 @@ func initDepend(l *log.Logger) error {
 		return err
 	}
 
-	err = s3.Run(*flagMinio, *flagMinioAKey, *flagMinioSKey, l)
+	err = minio.Run(*flagMinio, *flagMinioAKey, *flagMinioSKey, l)
 	if err != nil {
 		return err
 	}

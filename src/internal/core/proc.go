@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"internal/gzutil"
-	"internal/s3"
+	"internal/minio"
 	"internal/strutil"
 )
 
@@ -57,7 +57,7 @@ func popObjectByJSON(data []byte) (io.Reader, error) {
 		return nil, err
 	}
 
-	return s3.PopObject(p.Backet, p.Object)
+	return minio.PopObject(p.Backet, p.Object)
 }
 
 func proc(data []byte) error {
@@ -87,7 +87,7 @@ func proc(data []byte) error {
 	}
 
 	go func() { // ?
-		err := s3.PutObject(backetStreamOut, m.UUID, t)
+		err := minio.PutObject(backetStreamOut, m.UUID, t)
 		if err != nil {
 			// log.
 		}

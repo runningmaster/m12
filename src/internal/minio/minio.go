@@ -1,4 +1,4 @@
-package s3
+package minio
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func Run(addr, akey, skey string, l *log.Logger) error {
 
 	cli, err = minio.New(u.Host, akey, skey, u.Scheme == "https")
 	if err != nil {
-		return fmt.Errorf("s3: %s", err)
+		return fmt.Errorf("minio: %s", err)
 	}
 
 	return nil
@@ -42,7 +42,7 @@ func InitBacketList(list ...string) error {
 		if err != nil {
 			err = cli.MakeBucket(b, "")
 			if err != nil {
-				return fmt.Errorf("s3: %s", err)
+				return fmt.Errorf("minio: %s", err)
 			}
 		}
 	}

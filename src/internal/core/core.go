@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
+	"internal/minio"
 	"internal/nats"
 	"internal/redis"
-	"internal/s3"
 )
 
 const (
@@ -43,7 +43,7 @@ func (f WorkFunc) Work(b []byte) (interface{}, error) {
 }
 
 func Init() error {
-	err := s3.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
+	err := minio.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func publishing(backet, subject string, n int, d time.Duration) {
 }
 
 func publish(backet, subject string, n int) error {
-	l, err := s3.ListObjects(backet, n)
+	l, err := minio.ListObjects(backet, n)
 	if err != nil {
 		return err
 	}
