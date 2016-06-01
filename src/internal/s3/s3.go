@@ -98,7 +98,7 @@ func ListObjects(backet string, n int) ([]string, error) {
 		return nil, err
 	}
 
-	list := make([]string, n)
+	list := make([]string, len(objs))
 	for i := range list {
 		list[i] = objs[i].Key
 	}
