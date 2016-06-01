@@ -57,5 +57,5 @@ func auth(key string) error {
 }
 
 func isMasterKey(key string) bool {
-	return strings.EqualFold(*pref.Masterkey, key)
+	return strings.EqualFold(pref.MasterKey, key)
 }

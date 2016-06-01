@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"io/ioutil"
 	"log"
 	"os"
@@ -17,47 +16,40 @@ import (
 	"internal/server"
 )
 
-var (
-	flagNATS      = flag.String("nats", "nats://user:pass@host:4222", "NATS server address")
-	flagMinio     = flag.String("minio", "http://127.0.0.1:9000", "Minio S3 object storage address")
-	flagMinioAKey = flag.String("minio-akey", "", "Minio S3 access key")
-	flagMinioSKey = flag.String("minio-skey", "", "Minio S3 secret key")
-	flagRedis     = flag.String("redis", "redis://127.0.0.1:6379", "Redis server address")
-	flagHost      = flag.String("host", "http://127.0.0.1:8080", "Host server address")
-)
-
 func main() {
-	flag.Parse()
-	l := makeLogger(*pref.Verbose)
+	pref.Init()
+	l := makeLogger(pref.Verbose)
 
-	err := initDepend(l)
+	var err error
+	err = nats.Run(pref.NATS, l)
 	if err != nil {
-		l.Fatalf("main: %v", err)
-	}
-}
-
-func initDepend(l *log.Logger) error {
-	err := nats.Run(*flagNATS, l)
-	if err != nil {
-		return err
+		goto fail
 	}
 
-	err = minio.Run(*flagMinio, *flagMinioAKey, *flagMinioSKey, l)
+	err = minio.Run(pref.Minio, pref.MinioAKey, pref.MinioSKey, l)
 	if err != nil {
-		return err
+		goto fail
 	}
 
-	err = redis.Run(*flagRedis, l)
+	err = redis.Run(pref.Redis, l)
 	if err != nil {
-		return err
+		goto fail
 	}
 
 	err = api.Reg()
 	if err != nil {
-		return err
+		goto fail
 	}
 
-	return server.Run(*flagHost, nil)
+	err = server.Run(pref.Host, nil)
+	if err != nil {
+		goto fail
+	}
+
+fail:
+	if err != nil {
+		l.Fatalf("main: %v", err)
+	}
 }
 
 func makeLogger(v bool) *log.Logger {
