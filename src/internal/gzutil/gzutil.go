@@ -62,7 +62,7 @@ func PutReader(c io.Closer) error {
 
 // GetWriter gets writer from pool.
 func GetWriter() (*gzip.Writer, error) {
-	switch w := readerPool.Get().(type) {
+	switch w := writerPool.Get().(type) {
 	case *gzip.Writer:
 		return w, nil
 	case error:
