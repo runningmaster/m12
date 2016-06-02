@@ -14,9 +14,9 @@ var genUUID = fastuuid.MustNewGenerator()
 
 func pipeHead(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = ctxWithTime(ctx, time.Now())
 		ctx = ctxWithUUID(ctx, nextUUID())
-		ctx = ctxWithAddr(ctx, mineAddr(r))
+		ctx = ctxWithHost(ctx, mineHost(r))
+		ctx = ctxWithTime(ctx, time.Now())
 		h(ctx, w, r)
 	}
 }
@@ -25,16 +25,22 @@ func nextUUID() string {
 	return fmt.Sprintf("%x", genUUID.Next())[:16]
 }
 
-func mineAddr(r *http.Request) string {
-	var ip string
-	if ip = r.Header.Get("X-Forwarded-For"); ip == "" {
-		ip = r.Header.Get("X-Real-IP")
+func mineHost(r *http.Request) string {
+	h := r.Header.Get("X-Forwarded-For")
+	if h != "" {
+		return h
 	}
 
-	if ip == "" {
-		ip = r.RemoteAddr
+	h = r.Header.Get("X-Real-IP")
+	if h != "" {
+		return h
 	}
-	ip, _, _ = net.SplitHostPort(ip)
 
-	return ip
+	var err error
+	h, _, err = net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		h = "?.?.?.?"
+	}
+
+	return h
 }

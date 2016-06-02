@@ -14,7 +14,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 		inf := informer{ctx, w, r}
 		val := []interface{}{
 			markEmpty(inf.uuid()),
-			markEmpty(inf.addr()),
+			markEmpty(inf.host()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
 			markEmpty(inf.auth()),
@@ -56,8 +56,8 @@ func (i informer) method() string {
 	return i.r.Method
 }
 
-func (i informer) addr() string {
-	return addrFromCtx(i.c)
+func (i informer) host() string {
+	return hostFromCtx(i.c)
 }
 
 func (i informer) agent() string {

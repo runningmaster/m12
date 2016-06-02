@@ -83,7 +83,7 @@ func injectIntoMETA(ctx context.Context, h http.Header) error {
 	uuid := uuidFromCtx(ctx)
 	info := fmt.Sprintf(`{ "uuid": %q, "host": %q, "auth": %q, "time": %d, `,
 		uuid,
-		addrFromCtx(ctx),
+		hostFromCtx(ctx),
 		authFromCtx(ctx),
 		timeFromCtx(ctx).Unix(),
 	)
