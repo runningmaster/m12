@@ -18,20 +18,19 @@ import (
 
 func main() {
 	pref.Init()
-	l := makeLogger(pref.Verbose)
+	initLogger(pref.Verbose)
 
-	var err error
-	err = nats.Run(pref.NATS, l)
+	err := nats.Run(pref.NATS)
 	if err != nil {
 		failFast(err)
 	}
 
-	err = minio.Run(pref.Minio, pref.MinioAKey, pref.MinioSKey, l)
+	err = minio.Run(pref.Minio, pref.MinioAKey, pref.MinioSKey)
 	if err != nil {
 		failFast(err)
 	}
 
-	err = redis.Run(pref.Redis, l)
+	err = redis.Run(pref.Redis)
 	if err != nil {
 		failFast(err)
 	}
@@ -41,20 +40,20 @@ func main() {
 		failFast(err)
 	}
 
-	err = server.Run(pref.Host, nil)
+	err = server.Run(pref.Host)
 	if err != nil {
 		failFast(err)
 	}
 }
 
-func failFast(err error) {
-	log.Fatalln("main: %v", err)
+func initLogger(v bool) {
+	log.SetFlags(0)
+	log.SetOutput(ioutil.Discard)
+	if v {
+		log.SetOutput(os.Stderr)
+	}
 }
 
-func makeLogger(v bool) *log.Logger {
-	out := ioutil.Discard
-	if v {
-		out = os.Stderr
-	}
-	return log.New(out, "", 0)
+func failFast(err error) {
+	log.Fatalf("main: %v", err)
 }

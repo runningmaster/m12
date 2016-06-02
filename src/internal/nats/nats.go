@@ -3,22 +3,14 @@ package nats
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"log"
 
 	"github.com/nats-io/nats"
 )
 
-var (
-	cli    *nats.Conn
-	logger = log.New(ioutil.Discard, "", log.LstdFlags)
-)
+var cli *nats.Conn
 
-func Run(addr string, l *log.Logger) error {
-	if l != nil {
-		logger = l
-	}
-
+func Run(addr string) error {
 	var err error
 	cli, err = nats.Connect(addr, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
 	if err != nil {
@@ -35,7 +27,7 @@ func ListenAndServe(subject string, serveFunc func([]byte) error) {
 		}
 		err := serveFunc(m.Data)
 		if err != nil {
-			logger.Println(err)
+			log.Println(err)
 		}
 	})
 }

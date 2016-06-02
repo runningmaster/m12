@@ -3,24 +3,15 @@ package minio
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/url"
 
 	minio "github.com/minio/minio-go"
 )
 
-var (
-	cli    *minio.Client
-	logger = log.New(ioutil.Discard, "", log.LstdFlags)
-)
+var cli *minio.Client
 
 // Run FIXME
-func Run(addr, akey, skey string, l *log.Logger) error {
-	if l != nil {
-		logger = l
-	}
-
+func Run(addr, akey, skey string) error {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return err

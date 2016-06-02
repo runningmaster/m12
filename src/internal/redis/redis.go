@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -16,16 +14,9 @@ import (
 
 const statusOK = "OK"
 
-var (
-	cli    *redis.Pool
-	logger = log.New(ioutil.Discard, "", log.LstdFlags)
-)
+var cli *redis.Pool
 
-func Run(addr string, l *log.Logger) error {
-	if l != nil {
-		logger = l
-	}
-
+func Run(addr string) error {
 	cli = &redis.Pool{
 		Dial:        dial(addr),
 		MaxIdle:     100,
