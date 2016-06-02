@@ -38,6 +38,10 @@ github.com/minio/minio-go
 # https://godoc.org/github.com/nats-io/nats
 github.com/nats-io/nats
 
+# Package mini implements a simple ini file parser.
+# https://godoc.org/github.com/sasbury/mini
+github.com/sasbury/mini
+
 ### Below some alternatives for consideration ###
 
 # A unique identifier generator that is high performance, very fast, and tries to be entropy pool friendly.
