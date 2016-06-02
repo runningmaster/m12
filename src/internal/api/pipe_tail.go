@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -12,7 +13,7 @@ import (
 func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
-		val := []interface{}{
+		log.Println( // log.New() ?
 			markEmpty(inf.uuid()),
 			markEmpty(inf.host()),
 			markEmpty(inf.method()),
@@ -21,11 +22,10 @@ func pipeTail(h handlerFunc) handlerFunc {
 			inf.code(),
 			bytefmt.ByteSize(uint64(inf.clen())),
 			bytefmt.ByteSize(uint64(inf.size())),
-			markEmpty(inf.fail()),
 			markEmpty(inf.time()),
 			markEmpty(inf.agent()),
-		}
-		log.Println(val...)
+			markEmpty(inf.fail()),
+		)
 		//if h != nil {
 		//	h(ctx, w, r)
 		//}
@@ -88,7 +88,7 @@ func (i informer) size() int64 {
 func (i informer) fail() string {
 	err := failFromCtx(i.c)
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("err: %v", err)
 	}
 	return ""
 }
