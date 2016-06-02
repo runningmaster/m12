@@ -13,6 +13,7 @@ const (
 	ctxHost
 	ctxAuth
 	ctxFail
+	ctxClen
 	ctxSize
 	ctxCode
 	ctxTime
@@ -48,6 +49,14 @@ func ctxWithFail(ctx context.Context, v error) context.Context {
 
 func failFromCtx(ctx context.Context) error {
 	return errorFromContext(ctx, ctxFail)
+}
+
+func ctxWithClen(ctx context.Context, v int64) context.Context {
+	return context.WithValue(ctx, ctxClen, v)
+}
+
+func clenFromCtx(ctx context.Context) int64 {
+	return int64FromContext(ctx, ctxClen)
 }
 
 func ctxWithSize(ctx context.Context, v int64) context.Context {

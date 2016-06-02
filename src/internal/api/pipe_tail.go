@@ -19,6 +19,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 			markEmpty(inf.path()),
 			markEmpty(inf.auth()),
 			inf.code(),
+			bytefmt.ByteSize(uint64(inf.clen())),
 			bytefmt.ByteSize(uint64(inf.size())),
 			markEmpty(inf.fail()),
 			markEmpty(inf.time()),
@@ -74,6 +75,10 @@ func (i informer) auth() string {
 
 func (i informer) code() int64 {
 	return codeFromCtx(i.c)
+}
+
+func (i informer) clen() int64 {
+	return clenFromCtx(i.c)
 }
 
 func (i informer) size() int64 {

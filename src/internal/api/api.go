@@ -100,15 +100,13 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		return with500(ctx, fmt.Errorf("api: core method not found"))
 	}
 
-	var (
-		buf = new(bytes.Buffer)
-		err error
-	)
+	var buf = new(bytes.Buffer)
 	if r.Method == "POST" {
-		_, err = io.Copy(buf, r.Body)
+		n, err := io.Copy(buf, r.Body)
 		if err != nil {
-			return with500(ctx, err)
+			return with500(ctxWithClen(ctx, n), err)
 		}
+		ctx = ctxWithClen(ctx, n)
 	}
 
 	var hr core.HTTPHeadReader
@@ -139,7 +137,7 @@ func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		return ctxWithCode(ctxWithSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
 	}
 
-	return withZero(ctx, fmt.Errorf("api: unreachable"), 0)
+	return ctxWithSize(ctxWithFail(ctx, fmt.Errorf("api: unreachable")), 0)
 }
 
 func writeJSON(ctx context.Context, w http.ResponseWriter, code int, data interface{}) (int64, error) {
@@ -166,27 +164,26 @@ func writeJSON(ctx context.Context, w http.ResponseWriter, code int, data interf
 	if err != nil {
 		return 0, err
 	}
-	size := int64(n)
 
 	_, err = w.Write([]byte("\n"))
 	if err != nil {
 		return 0, err
 	}
-	size++
+	n++
 
-	return size, nil
-}
-
-func withZero(ctx context.Context, err error, size int64) context.Context {
-	return ctxWithSize(ctxWithFail(ctx, err), size)
+	return int64(n), nil
 }
 
 func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
-	size, err := writeJSON(ctx, w, http.StatusOK, res)
+	n, err := writeJSON(ctx, w, http.StatusOK, res)
 	if err != nil {
-		return withZero(ctx, err, size)
+		return ctxWithSize(ctxWithFail(ctx, err), n)
 	}
-	return ctxWithCode(ctxWithSize(ctx, size), http.StatusOK)
+	return ctxWithCode(ctxWithSize(ctx, n), http.StatusOK)
+}
+
+func with500(ctx context.Context, err error) context.Context {
+	return ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError)
 }
 
 func withErr(ctx context.Context, code int) context.Context {
@@ -200,8 +197,4 @@ func with404(ctx context.Context, w http.ResponseWriter, r *http.Request) contex
 
 func with405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	return withErr(ctx, http.StatusMethodNotAllowed)
-}
-
-func with500(ctx context.Context, err error) context.Context {
-	return ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError)
 }
