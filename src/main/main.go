@@ -23,33 +23,32 @@ func main() {
 	var err error
 	err = nats.Run(pref.NATS, l)
 	if err != nil {
-		goto fail
+		failFast(err)
 	}
 
 	err = minio.Run(pref.Minio, pref.MinioAKey, pref.MinioSKey, l)
 	if err != nil {
-		goto fail
+		failFast(err)
 	}
 
 	err = redis.Run(pref.Redis, l)
 	if err != nil {
-		goto fail
+		failFast(err)
 	}
 
 	err = api.Reg()
 	if err != nil {
-		goto fail
+		failFast(err)
 	}
 
 	err = server.Run(pref.Host, nil)
 	if err != nil {
-		goto fail
+		failFast(err)
 	}
+}
 
-fail:
-	if err != nil {
-		l.Fatalf("main: %v", err)
-	}
+func failFast(err error) {
+	log.Fatalln("main: %v", err)
 }
 
 func makeLogger(v bool) *log.Logger {
