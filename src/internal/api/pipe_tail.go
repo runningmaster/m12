@@ -24,7 +24,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 			bytefmt.ByteSize(uint64(inf.size())),
 			markEmpty(inf.time()),
 			markEmpty(inf.agent()),
-			markEmpty(inf.fail()),
+			inf.fail(),
 		)
 		//if h != nil {
 		//	h(ctx, w, r)
