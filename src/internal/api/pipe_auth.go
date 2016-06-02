@@ -26,7 +26,7 @@ func pipeAuth(h handlerFunc) handlerFunc {
 		h(ctxWithAuth(ctx, key), w, r)
 		return // success
 	fail:
-		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusForbidden), w, r)
+		h(ctxWithCode(ctxWithFail(ctxWithAuth(ctx, key), err), http.StatusForbidden), w, r)
 	}
 }
 
