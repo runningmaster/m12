@@ -39,7 +39,7 @@ func (w *gzipResponseWriter) CloseNotify() <-chan bool {
 
 func pipeGzip(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		if gzutil.IsGzipInString(r.Header.Get("Accept-Encoding")) {
+		if gzutil.IsGzipInString(r.Header.Get("Content-Encoding")) {
 			z, err := gzutil.GetReader()
 			if err != nil {
 				// FIXME log err
@@ -52,7 +52,7 @@ func pipeGzip(h handlerFunc) handlerFunc {
 			r.Body = z
 		}
 
-		if gzutil.IsGzipInString(r.Header.Get("Content-Encoding")) {
+		if gzutil.IsGzipInString(r.Header.Get("Accept-Encoding")) {
 			z, err := gzutil.GetWriter()
 			if err != nil {
 				// FIXME TODO log err
