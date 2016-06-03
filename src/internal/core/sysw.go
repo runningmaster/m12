@@ -162,16 +162,20 @@ func setLinkAddr(v ...*linkAddr) (interface{}, error) {
 		if v[i] == nil {
 			v[i] = &linkAddr{} // workaround for nil: set "empty" value
 		}
-		vls = make([]interface{}, len(fldsAddr)*2+1)
-		vls[0] = v[i].ID
-		vls[1] = fldsAddr[0] // "l"
-		vls[2] = v[i].IDLink
-		vls[3] = fldsAddr[1] // "a"
-		vls[4] = v[i].IDAddr
-		vls[5] = fldsAddr[2] // "s"
-		vls[6] = v[i].IDStat
-		vls[7] = fldsAddr[3] // "e"
-		vls[8] = v[i].EGRPOU
+		vls = make([]interface{}, 0, len(fldsAddr)*2+1)
+		vls = append(vls, v[i].ID)
+		if v[i].IDLink != 0 { // "l"
+			vls = append(vls, fldsAddr[0], v[i].IDLink)
+		}
+		if v[i].IDAddr != 0 { // "a"
+			vls = append(vls, fldsAddr[1], v[i].IDAddr)
+		}
+		if v[i].IDStat != 0 { // "s"
+			vls = append(vls, fldsAddr[2], v[i].IDStat)
+		}
+		if v[i].EGRPOU != "" { // "e"
+			vls = append(vls, fldsAddr[3], v[i].EGRPOU)
+		}
 		vlm[i] = vls
 	}
 
@@ -265,18 +269,24 @@ func setLinkDrug(v ...*linkDrug) (interface{}, error) {
 		if v[i] == nil {
 			v[i] = &linkDrug{} // workaround for nil: set "empty" value
 		}
-		vls = make([]interface{}, len(fldsDrug)*2+1)
-		vls[0] = v[i].ID
-		vls[1] = fldsDrug[0] // "l"
-		vls[2] = v[i].IDLink
-		vls[3] = fldsDrug[1] // "d"
-		vls[4] = v[i].IDDrug
-		vls[5] = fldsDrug[2] // "b"
-		vls[6] = v[i].IDBrnd
-		vls[7] = fldsDrug[3] // "c"
-		vls[8] = v[i].IDCatg
-		vls[9] = fldsDrug[4] // "s"
-		vls[10] = v[i].IDStat
+		vls = make([]interface{}, 0, len(fldsDrug)*2+1)
+		vls = append(vls, v[i].ID)
+
+		if v[i].IDLink != 0 { // "l"
+			vls = append(vls, fldsDrug[0], v[i].IDLink)
+		}
+		if v[i].IDDrug != 0 { // "d"
+			vls = append(vls, fldsDrug[1], v[i].IDDrug)
+		}
+		if v[i].IDBrnd != 0 { // "b"
+			vls = append(vls, fldsDrug[2], v[i].IDBrnd)
+		}
+		if v[i].IDCatg != 0 { // "c"
+			vls = append(vls, fldsDrug[3], v[i].IDCatg)
+		}
+		if v[i].IDStat != 0 { // "s"
+			vls = append(vls, fldsDrug[4], v[i].IDStat)
+		}
 		vlm[i] = vls
 	}
 
