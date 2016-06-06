@@ -116,11 +116,7 @@ func writeToTar(name string, data []byte, w *tar.Writer) error {
 	}
 
 	_, err = w.Write(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func untarMetaData(rc io.Reader) ([]byte, []byte, error) {

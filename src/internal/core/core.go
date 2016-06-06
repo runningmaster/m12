@@ -20,8 +20,8 @@ const (
 	subjectSteamIn  = backetStreamIn + ".67a7ea16"
 	subjectSteamOut = backetStreamOut + ".0566ce58"
 
-	listN = 10
-	tickD = time.Second
+	listN = 100
+	tickD = 10 * time.Second
 )
 
 type HTTPHeadReader interface {
@@ -48,7 +48,11 @@ func Init() error {
 		return err
 	}
 
-	go nats.ListenAndServe(backetStreamIn, proc)
+	err = nats.ListenAndServe(backetStreamIn, proc)
+	if err != nil {
+		return err
+	}
+
 	go publishing(backetStreamOut, subjectSteamOut, listN, tickD)
 	go publishing(backetStreamIn, subjectSteamIn, listN, tickD)
 
@@ -57,7 +61,7 @@ func Init() error {
 
 func publishing(backet, subject string, n int, d time.Duration) {
 	var err error
-	for _ = range time.Tick(d) {
+	for range time.Tick(d) {
 		err = publish(backet, subject, n)
 		if err != nil {
 			log.Println(err)

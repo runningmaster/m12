@@ -20,8 +20,8 @@ func Run(addr string) error {
 	return nil
 }
 
-func ListenAndServe(subject string, serveFunc func([]byte) error) {
-	cli.Subscribe(subject, func(m *nats.Msg) {
+func ListenAndServe(subject string, serveFunc func([]byte) error) error {
+	_, err := cli.Subscribe(subject, func(m *nats.Msg) {
 		if serveFunc == nil {
 			return
 		}
@@ -30,6 +30,7 @@ func ListenAndServe(subject string, serveFunc func([]byte) error) {
 			log.Println(err)
 		}
 	})
+	return err
 }
 
 func PublishEach(subject string, list ...[]byte) error {

@@ -32,10 +32,10 @@ http://localhost:8080/sys/get-link-addr
 
 
 curl -v -k -X 'POST' \
--u 'api:key-masterkey' \
+-u 'api:key-sysdba' \
 -H 'Content-Encoding: gzip' \
 -H 'Content-Type: application/json; charset=utf-8' \
 -H 'Content-Meta: ewogICJwa2V5IjogIm1hc3RlcmtleSIsCiAgImh0YWciOiAiZ2VvYXB0LnVhIiwKICAibmFtZSI6ICLQkNC/0YLQtdC60LAgMyIsCiAgImhlYWQiOiAi0JHQhtCb0JAg0KDQntCc0JDQqNCa0JAiLAogICJhZGRyIjogItCR0L7RgNC40YHQv9C+0LvRjCDRg9C7LiDQmtC40LXQstGB0LrQuNC5INCo0LvRj9GFLCA5OCIsCiAgImNvZGUiOiAiMTIzNDU2Igp9' \
 -T 'data.json.gz' \
-http://localhost:8080/upload
+http://localhost:8080/stream/put-data
 
