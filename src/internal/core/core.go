@@ -110,7 +110,7 @@ type meta struct {
 	Addr string `json:"addr,omitempty"` // *
 	Code string `json:"code,omitempty"` // egrpou (okpo)
 
-	Link linkAddr `json:"link,omitempty"` // ?
+	Link *linkAddr `json:"link,omitempty"` // ?
 
 	ETag string `json:"etag,omitempty"`
 	Size int64  `json:"size,omitempty"`
@@ -198,57 +198,57 @@ type linkStat struct {
 }
 
 type itemV3Geoa struct {
-	ID    string   `json:"id,omitempty"`
-	Name  string   `json:"name,omitempty"`
-	Quant float64  `json:"quant,omitempty"`
-	Price float64  `json:"price,omitempty"`
-	URL   string   `json:"url,omitempty"` // formerly link -> addr, home, url (?)
-	Link  linkDrug `json:"link,omitempty"`
+	ID    string    `json:"id,omitempty"`
+	Name  string    `json:"name,omitempty"`
+	Quant float64   `json:"quant,omitempty"`
+	Price float64   `json:"price,omitempty"`
+	URL   string    `json:"url,omitempty"` // formerly link -> addr, home, url (?)
+	Link  *linkDrug `json:"link,omitempty"`
 }
 
 type itemV3Sale struct {
-	ID        string   `json:"id,omitempty"`
-	Name      string   `json:"name,omitempty"`
-	QuantIn   float64  `json:"quant_in,omitempty"`
-	PriceIn   float64  `json:"price_in,omitempty"`
-	QuantOut  float64  `json:"quant_out,omitempty"`
-	PriceOut  float64  `json:"price_out,omitempty"`
-	Stock     float64  `json:"stock,omitempty"`
-	Reimburse bool     `json:"reimburse,omitempty"`
-	SuppName  string   `json:"supp_name,omitempty"`
-	SuppCode  string   `json:"supp_code,omitempty"`
-	LinkAddr  linkAddr `json:"link_addr,omitempty"`
-	LinkDrug  linkDrug `json:"link_drug,omitempty"`
+	ID        string    `json:"id,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	QuantIn   float64   `json:"quant_in,omitempty"`
+	PriceIn   float64   `json:"price_in,omitempty"`
+	QuantOut  float64   `json:"quant_out,omitempty"`
+	PriceOut  float64   `json:"price_out,omitempty"`
+	Stock     float64   `json:"stock,omitempty"`
+	Reimburse bool      `json:"reimburse,omitempty"`
+	SuppName  string    `json:"supp_name,omitempty"`
+	SuppCode  string    `json:"supp_code,omitempty"`
+	LinkAddr  *linkAddr `json:"link_addr,omitempty"`
+	LinkDrug  *linkDrug `json:"link_drug,omitempty"`
 }
 
-type itemV3Soby struct {
-	ID       string   `json:"id,omitempty"`
-	Name     string   `json:"name,omitempty"`
-	QuantIn  float64  `json:"quant_in,omitempty"` // formerly QuantInp
-	PriceIn  float64  `json:"price_in,omitempty"` // formerly PriceInp
-	QuantOut float64  `json:"quant_out,omitempty"`
-	PriceOut float64  `json:"price_out,omitempty"`
-	PriceRoc float64  `json:"price_roc,omitempty"`
-	Stock    float64  `json:"stock,omitempty"`     // formerly Balance
-	StockTab float64  `json:"stock_tab,omitempty"` // formerly BalanceT
-	Link     linkDrug `json:"link,omitempty"`
+type itemV3SaleBy struct {
+	ID       string    `json:"id,omitempty"`
+	Name     string    `json:"name,omitempty"`
+	QuantIn  float64   `json:"quant_in,omitempty"` // formerly QuantInp
+	PriceIn  float64   `json:"price_in,omitempty"` // formerly PriceInp
+	QuantOut float64   `json:"quant_out,omitempty"`
+	PriceOut float64   `json:"price_out,omitempty"`
+	PriceRoc float64   `json:"price_roc,omitempty"`
+	Stock    float64   `json:"stock,omitempty"`     // formerly Balance
+	StockTab float64   `json:"stock_tab,omitempty"` // formerly BalanceT
+	Link     *linkDrug `json:"link,omitempty"`
 }
 
 type linkAddrer interface {
 	len() int
 	getSupp(int) string
-	setLinkAddr(int, linkAddr)
+	setLinkAddr(int, *linkAddr)
 }
 
 type linkDruger interface {
 	len() int
 	getName(int) string
-	setLinkDrug(int, linkDrug)
+	setLinkDrug(int, *linkDrug)
 }
 
-type listV3Geoa []itemV3Geoa
-type listV3Sale []itemV3Sale
-type listV3Soby []itemV3Soby
+type listV3Geoa []*itemV3Geoa
+type listV3Sale []*itemV3Sale
+type listV3SaleBy []*itemV3SaleBy
 
 func (l listV3Geoa) len() int {
 	return len(l)
@@ -258,7 +258,7 @@ func (l listV3Geoa) getName(i int) string {
 	return l[i].Name
 }
 
-func (l listV3Geoa) setLinkDrug(i int, link linkDrug) {
+func (l listV3Geoa) setLinkDrug(i int, link *linkDrug) {
 	l[i].Link = link
 }
 
@@ -270,7 +270,7 @@ func (l listV3Sale) getName(i int) string {
 	return l[i].Name
 }
 
-func (l listV3Sale) setLinkDrug(i int, link linkDrug) {
+func (l listV3Sale) setLinkDrug(i int, link *linkDrug) {
 	l[i].LinkDrug = link
 }
 
@@ -278,18 +278,18 @@ func (l listV3Sale) getSupp(i int) string {
 	return l[i].SuppName
 }
 
-func (l listV3Sale) setLinkAddr(i int, link linkAddr) {
+func (l listV3Sale) setLinkAddr(i int, link *linkAddr) {
 	l[i].LinkAddr = link
 }
 
-func (l listV3Soby) len() int {
+func (l listV3SaleBy) len() int {
 	return len(l)
 }
 
-func (l listV3Soby) getName(i int) string {
+func (l listV3SaleBy) getName(i int) string {
 	return l[i].Name
 }
 
-func (l listV3Soby) setLinkDrug(i int, link linkDrug) {
+func (l listV3SaleBy) setLinkDrug(i int, link *linkDrug) {
 	l[i].Link = link
 }

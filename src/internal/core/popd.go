@@ -16,12 +16,7 @@ func (p *popd) WriteHeader(h http.Header) {
 }
 
 func (p *popd) Work(data []byte) (interface{}, error) {
-	o, err := popObjectByJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	meta, data, err := untarMetaData(o)
+	meta, data, err := popMetaData(data)
 	if err != nil {
 		return nil, err
 	}

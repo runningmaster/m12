@@ -67,19 +67,12 @@ func PutObject(bucket, object string, r io.Reader) error {
 	return err
 }
 
-// PopObject FIXME
-func PopObject(bucket, object string) (io.Reader, error) {
-	obj, err := cli.GetObject(bucket, object)
-	if err != nil {
-		return nil, err
-	}
+func GetObject(bucket, object string) (io.ReadCloser, error) {
+	return cli.GetObject(bucket, object)
+}
 
-	err = cli.RemoveObject(bucket, object)
-	if err != nil {
-		return nil, err
-	}
-
-	return obj, nil
+func DelObject(bucket, object string) error {
+	return cli.RemoveObject(bucket, object)
 }
 
 // ListObjects FIXME

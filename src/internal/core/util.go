@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"internal/gzutil"
+	"internal/minio"
 
 	"github.com/spkg/bom"
 )
@@ -119,10 +120,8 @@ func writeToTar(name string, data []byte, w *tar.Writer) error {
 	return err
 }
 
-func untarMetaData(rc io.Reader) ([]byte, []byte, error) {
-	//defer func() { _ = rc.Close() }()
-
-	tr := tar.NewReader(rc)
+func untarMetaData(r io.Reader) ([]byte, []byte, error) {
+	tr := tar.NewReader(r)
 	var (
 		meta = new(bytes.Buffer)
 		data = new(bytes.Buffer)
@@ -148,4 +147,32 @@ func untarMetaData(rc io.Reader) ([]byte, []byte, error) {
 	}
 
 	return meta.Bytes(), data.Bytes(), nil
+}
+
+func popMetaData(data []byte) ([]byte, []byte, error) {
+	p, err := unmarshaJSONpair(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	o, err := minio.GetObject(p.Backet, p.Object)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() {
+		if o == nil {
+			return
+		}
+		err := o.Close()
+		if err != nil {
+			// log.
+			return
+		}
+		err = minio.DelObject(p.Backet, p.Object)
+		if err != nil {
+			// log.
+		}
+	}()
+
+	return untarMetaData(o)
 }

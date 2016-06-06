@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"path/filepath"
 	"strings"
 
@@ -43,30 +42,8 @@ var htags = map[string]struct{}{
 	"sale-out.daily.ua":   {},
 }
 
-func findLinkAddr(keys ...string) ([]linkAddr, error) {
-	return nil, nil
-}
-
-func findLinkDrug(keys ...string) ([]linkDrug, error) {
-	return nil, nil
-}
-
-func popObjectByJSON(data []byte) (io.Reader, error) {
-	p, err := unmarshaJSONpair(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return minio.PopObject(p.Backet, p.Object)
-}
-
 func proc(data []byte) error {
-	o, err := popObjectByJSON(data)
-	if err != nil {
-		return err
-	}
-
-	meta, data, err := untarMetaData(o)
+	meta, data, err := popMetaData(data)
 	if err != nil {
 		return err
 	}
@@ -92,10 +69,7 @@ func proc(data []byte) error {
 			// log.
 		}
 	}()
-	//goToStreamOut(m.ID, t)
-
-	//goToStreamErr(m.ID, ?)
-
+	//goToStreamErr(m.ID, ?) // FIXME
 	return nil
 }
 
@@ -129,13 +103,10 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
-func findLinkMeta(m meta) (linkAddr, error) {
-	if m.Name == "" {
-		return linkAddr{}, nil
-	}
-	l, err := findLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
+func findLinkMeta(m meta) (*linkAddr, error) {
+	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 	if err != nil {
-		return linkAddr{}, err
+		return nil, err
 	}
 	return l[0], nil
 }
@@ -175,7 +146,7 @@ func mineLinks(t string, data []byte) ([]byte, error) {
 	case isGeo(t):
 		src = listV3Geoa{}
 	case isSaleBY(t):
-		src = listV3Soby{}
+		src = itemV3SaleBy{}
 	default:
 		src = listV3Sale{}
 	}
@@ -223,13 +194,9 @@ func mineLinkDrug(t string, l linkDruger) error {
 		keys[i] = strToSHA1(name)
 	}
 
-	lds, err := findLinkDrug(keys...)
+	lds, err := getLinkDrug(keys...)
 	if err != nil {
 		return err
-	}
-
-	if len(lds) != l.len() {
-		return fmt.Errorf("core: proc: invalid len (name): got %d, want %d", len(lds), l.len())
 	}
 
 	for i := 0; i < l.len(); i++ {
@@ -245,13 +212,9 @@ func mineLinkAddr(l linkAddrer) error {
 		keys[i] = strToSHA1(makeMagicAddr(l.getSupp(i)))
 	}
 
-	lds, err := findLinkAddr(keys...)
+	lds, err := getLinkAddr(keys...)
 	if err != nil {
 		return err
-	}
-
-	if len(lds) != l.len() {
-		return fmt.Errorf("core: proc: invalid len (supp): got %d, want %d", len(lds), l.len())
 	}
 
 	for i := 0; i < l.len(); i++ {
