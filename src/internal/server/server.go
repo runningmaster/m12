@@ -3,8 +3,10 @@ package server
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/labstack/echo"
@@ -32,7 +34,7 @@ func Run(addr string) error {
 		return err
 	}
 
-	return graceful.ListenAndServe(s, 5*time.Second)
+	return s.ListenAndServe()
 }
 
 // RegHandler is called from another packages
@@ -49,7 +51,7 @@ func initRouter(r *echo.Echo, reg ...regHandler) error {
 		case echo.POST:
 			r.Post(v.p, standard.WrapHandler(v.h))
 		default:
-			return fmt.Errorf("router: unsupported method")
+			return fmt.Errorf("server: unsupported method")
 		}
 	}
 	return nil
@@ -86,7 +88,7 @@ func makeRouter() (*echo.Echo, error) {
 	return r, nil
 }
 
-func makeServer(addr string) (*http.Server, error) {
+func makeServer(addr string) (*graceful.Server, error) {
 	r, err := makeRouter()
 	if err != nil {
 		return nil, err
@@ -95,5 +97,9 @@ func makeServer(addr string) (*http.Server, error) {
 	s := standard.New(addr)
 	s.SetHandler(r)
 
-	return s.Server, nil
+	return &graceful.Server{
+			Server:  s.Server,
+			Timeout: 5 * time.Second,
+			Logger:  log.New(os.Stderr, "server: ", 0)},
+		nil
 }
