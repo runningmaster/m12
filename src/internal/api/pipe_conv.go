@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"strings"
 
 	"golang.org/x/net/context"
 )
@@ -53,7 +54,8 @@ func convHTag(r *http.Request) {
 	}
 
 	if v != "" {
-		r.Header.Set("Content-Meta", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`{ "htag": %q }`, v))))
+		v = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`{ "htag": %q }`, strings.ToLower(v))))
+		r.Header.Set("Content-Meta", v)
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		r.Header.Set("Content-Encoding", "gzip")
 	}

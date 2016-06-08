@@ -1,8 +1,12 @@
 package core
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"internal/gzutil"
 )
 
 var Conv = &convWorker{}
@@ -16,69 +20,167 @@ func (w *convWorker) ReadHeader(h http.Header) {
 }
 
 func (w *convWorker) Work(data []byte) (interface{}, error) {
+	pos := bytes.IndexByte(w.meta, '.')
+	meta := w.meta[pos+1:]
 
-	//	go func() { // ?
-	//		err := minio.PutObject(backetStreamIn, uuid, t)
-	//		if err != nil {
-	//			// log.
-	//		}
-	//	}()
+	m, err := unmarshalBase64meta(meta)
+	if err != nil {
+		return nil, err
+	}
 
-	return "uuid", nil
+	t := m.HTag
+	var v interface{}
+	switch {
+	case isGeoV2(t):
+		v, err = convGeo2(data, &m)
+	case isGeoV1(t):
+		v, err = convGeo1(data, &m)
+	case isSaleBY(t):
+		v, err = convSaleBy(data, &m)
+	default:
+		v, err = convSale(data, &m)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	data, err = json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err = gzutil.Gzip(data)
+	if err != nil {
+		return nil, err
+	}
+
+	m.HTag = convHTag[t]
+
+	meta = []byte(fmt.Sprintf("%s.%s", m.UUID, string(m.marshalBase64())))
+	putd := &putdWorker{meta}
+	return putd.Work(data)
 }
 
-func convSale(src *jsonV1Sale) (*jsonMeta, jsonV3Sale, error) {
-	if len(src.Data) == 0 {
-		return nil, nil, fmt.Errorf("core: conv data: no data")
-	}
-	if len(src.Data[0].Item) == 0 {
-		return nil, nil, fmt.Errorf("core: conv data: no data items")
+func unmarshalSale(data []byte) (*jsonV1Sale, error) {
+	v := &jsonV1Sale{}
+
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
 	}
 
-	data := make(jsonV3Sale, len(src.Data[0].Item))
-	for i := range src.Data[0].Item {
-		_ = src.Data[0].Item[i]
-	}
-	return nil, data, nil
+	return v, nil
 }
 
-func convSaleBy(src *jsonV1SaleBy) (*jsonMeta, jsonV3SaleBy, error) {
-	if len(src.Data) == 0 {
-		return nil, nil, fmt.Errorf("core: conv data: no data")
-	}
-	if len(src.Data[0].Item) == 0 {
-		return nil, nil, fmt.Errorf("core: conv data: no data items")
+func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
+	v, err := unmarshalSale(data)
+	if err != nil {
+		return nil, err
 	}
 
-	data := make(jsonV3SaleBy, len(src.Data[0].Item))
-	for i := range src.Data[0].Item {
-		_ = src.Data[0].Item[i]
+	if len(v.Data) == 0 {
+		return nil, fmt.Errorf("core: conv data: no data")
 	}
-	return nil, data, nil
+	if len(v.Data[0].Item) == 0 {
+		return nil, fmt.Errorf("core: conv data: no data items")
+	}
+
+	d := make(jsonV3Sale, len(v.Data[0].Item))
+	for i := range v.Data[0].Item {
+		_ = v.Data[0].Item[i]
+	}
+
+	return d, nil
 }
 
-func convGeo1(src *jsonV1Geoa) (*jsonMeta, jsonV3Geoa, error) {
-	if len(src.Data) == 0 {
-		return nil, nil, fmt.Errorf("core: conv data: no data")
+func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
+	v := &jsonV1SaleBy{}
+
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
 	}
 
-	data := make(jsonV3Geoa, len(src.Data))
-	for i := range src.Data {
-		_ = src.Data[i]
-	}
-	return nil, data, nil
+	return v, nil
 }
 
-func convGeo2(src *jsonV2Geoa) (*jsonMeta, jsonV3Geoa, error) {
-	if len(src.Data) == 0 {
-		return nil, nil, fmt.Errorf("core: conv data: no data")
+func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
+	v, err := unmarshalSaleBy(data)
+	if err != nil {
+		return nil, err
 	}
 
-	data := make(jsonV3Geoa, len(src.Data))
-	for i := range src.Data {
-		_ = src.Data[i]
+	if len(v.Data) == 0 {
+		return nil, fmt.Errorf("core: conv data: no data")
 	}
-	return nil, data, nil
+	if len(v.Data[0].Item) == 0 {
+		return nil, fmt.Errorf("core: conv data: no data items")
+	}
+
+	d := make(jsonV3SaleBy, len(v.Data[0].Item))
+	for i := range v.Data[0].Item {
+		_ = v.Data[0].Item[i]
+	}
+
+	return d, nil
+}
+
+func unmarshalGeo1(data []byte) (*jsonV1Geoa, error) {
+	v := &jsonV1Geoa{}
+
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+func convGeo1(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
+	v, err := unmarshalGeo1(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(v.Data) == 0 {
+		return nil, fmt.Errorf("core: conv data: no data")
+	}
+
+	d := make(jsonV3Geoa, len(v.Data))
+	for i := range v.Data {
+		_ = v.Data[i]
+	}
+
+	return d, nil
+}
+
+func unmarshalGeo2(data []byte) (*jsonV2Geoa, error) {
+	v := &jsonV2Geoa{}
+
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
+	v, err := unmarshalGeo2(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(v.Data) == 0 {
+		return nil, fmt.Errorf("core: conv data: no data")
+	}
+
+	d := make(jsonV3Geoa, len(v.Data))
+	for i := range v.Data {
+		_ = v.Data[i]
+	}
+
+	return d, nil
 }
 
 type jsonV1Sale struct {

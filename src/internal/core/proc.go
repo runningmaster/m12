@@ -42,6 +42,31 @@ var htags = map[string]struct{}{
 	"sale-out.daily.ua":   {},
 }
 
+var convHTag = map[string]string{
+	"__ version 1 __":          "",
+	"data.geostore":            "geoapt.ua",
+	"data.sale-inp.monthly":    "sale-in.monthly.ua",
+	"data.sale-inp.weekly":     "sale-in.weekly.ua",
+	"data.sale-inp.daily":      "sale-in.daily.ua",
+	"data.sale-out.monthly":    "sale-out.monthly.ua",
+	"data.sale-out.weekly":     "sale-out.weekly.ua",
+	"data.sale-out.daily":      "sale-out.daily.ua",
+	"__ version 2 __":          "",
+	"data.geoapt.ru":           "geoapt.ru",
+	"data.geoapt.ua":           "geoapt.ua",
+	"data.sale-inp.monthly.kz": "sale-out.monthly.kz",
+	"data.sale-inp.monthly.ua": "sale-in.monthly.ua",
+	"data.sale-inp.weekly.ua":  "sale-in.weekly.ua",
+	"data.sale-inp.daily.kz":   "sale-in.daily.kz",
+	"data.sale-inp.daily.ua":   "sale-in.daily.ua",
+	"data.sale-out.monthly.kz": "sale-out.monthly.kz",
+	"data.sale-out.monthly.ua": "sale-out.monthly.ua",
+	"data.sale-out.weekly.ua":  "sale-out.weekly.ua",
+	"data.sale-out.daily.by":   "sale-out.daily.by",
+	"data.sale-out.daily.kz":   "sale-out.daily.kz",
+	"data.sale-out.daily.ua":   "sale-out.daily.ua",
+}
+
 func proc(data []byte) error {
 	meta, data, err := popMetaData(data)
 	if err != nil {
@@ -114,7 +139,7 @@ func findLinkMeta(m jsonMeta) (*linkAddr, error) {
 func procData(htag string, data []byte) ([]byte, error) {
 	var err error
 
-	data, err = gunzip(data)
+	data, err = gzutil.Gunzip(data)
 	if err != nil {
 		return nil, err
 	}
@@ -269,6 +294,14 @@ func makeMagicDrugUA(name string) string {
 
 func isGeo(s string) bool {
 	return strings.Contains(s, "geo")
+}
+
+func isGeoV1(s string) bool {
+	return strings.Contains(s, "geostore")
+}
+
+func isGeoV2(s string) bool {
+	return strings.Contains(s, "geoapt")
 }
 
 func isSaleBY(s string) bool {

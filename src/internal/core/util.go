@@ -46,17 +46,9 @@ func isTypeUTF8(b []byte) bool {
 	return strings.Contains(http.DetectContentType(b), "text/plain; charset=utf-8")
 }
 
-func gunzip(b []byte) ([]byte, error) {
-	b, err := gzutil.Gunzip(b)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
 func mendIfGzip(b []byte) ([]byte, error) {
 	if isTypeGzip(b) {
-		return gunzip(b)
+		return gzutil.Gunzip(b)
 	}
 
 	return b, nil

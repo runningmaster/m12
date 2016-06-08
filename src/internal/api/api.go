@@ -55,7 +55,7 @@ var (
 		"POST:/stream/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Popd},
 
 		// Converter from old school style data/add DEPRECATED
-		"POST:/data/add": {use(pipeConv, pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Conv},
+		"POST:/data/add": {use(pipeGzip, pipeConv, pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Conv},
 
 		// => Debug mode only, when flag.Debug == true
 		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
