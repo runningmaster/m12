@@ -4,23 +4,23 @@ import (
 	"net/http"
 )
 
-var Popd = &popd{}
+var Popd = &popdWorker{}
 
-type popd struct {
+type popdWorker struct {
 	meta []byte
 }
 
-func (p *popd) WriteHeader(h http.Header) {
+func (w *popdWorker) WriteHeader(h http.Header) {
 	h.Set("Content-Encoding", "gzip")
-	h.Set("Content-Meta", string(p.meta))
+	h.Set("Content-Meta", string(w.meta))
 }
 
-func (p *popd) Work(data []byte) (interface{}, error) {
+func (w *popdWorker) Work(data []byte) (interface{}, error) {
 	meta, data, err := popMetaData(data)
 	if err != nil {
 		return nil, err
 	}
-	p.meta = meta
+	w.meta = meta
 
 	return data, nil
 }

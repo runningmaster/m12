@@ -93,7 +93,7 @@ func Info(_ []byte) (interface{}, error) {
 	return redis.Info()
 }
 
-type meta struct {
+type jsonMeta struct {
 	UUID string `json:"uuid,omitempty"`
 	Host string `json:"host,omitempty"`
 	Auth string `json:"auth,omitempty"`
@@ -116,26 +116,26 @@ type meta struct {
 	Size int64  `json:"size,omitempty"`
 }
 
-func unmarshalJSONmeta(b []byte) (meta, error) {
-	m := meta{}
+func unmarshalJSONmeta(b []byte) (jsonMeta, error) {
+	m := jsonMeta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func unmarshalBase64meta(b []byte) (meta, error) {
+func unmarshalBase64meta(b []byte) (jsonMeta, error) {
 	b, err := base64.StdEncoding.DecodeString(string(b))
 	if err != nil {
-		return meta{}, err
+		return jsonMeta{}, err
 	}
 	return unmarshalJSONmeta(b)
 }
 
-func (m meta) marshalJSON() []byte {
+func (m *jsonMeta) marshalJSON() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m meta) marshalBase64() []byte {
+func (m *jsonMeta) marshalBase64() []byte {
 	return []byte(base64.StdEncoding.EncodeToString(m.marshalJSON()))
 }
 
@@ -246,50 +246,50 @@ type linkDruger interface {
 	setLinkDrug(int, *linkDrug)
 }
 
-type listV3Geoa []*itemV3Geoa
-type listV3Sale []*itemV3Sale
-type listV3SaleBy []*itemV3SaleBy
+type jsonV3Geoa []itemV3Geoa
+type jsonV3Sale []itemV3Sale
+type jsonV3SaleBy []itemV3SaleBy
 
-func (l listV3Geoa) len() int {
-	return len(l)
+func (j jsonV3Geoa) len() int {
+	return len(j)
 }
 
-func (l listV3Geoa) getName(i int) string {
-	return l[i].Name
+func (j jsonV3Geoa) getName(i int) string {
+	return j[i].Name
 }
 
-func (l listV3Geoa) setLinkDrug(i int, link *linkDrug) {
-	l[i].Link = link
+func (j jsonV3Geoa) setLinkDrug(i int, l *linkDrug) {
+	j[i].Link = l
 }
 
-func (l listV3Sale) len() int {
-	return len(l)
+func (j jsonV3Sale) len() int {
+	return len(j)
 }
 
-func (l listV3Sale) getName(i int) string {
-	return l[i].Name
+func (j jsonV3Sale) getName(i int) string {
+	return j[i].Name
 }
 
-func (l listV3Sale) setLinkDrug(i int, link *linkDrug) {
-	l[i].LinkDrug = link
+func (j jsonV3Sale) setLinkDrug(i int, l *linkDrug) {
+	j[i].LinkDrug = l
 }
 
-func (l listV3Sale) getSupp(i int) string {
-	return l[i].SuppName
+func (j jsonV3Sale) getSupp(i int) string {
+	return j[i].SuppName
 }
 
-func (l listV3Sale) setLinkAddr(i int, link *linkAddr) {
-	l[i].LinkAddr = link
+func (j jsonV3Sale) setLinkAddr(i int, l *linkAddr) {
+	j[i].LinkAddr = l
 }
 
-func (l listV3SaleBy) len() int {
-	return len(l)
+func (j jsonV3SaleBy) len() int {
+	return len(j)
 }
 
-func (l listV3SaleBy) getName(i int) string {
-	return l[i].Name
+func (j jsonV3SaleBy) getName(i int) string {
+	return j[i].Name
 }
 
-func (l listV3SaleBy) setLinkDrug(i int, link *linkDrug) {
-	l[i].Link = link
+func (j jsonV3SaleBy) setLinkDrug(i int, l *linkDrug) {
+	j[i].Link = l
 }

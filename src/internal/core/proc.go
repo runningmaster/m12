@@ -73,7 +73,7 @@ func proc(data []byte) error {
 	return nil
 }
 
-func procMeta(data []byte, etag string, size int64) (meta, error) {
+func procMeta(data []byte, etag string, size int64) (jsonMeta, error) {
 	m, err := unmarshalBase64meta(data)
 	if err != nil {
 		return m, err
@@ -103,7 +103,7 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
-func findLinkMeta(m meta) (*linkAddr, error) {
+func findLinkMeta(m jsonMeta) (*linkAddr, error) {
 	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 	if err != nil {
 		return nil, err
@@ -144,11 +144,11 @@ func mineLinks(t string, data []byte) ([]byte, error) {
 
 	switch {
 	case isGeo(t):
-		src = listV3Geoa{}
+		src = jsonV3Geoa{}
 	case isSaleBY(t):
-		src = itemV3SaleBy{}
+		src = jsonV3SaleBy{}
 	default:
-		src = listV3Sale{}
+		src = jsonV3Sale{}
 	}
 
 	err := json.Unmarshal(data, &src)

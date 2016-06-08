@@ -32,7 +32,8 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 var (
 	mapCoreWorkers  map[string]core.Worker
 	mapHTTPHandlers = map[string]bundle{
-		"GET:/": {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
+		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
+		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
 
 		"POST:/system/get-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetAuth)},
 		"POST:/system/set-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
@@ -53,8 +54,10 @@ var (
 		"POST:/stream/put-data": {use(pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Putd},
 		"POST:/stream/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Popd},
 
+		// Converter from old school style data/add DEPRECATED
+		"POST:/data/add": {use(pipeConv, pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Conv},
+
 		// => Debug mode only, when flag.Debug == true
-		"GET:/debug/ping":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
 		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
 		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
 		"GET:/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof

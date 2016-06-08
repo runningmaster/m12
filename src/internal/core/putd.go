@@ -7,20 +7,20 @@ import (
 	"internal/minio"
 )
 
-var Putd = &putd{}
+var Putd = &putdWorker{}
 
-type putd struct {
+type putdWorker struct {
 	meta []byte
 }
 
-func (p *putd) ReadHeader(h http.Header) {
-	p.meta = []byte(h.Get("Content-Meta"))
+func (w *putdWorker) ReadHeader(h http.Header) {
+	w.meta = []byte(h.Get("Content-Meta"))
 }
 
-func (p *putd) Work(data []byte) (interface{}, error) {
-	pos := bytes.IndexByte(p.meta, '.')
-	uuid := string(p.meta[:pos])
-	meta := p.meta[pos+1:]
+func (w *putdWorker) Work(data []byte) (interface{}, error) {
+	pos := bytes.IndexByte(w.meta, '.')
+	uuid := string(w.meta[:pos])
+	meta := w.meta[pos+1:]
 
 	t, err := tarMetaData(meta, data)
 	if err != nil {

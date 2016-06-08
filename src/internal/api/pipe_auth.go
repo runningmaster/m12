@@ -30,8 +30,8 @@ func pipeAuth(h handlerFunc) handlerFunc {
 	}
 }
 
-// api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
 func getKey(r *http.Request) (string, error) {
+	// V3 api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
 	if _, pass, ok := r.BasicAuth(); ok {
 		return pass[4:], nil
 	}
