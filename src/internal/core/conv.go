@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"internal/gzutil"
 )
@@ -27,6 +28,9 @@ func (w *convWorker) Work(data []byte) (interface{}, error) {
 	}
 
 	t := m.HTag
+	if s, ok := convHTag[t]; ok {
+		m.HTag = s
+	}
 	var v interface{}
 	switch {
 	case isGeoV2(t):
@@ -51,8 +55,6 @@ func (w *convWorker) Work(data []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	m.HTag = convHTag[t]
 
 	putd := &putdWorker{m.marshalJSON(), w.uuid}
 	return putd.Work(data)
@@ -83,11 +85,32 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 	}
 
 	d := make(jsonV3Sale, len(v.Data[0].Item))
-	for i := range v.Data[0].Item {
-		_ = v.Data[0].Item[i]
+	for i, v := range v.Data[0].Item {
+		d[i].ID = v.Code
+		d[i].Name = v.Drug
+		d[i].QuantIn = v.QuantInp
+		d[i].PriceIn = v.PriceInp
+		d[i].QuantOut = v.QuantOut
+		d[i].PriceOut = v.PriceOut
+		d[i].Stock = v.Balance
+		d[i].Reimburse = v.Reimburs != 0
+		d[i].SuppName = v.Supp
+		d[i].SuppCode = v.SuppOKPO
+	}
+
+	m.Spn1, _ = convDateTimeToUnix(v.Meta.TRangeLower)
+	m.Spn2, _ = convDateTimeToUnix(v.Meta.TRangeUpper)
+	m.Nick = v.Data[0].Head.Source
+	if v.Data[0].Head.MDSLns != "" {
+		m.Nick = v.Data[0].Head.MDSLns
 	}
 
 	return d, nil
+}
+
+func convDateTimeToUnix(s string) (int64, error) {
+	t, err := time.Parse("02.01.2006 15:04:05", s)
+	return t.Unix(), err
 }
 
 func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
@@ -115,9 +138,22 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 	}
 
 	d := make(jsonV3SaleBy, len(v.Data[0].Item))
-	for i := range v.Data[0].Item {
-		_ = v.Data[0].Item[i]
+	for i, v := range v.Data[0].Item {
+		d[i].ID = v.Code
+		d[i].Name = v.Drug
+		d[i].QuantIn = v.QuantInp
+		d[i].PriceIn = v.PriceInp
+		d[i].QuantOut = v.QuantOut
+		d[i].PriceOut = v.PriceOut
+		d[i].PriceRoc = v.PriceRoc
+		d[i].Stock = v.Balance
+		d[i].StockTab = v.BalanceT
+
 	}
+
+	m.Spn1, _ = convDateTimeToUnix(v.Meta.TRangeLower)
+	m.Spn2, _ = convDateTimeToUnix(v.Meta.TRangeUpper)
+	m.Nick = v.Data[0].Head.Source // v.Data[0].Head.Drugstore (?)
 
 	return d, nil
 }
@@ -144,9 +180,22 @@ func convGeo1(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	}
 
 	d := make(jsonV3Geoa, len(v.Data))
-	for i := range v.Data {
-		_ = v.Data[i]
+	for i, v := range v.Data {
+		d[i].ID = v.Code
+		d[i].Name = v.Name
+		d[i].Home = v.Addr
+		d[i].Quant = v.Quant
+		d[i].Price = v.Price
+		// workaround
+		if v.Link != "" {
+			d[i].Home = v.Link
+		}
 	}
+
+	m.Name = v.Meta.Name
+	m.Head = v.Meta.Head
+	m.Addr = v.Meta.Addr
+	m.Code = v.Meta.EGRPOU
 
 	return d, nil
 }
@@ -173,26 +222,26 @@ func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	}
 
 	d := make(jsonV3Geoa, len(v.Data))
-	for i := range v.Data {
-		_ = v.Data[i]
+	for i, v := range v.Data {
+		d[i].ID = v.ID
+		d[i].Name = v.Name
+		d[i].Home = v.Link
+		d[i].Quant = v.Quant
+		d[i].Price = v.Price
 	}
+
+	m.Name = v.Meta.Name
+	m.Head = v.Meta.Head
+	m.Addr = v.Meta.Addr
+	m.Code = v.Meta.Code
 
 	return d, nil
 }
 
 type jsonV1Sale struct {
 	Meta struct {
-		Version     int
-		Agent       string `json:",omitempty"`
-		Timestamp   string
 		TRangeLower string
 		TRangeUpper string
-		AccountType string `json:",omitempty"`
-		ISender     string `json:",omitempty"`
-		IHashtag    string `json:",omitempty"`
-		ITimestamp  string `json:",omitempty"`
-		IHashstamp  string `json:",omitempty"`
-		IHashcheck  string `json:",omitempty"`
 	}
 	Data []struct {
 		Head struct {
@@ -210,26 +259,14 @@ type jsonV1Sale struct {
 			PriceOut float64 `json:",omitempty"`
 			Balance  float64 `json:",omitempty"`
 			Reimburs int     `json:",omitempty"`
-			IDrugSHA string  `json:",omitempty"`
-			IDrugLNK string  `json:",omitempty"`
-			ISuppSHA string  `json:",omitempty"`
-			ISuppLNK string  `json:",omitempty"`
 		}
 	}
 }
 
 type jsonV1SaleBy struct {
 	Meta struct {
-		Version     int
-		Agent       string
-		Timestamp   string
 		TRangeLower string
 		TRangeUpper string
-		ISender     string
-		IHashtag    string
-		ITimestamp  string
-		IHashstamp  string
-		IHashcheck  string
 	}
 	Data []struct {
 		Head struct {
@@ -246,67 +283,40 @@ type jsonV1SaleBy struct {
 			PriceRoc float64
 			Balance  float64
 			BalanceT float64
-			IDrugSHA string
-			IDrugLNK string
 		}
 	}
 }
 
 type jsonV1Geoa struct {
 	Meta struct {
-		Code         string
-		Head         string
-		Name         string
-		Addr         string
-		EGRPOU       string
-		Axioma       string // Name/Head: Addr
-		AxiomaSHA    string
-		AxiomaCode   string
-		DateTimeZone string
-		Agent        string
-		Version      string
-		ISender      string
-		IHashtag     string
-		ITimestamp   string
-		IHashstamp   string
-		IHashcheck   string
+		Head   string
+		Name   string
+		Addr   string
+		EGRPOU string
 	}
 	Data []struct {
-		Code     string
-		Name     string
-		Desc     string
-		Addr     string `json:",omitempty"`
-		Link     string
-		Price    float64
-		Quant    float64
-		IDrugSHA string
-		IDrugLNK string
+		Code  string
+		Name  string
+		Desc  string
+		Addr  string `json:",omitempty"`
+		Link  string
+		Price float64
+		Quant float64
 	}
 }
 
 type jsonV2Geoa struct {
 	Meta struct {
-		ID      string `json:"id"`
-		Name    string `json:"name"`
-		Head    string `json:"head"`
-		Addr    string `json:"addr"`
-		Code    string `json:"code"`
-		Time    string `json:"time"`
-		RelID   string `json:"rel_id,omitempty"`
-		RelSHA  string `json:"rel_sha,omitempty"`
-		SkyIP   string `json:"sky_ip"`
-		SkyKey  string `json:"sky_key"`
-		SkyTag  string `json:"sky_tag"`
-		SkySHA  string `json:"sky_sha"`
-		SkyTime string `json:"sky_time"`
+		Name string `json:"name"`
+		Head string `json:"head"`
+		Addr string `json:"addr"`
+		Code string `json:"code"`
 	} `json:"meta"`
 	Data []struct {
-		ID     string  `json:"id"`
-		Name   string  `json:"name"`
-		Link   string  `json:"link"`
-		Quant  float64 `json:"quant"`
-		Price  float64 `json:"price"`
-		RelID  string  `json:"rel_id,omitempty"`
-		RelSHA string  `json:"rel_sha,omitempty"`
+		ID    string  `json:"id"`
+		Name  string  `json:"name"`
+		Link  string  `json:"link"`
+		Quant float64 `json:"quant"`
+		Price float64 `json:"price"`
 	} `json:"data"`
 }

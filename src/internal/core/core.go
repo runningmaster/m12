@@ -109,10 +109,10 @@ type jsonMeta struct {
 	Addr string `json:"addr,omitempty"` // *
 	Code string `json:"code,omitempty"` // egrpou (okpo)
 
-	Link linkAddr `json:"link,omitempty"` // ?
-
 	ETag string `json:"etag,omitempty"`
 	Size int64  `json:"size,omitempty"`
+
+	Link linkAddr `json:"link,omitempty"` // ?
 }
 
 func unmarshalJSONmeta(b []byte) (jsonMeta, error) {
@@ -187,9 +187,9 @@ type linkStat struct {
 type itemV3Geoa struct {
 	ID    string   `json:"id,omitempty"`
 	Name  string   `json:"name,omitempty"`
+	Home  string   `json:"home,omitempty"` // formerly link
 	Quant float64  `json:"quant,omitempty"`
 	Price float64  `json:"price,omitempty"`
-	URL   string   `json:"url,omitempty"` // formerly link -> addr, home, url (?)
 	Link  linkDrug `json:"link,omitempty"`
 }
 
