@@ -84,7 +84,7 @@ func GetLinkAddr(data []byte) (interface{}, error) {
 
 // SetLinkAddr returns
 func SetLinkAddr(data []byte) (interface{}, error) {
-	var v []*linkAddr
+	var v []linkAddr
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
@@ -114,16 +114,16 @@ func valIsNill(v ...interface{}) bool {
 	return true
 }
 
-func getLinkAddr(v ...string) ([]*linkAddr, error) {
+func getLinkAddr(v ...string) ([]linkAddr, error) {
 	vlm := make([][]interface{}, len(v))
 	var vls []interface{}
 	for i := range vlm {
 		vls = make([]interface{}, len(fldsAddr)+1)
-		vls[0] = v[i]
-		vls[1] = fldsAddr[0] // "l"
-		vls[2] = fldsAddr[1] // "a"
-		vls[3] = fldsAddr[2] // "s"
-		vls[4] = fldsAddr[3] // "e"
+		vls[0] = v[i]        // key
+		vls[1] = fldsAddr[0] // fld "l"
+		vls[2] = fldsAddr[1] // fld "a"
+		vls[3] = fldsAddr[2] // fld "s"
+		vls[4] = fldsAddr[3] // fld "e"
 		vlm[i] = vls
 	}
 
@@ -135,7 +135,7 @@ func getLinkAddr(v ...string) ([]*linkAddr, error) {
 		return nil, fmt.Errorf("core: invalid len (get link addr): got %d, want %d", len(vlm), len(v))
 	}
 
-	res := make([]*linkAddr, len(vlm))
+	res := make([]linkAddr, len(vlm))
 	for i := range vlm {
 		if valIsNill(vlm[i]...) {
 			continue
@@ -143,38 +143,33 @@ func getLinkAddr(v ...string) ([]*linkAddr, error) {
 		if len(vlm[i]) != len(fldsAddr) {
 			return nil, fmt.Errorf("core: invalid len (get link addr): got %d, want %d", len(vlm[i]), len(fldsAddr))
 		}
-		res[i] = &linkAddr{
-			ID:     v[i],
-			IDLink: redis.ToInt64Safely(vlm[i][0]),  // "l"
-			IDAddr: redis.ToInt64Safely(vlm[i][1]),  // "a"
-			IDStat: redis.ToInt64Safely(vlm[i][2]),  // "s"
-			EGRPOU: redis.ToStringSafely(vlm[i][3]), // "e"
-		}
+		res[i].ID = v[i]                                // key
+		res[i].IDLink = redis.ToInt64Safely(vlm[i][0])  // fld "l"
+		res[i].IDAddr = redis.ToInt64Safely(vlm[i][1])  // fld "a"
+		res[i].IDStat = redis.ToInt64Safely(vlm[i][2])  // fld "s"
+		res[i].EGRPOU = redis.ToStringSafely(vlm[i][3]) // fld "e"
 	}
 
 	return res, nil
 }
 
-func setLinkAddr(v ...*linkAddr) (interface{}, error) {
+func setLinkAddr(v ...linkAddr) (interface{}, error) {
 	vlm := make([][]interface{}, len(v))
 	var vls []interface{}
 	for i := range vlm {
-		if v[i] == nil {
-			v[i] = &linkAddr{} // workaround for nil: set "empty" value
-		}
 		vls = make([]interface{}, 0, len(fldsAddr)*2+1)
-		vls = append(vls, v[i].ID)
-		if v[i].IDLink != 0 { // "l"
-			vls = append(vls, fldsAddr[0], v[i].IDLink)
+		vls = append(vls, v[i].ID) // key
+		if v[i].IDLink != 0 {
+			vls = append(vls, fldsAddr[0], v[i].IDLink) // fld "l"
 		}
-		if v[i].IDAddr != 0 { // "a"
-			vls = append(vls, fldsAddr[1], v[i].IDAddr)
+		if v[i].IDAddr != 0 {
+			vls = append(vls, fldsAddr[1], v[i].IDAddr) // fld "a"
 		}
-		if v[i].IDStat != 0 { // "s"
-			vls = append(vls, fldsAddr[2], v[i].IDStat)
+		if v[i].IDStat != 0 {
+			vls = append(vls, fldsAddr[2], v[i].IDStat) // fld "s"
 		}
-		if v[i].EGRPOU != "" { // "e"
-			vls = append(vls, fldsAddr[3], v[i].EGRPOU)
+		if v[i].EGRPOU != "" {
+			vls = append(vls, fldsAddr[3], v[i].EGRPOU) // fld "e"
 		}
 		vlm[i] = vls
 	}
@@ -199,7 +194,7 @@ func GetLinkDrug(data []byte) (interface{}, error) {
 
 // SetLinkDrug returns
 func SetLinkDrug(data []byte) (interface{}, error) {
-	var v []*linkDrug
+	var v []linkDrug
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
@@ -219,17 +214,17 @@ func DelLinkDrug(data []byte) (interface{}, error) {
 	return delLinkDrug(v...)
 }
 
-func getLinkDrug(v ...string) ([]*linkDrug, error) {
+func getLinkDrug(v ...string) ([]linkDrug, error) {
 	vlm := make([][]interface{}, len(v))
 	var vls []interface{}
 	for i := range vlm {
 		vls = make([]interface{}, len(fldsDrug)+1)
-		vls[0] = v[i]
-		vls[1] = fldsDrug[0] // "l"
-		vls[2] = fldsDrug[1] // "d"
-		vls[3] = fldsDrug[2] // "b"
-		vls[4] = fldsDrug[3] // "c"
-		vls[5] = fldsDrug[4] // "s"
+		vls[0] = v[i]        // key
+		vls[1] = fldsDrug[0] // fld "l"
+		vls[2] = fldsDrug[1] // fld "d"
+		vls[3] = fldsDrug[2] // fld "b"
+		vls[4] = fldsDrug[3] // fld "c"
+		vls[5] = fldsDrug[4] // fld "s"
 		vlm[i] = vls
 	}
 
@@ -241,7 +236,7 @@ func getLinkDrug(v ...string) ([]*linkDrug, error) {
 		return nil, fmt.Errorf("core: invalid len (get link drug): got %d, want %d", len(vlm), len(v))
 	}
 
-	res := make([]*linkDrug, len(vlm))
+	res := make([]linkDrug, len(vlm))
 	for i := range vlm {
 		if valIsNill(vlm[i]...) {
 			continue
@@ -249,43 +244,37 @@ func getLinkDrug(v ...string) ([]*linkDrug, error) {
 		if len(vlm[i]) != len(fldsDrug) {
 			return nil, fmt.Errorf("core: invalid len (get link drug): got %d, want %d", len(vlm[i]), len(fldsDrug))
 		}
-		res[i] = &linkDrug{
-			ID:     v[i],
-			IDLink: redis.ToInt64Safely(vlm[i][0]), // "l"
-			IDDrug: redis.ToInt64Safely(vlm[i][1]), // "d"
-			IDBrnd: redis.ToInt64Safely(vlm[i][2]), // "b"
-			IDCatg: redis.ToInt64Safely(vlm[i][3]), // "c"
-			IDStat: redis.ToInt64Safely(vlm[i][4]), // "s"
-		}
+		res[i].ID = v[i]                               // key
+		res[i].IDLink = redis.ToInt64Safely(vlm[i][0]) // fld "l"
+		res[i].IDDrug = redis.ToInt64Safely(vlm[i][1]) // fld "d"
+		res[i].IDBrnd = redis.ToInt64Safely(vlm[i][2]) // fld "b"
+		res[i].IDCatg = redis.ToInt64Safely(vlm[i][3]) // fld "c"
+		res[i].IDStat = redis.ToInt64Safely(vlm[i][4]) // fld "s"
 	}
 
 	return res, nil
 }
 
-func setLinkDrug(v ...*linkDrug) (interface{}, error) {
+func setLinkDrug(v ...linkDrug) (interface{}, error) {
 	vlm := make([][]interface{}, len(v))
 	var vls []interface{}
 	for i := range vlm {
-		if v[i] == nil {
-			v[i] = &linkDrug{} // workaround for nil: set "empty" value
-		}
 		vls = make([]interface{}, 0, len(fldsDrug)*2+1)
-		vls = append(vls, v[i].ID)
-
-		if v[i].IDLink != 0 { // "l"
-			vls = append(vls, fldsDrug[0], v[i].IDLink)
+		vls = append(vls, v[i].ID) // key
+		if v[i].IDLink != 0 {
+			vls = append(vls, fldsDrug[0], v[i].IDLink) // fld "l"
 		}
-		if v[i].IDDrug != 0 { // "d"
-			vls = append(vls, fldsDrug[1], v[i].IDDrug)
+		if v[i].IDDrug != 0 {
+			vls = append(vls, fldsDrug[1], v[i].IDDrug) // fld "d"
 		}
-		if v[i].IDBrnd != 0 { // "b"
-			vls = append(vls, fldsDrug[2], v[i].IDBrnd)
+		if v[i].IDBrnd != 0 {
+			vls = append(vls, fldsDrug[2], v[i].IDBrnd) // fld "b"
 		}
-		if v[i].IDCatg != 0 { // "c"
-			vls = append(vls, fldsDrug[3], v[i].IDCatg)
+		if v[i].IDCatg != 0 {
+			vls = append(vls, fldsDrug[3], v[i].IDCatg) // fld "c"
 		}
-		if v[i].IDStat != 0 { // "s"
-			vls = append(vls, fldsDrug[4], v[i].IDStat)
+		if v[i].IDStat != 0 {
+			vls = append(vls, fldsDrug[4], v[i].IDStat) // fld "s"
 		}
 		vlm[i] = vls
 	}
@@ -310,7 +299,7 @@ func GetLinkStat(data []byte) (interface{}, error) {
 
 // SetLinkStat returns
 func SetLinkStat(data []byte) (interface{}, error) {
-	var v []*linkStat
+	var v []linkStat
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
@@ -330,7 +319,7 @@ func DelLinkStat(data []byte) (interface{}, error) {
 	return delLinkStat(v...)
 }
 
-func getLinkStat(v ...int64) ([]*linkStat, error) {
+func getLinkStat(v ...int64) ([]linkStat, error) {
 	vls, err := redis.HMGET(redis.ConvFromInt64sWithKey(keyStat, v...)...)
 	if err != nil {
 		return nil, err
@@ -340,24 +329,22 @@ func getLinkStat(v ...int64) ([]*linkStat, error) {
 		return nil, fmt.Errorf("core: invalid len (get link stat): got %d, want %d", len(vls), len(v))
 	}
 
-	res := make([]*linkStat, len(vls))
+	res := make([]linkStat, len(vls))
 	for i := range vls {
 		if valIsNill(vls[i]) {
 			continue
 		}
-		res[i] = &linkStat{v[i], redis.ToStringSafely(vls[i])}
+		res[i].ID = v[i]
+		res[i].Name = redis.ToStringSafely(vls[i])
 	}
 
 	return res, nil
 }
 
-func setLinkStat(v ...*linkStat) (interface{}, error) {
+func setLinkStat(v ...linkStat) (interface{}, error) {
 	vls := make([]interface{}, len(v)*2+1)
 	vls[0] = keyStat
 	for i := range v {
-		if v[i] == nil {
-			v[i] = &linkStat{} // workaround for nil: set "empty" value
-		}
 		vls[i*2+1] = v[i].ID
 		vls[i*2+2] = v[i].Name
 	}

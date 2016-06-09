@@ -128,10 +128,10 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
-func findLinkMeta(m jsonMeta) (*linkAddr, error) {
+func findLinkMeta(m jsonMeta) (linkAddr, error) {
 	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 	if err != nil {
-		return nil, err
+		return linkAddr{}, err
 	}
 	return l[0], nil
 }
