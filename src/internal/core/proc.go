@@ -83,7 +83,7 @@ func proc(data []byte) error {
 		return err
 	}
 
-	t, err := tarMetaData(m.marshalBase64(), d)
+	t, err := tarMetaData(m.marshalJSON(), d)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func proc(data []byte) error {
 }
 
 func procMeta(data []byte, etag string, size int64) (jsonMeta, error) {
-	m, err := unmarshalBase64meta(data)
+	m, err := unmarshalJSONmeta(data)
 	if err != nil {
 		return m, err
 	}

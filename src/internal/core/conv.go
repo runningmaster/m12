@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,17 +12,16 @@ var Conv = &convWorker{}
 
 type convWorker struct {
 	meta []byte
+	uuid string
 }
 
 func (w *convWorker) ReadHeader(h http.Header) {
 	w.meta = []byte(h.Get("Content-Meta"))
+	w.uuid = h.Get("Content-UUID")
 }
 
 func (w *convWorker) Work(data []byte) (interface{}, error) {
-	pos := bytes.IndexByte(w.meta, '.')
-	meta := w.meta[pos+1:]
-
-	m, err := unmarshalBase64meta(meta)
+	m, err := unmarshalJSONmeta(w.meta)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +54,7 @@ func (w *convWorker) Work(data []byte) (interface{}, error) {
 
 	m.HTag = convHTag[t]
 
-	meta = []byte(fmt.Sprintf("%s.%s", m.UUID, string(m.marshalBase64())))
-	putd := &putdWorker{meta}
+	putd := &putdWorker{m.marshalJSON(), w.uuid}
 	return putd.Work(data)
 }
 

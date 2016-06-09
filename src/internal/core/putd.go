@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"net/http"
 
 	"internal/minio"
@@ -11,28 +10,26 @@ var Putd = &putdWorker{}
 
 type putdWorker struct {
 	meta []byte
+	uuid string
 }
 
 func (w *putdWorker) ReadHeader(h http.Header) {
 	w.meta = []byte(h.Get("Content-Meta"))
+	w.uuid = h.Get("Content-UUID")
 }
 
 func (w *putdWorker) Work(data []byte) (interface{}, error) {
-	pos := bytes.IndexByte(w.meta, '.')
-	uuid := string(w.meta[:pos])
-	meta := w.meta[pos+1:]
-
-	t, err := tarMetaData(meta, data)
+	t, err := tarMetaData(w.meta, data)
 	if err != nil {
 		return nil, err
 	}
 
 	go func() { // ?
-		err := minio.PutObject(backetStreamIn, uuid, t)
+		err := minio.PutObject(backetStreamIn, w.uuid, t)
 		if err != nil {
 			// log.
 		}
 	}()
 
-	return uuid, nil
+	return w.uuid, nil
 }

@@ -94,6 +94,7 @@ func injectIntoMETA(ctx context.Context, h http.Header) error {
 	}
 
 	meta = bytes.Replace(bytes.TrimSpace(meta), []byte("{"), []byte(info), -1)
-	h.Set("Content-Meta", fmt.Sprintf("%s.%s", uuid, base64.StdEncoding.EncodeToString(meta)))
+	h.Set("Content-Meta", string(meta))
+	h.Set("Content-UUID", uuid)
 	return nil
 }

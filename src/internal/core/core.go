@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -122,21 +121,9 @@ func unmarshalJSONmeta(b []byte) (jsonMeta, error) {
 	return m, err
 }
 
-func unmarshalBase64meta(b []byte) (jsonMeta, error) {
-	b, err := base64.StdEncoding.DecodeString(string(b))
-	if err != nil {
-		return jsonMeta{}, err
-	}
-	return unmarshalJSONmeta(b)
-}
-
 func (m *jsonMeta) marshalJSON() []byte {
 	b, _ := json.Marshal(m)
 	return b
-}
-
-func (m *jsonMeta) marshalBase64() []byte {
-	return []byte(base64.StdEncoding.EncodeToString(m.marshalJSON()))
 }
 
 type pair struct {

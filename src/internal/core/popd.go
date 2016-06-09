@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/base64"
 	"net/http"
 )
 
@@ -12,7 +13,7 @@ type popdWorker struct {
 
 func (w *popdWorker) WriteHeader(h http.Header) {
 	h.Set("Content-Encoding", "gzip")
-	h.Set("Content-Meta", string(w.meta))
+	h.Set("Content-Meta", base64.StdEncoding.EncodeToString(w.meta))
 }
 
 func (w *popdWorker) Work(data []byte) (interface{}, error) {
