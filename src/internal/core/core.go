@@ -16,8 +16,8 @@ const (
 	backetStreamOut = "stream-out"
 	backetStreamErr = "stream-err"
 
-	subjectSteamIn  = backetStreamIn + ".67a7ea16"
-	subjectSteamOut = backetStreamOut + ".0566ce58"
+	subjectSteamIn  = "m12." + backetStreamIn
+	subjectSteamOut = "m12." + backetStreamOut
 
 	listN = 100
 	tickD = 10 * time.Second
@@ -47,7 +47,7 @@ func Init() error {
 		return err
 	}
 
-	err = nats.ListenAndServe(backetStreamIn, proc)
+	err = nats.ListenAndServe(subjectSteamIn, proc)
 	if err != nil {
 		return err
 	}
