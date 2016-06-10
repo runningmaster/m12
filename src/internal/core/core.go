@@ -31,6 +31,10 @@ type HTTPHeadWriter interface {
 	WriteHeader(http.Header)
 }
 
+type Master interface {
+	NewWorker() Worker
+}
+
 type Worker interface {
 	Work([]byte) (interface{}, error)
 }

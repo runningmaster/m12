@@ -33,32 +33,32 @@ var (
 	mapCoreWorkers  map[string]core.Worker
 	mapHTTPHandlers = map[string]bundle{
 		"GET:/":     {use(pipeHead, pipeGzip, pipe(root), pipeFail, pipeTail), nil},
-		"GET:/ping": {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
+		"GET:/ping": {use(pipeHead, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.Ping)},
 
-		"POST:/system/get-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetAuth)},
-		"POST:/system/set-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
-		"POST:/system/del-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelAuth)},
+		"POST:/system/get-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetAuth)},
+		"POST:/system/set-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
+		"POST:/system/del-auth": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelAuth)},
 
-		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkAddr)},
-		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkAddr)},
-		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkAddr)},
+		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetLinkAddr)},
+		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetLinkAddr)},
+		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelLinkAddr)},
 
-		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkDrug)},
-		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkDrug)},
-		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkDrug)},
+		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetLinkDrug)},
+		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetLinkDrug)},
+		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelLinkDrug)},
 
-		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.GetLinkStat)},
-		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.SetLinkStat)},
-		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.DelLinkStat)},
+		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetLinkStat)},
+		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetLinkStat)},
+		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelLinkStat)},
 
-		"POST:/stream/put-data": {use(pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Putd},
-		"POST:/stream/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(exec), pipeFail, pipeTail), core.Popd},
+		"POST:/stream/put-data": {use(pipeHead, pipeAuth, pipeMeta, pipe(work), pipeFail, pipeTail), core.Putd},
+		"POST:/stream/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.Popd},
 
 		// Converter from old school style data/add DEPRECATED
-		"POST:/data/add": {use(pipeGzip, pipeConv, pipeHead, pipeAuth, pipeMeta, pipe(exec), pipeFail, pipeTail), core.Conv},
+		"POST:/data/add": {use(pipeGzip, pipeConv, pipeHead, pipeAuth, pipeMeta, pipe(work), pipeFail, pipeTail), core.Conv},
 
 		// => Debug mode only, when flag.Debug == true
-		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(exec), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
+		"GET:/debug/info":               {use(pipeHead, pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.Info)}, // ?
 		"GET:/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // expvar
 		"GET:/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
 		"GET:/debug/pprof/cmdline":      {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // net/http/pprof
@@ -95,7 +95,7 @@ func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	return with200(ctx, w, res)
 }
 
-func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+func work(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	defer func() { _ = r.Body.Close() }()
 
 	wrk, ok := mapCoreWorkers[r.URL.Path]
@@ -112,8 +112,11 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		ctx = ctxWithClen(ctx, n)
 	}
 
-	var hr core.HTTPHeadReader
-	if hr, ok = wrk.(core.HTTPHeadReader); ok {
+	if m, ok := wrk.(core.Master); ok {
+		wrk = m.NewWorker()
+	}
+
+	if hr, ok := wrk.(core.HTTPHeadReader); ok {
 		hr.ReadHeader(r.Header)
 	}
 
@@ -122,8 +125,7 @@ func exec(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		return with500(ctx, err)
 	}
 
-	var hw core.HTTPHeadWriter
-	if hw, ok = wrk.(core.HTTPHeadWriter); ok {
+	if hw, ok := wrk.(core.HTTPHeadWriter); ok {
 		hw.WriteHeader(w.Header())
 	}
 

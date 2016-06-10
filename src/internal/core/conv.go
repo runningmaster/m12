@@ -9,11 +9,19 @@ import (
 	"internal/gzutil"
 )
 
-var Conv = &convWorker{}
+var Conv = newConwWorker()
 
 type convWorker struct {
 	meta []byte
 	uuid string
+}
+
+func newConwWorker() Worker {
+	return &convWorker{}
+}
+
+func (w *convWorker) NewWorker() Worker {
+	return newConwWorker()
 }
 
 func (w *convWorker) ReadHeader(h http.Header) {

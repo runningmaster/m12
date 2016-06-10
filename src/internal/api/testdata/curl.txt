@@ -39,3 +39,13 @@ curl -v -k -X 'POST' \
 -T 'data.json.gz' \
 http://localhost:8080/stream/put-data
 
+
+curl -v -k -X 'POST' \
+-H 'Content-Encoding: gzip' \
+-H 'Content-Type: application/json; charset=utf-8; hashtag=data.geostore' \
+-H 'X-Morion-Skynet-Key: masterkey' \
+-H 'X-Morion-Skynet-Tag: data.geostore' \
+-H 'X-Morion-Skynet-Origin-IP: 193.111.9.209' \
+-H 'User-Agent: [skynet] some agent' \
+-T 'data.json.gz' \
+http://localhost:8080/data/add

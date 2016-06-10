@@ -1,7 +1,6 @@
 package nats
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 
@@ -12,7 +11,9 @@ var cli *nats.Conn
 
 func Run(addr string) error {
 	var err error
-	cli, err = nats.Connect(addr, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
+	// nats.Secure(&tls.Config{InsecureSkipVerify: true})
+	// Reconnect ?
+	cli, err = nats.Connect(addr)
 	if err != nil {
 		return fmt.Errorf("nats: %s", err)
 	}
@@ -27,7 +28,7 @@ func ListenAndServe(subject string, serveFunc func([]byte) error) error {
 		}
 		err := serveFunc(m.Data)
 		if err != nil {
-			log.Println(err)
+			log.Println("ListenAndServe", err)
 		}
 	})
 	return err

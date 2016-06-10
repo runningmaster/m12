@@ -5,10 +5,18 @@ import (
 	"net/http"
 )
 
-var Popd = &popdWorker{}
+var Popd = newPopdWorker()
 
 type popdWorker struct {
 	meta []byte
+}
+
+func newPopdWorker() Worker {
+	return &popdWorker{}
+}
+
+func (w *popdWorker) NewWorker() Worker {
+	return newPopdWorker()
 }
 
 func (w *popdWorker) WriteHeader(h http.Header) {

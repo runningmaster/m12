@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -80,8 +81,11 @@ func proc(data []byte) error {
 
 	d, err := procData(m.HTag, data)
 	if err != nil {
+		fmt.Println("DEBUG", 4)
 		return err
 	}
+
+	fmt.Println("DEBUG", len(d))
 
 	t, err := tarMetaData(m.marshalJSON(), d)
 	if err != nil {
@@ -91,7 +95,7 @@ func proc(data []byte) error {
 	go func() { // ?
 		err := minio.PutObject(backetStreamOut, m.UUID, t)
 		if err != nil {
-			// log.
+			log.Println("proc go func", err)
 		}
 	}()
 	//goToStreamErr(m.ID, ?) // FIXME

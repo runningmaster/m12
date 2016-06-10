@@ -115,6 +115,7 @@ func Gunzip(data []byte) ([]byte, error) {
 
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
+		BUG IS HERE
 		return nil, err
 	}
 

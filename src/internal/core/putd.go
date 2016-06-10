@@ -1,16 +1,25 @@
 package core
 
 import (
+	"log"
 	"net/http"
 
 	"internal/minio"
 )
 
-var Putd = &putdWorker{}
+var Putd = newPutdWorker()
 
 type putdWorker struct {
 	meta []byte
 	uuid string
+}
+
+func newPutdWorker() Worker {
+	return &putdWorker{}
+}
+
+func (w *putdWorker) NewWorker() Worker {
+	return newPutdWorker()
 }
 
 func (w *putdWorker) ReadHeader(h http.Header) {
@@ -27,7 +36,7 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 	go func() { // ?
 		err := minio.PutObject(backetStreamIn, w.uuid, t)
 		if err != nil {
-			// log.
+			log.Println("putdWorker go func", err)
 		}
 	}()
 

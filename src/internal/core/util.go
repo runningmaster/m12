@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 
@@ -157,13 +158,13 @@ func popMetaData(data []byte) ([]byte, []byte, error) {
 		}
 		err := o.Close()
 		if err != nil {
-			// log.
+			log.Println("popMetaData", err)
 			return
 		}
-		err = minio.DelObject(p.Backet, p.Object)
-		if err != nil {
-			// log.
-		}
+		//err = minio.DelObject(p.Backet, p.Object)
+		//if err != nil {
+		//	log.Println("popMetaData", err)
+		//}
 	}()
 
 	return untarMetaData(o)
