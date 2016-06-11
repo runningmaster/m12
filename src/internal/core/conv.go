@@ -3,70 +3,8 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
-
-	"internal/gzutil"
 )
-
-var Conv = newConwWorker()
-
-type convWorker struct {
-	meta []byte
-	uuid string
-}
-
-func newConwWorker() Worker {
-	return &convWorker{}
-}
-
-func (w *convWorker) NewWorker() Worker {
-	return newConwWorker()
-}
-
-func (w *convWorker) ReadHeader(h http.Header) {
-	w.meta = []byte(h.Get("Content-Meta"))
-	w.uuid = h.Get("Content-UUID")
-}
-
-func (w *convWorker) Work(data []byte) (interface{}, error) {
-	m, err := unmarshalJSONmeta(w.meta)
-	if err != nil {
-		return nil, err
-	}
-
-	t := m.HTag
-	if s, ok := convHTag[t]; ok {
-		m.HTag = s
-	}
-	var v interface{}
-	switch {
-	case isGeoV2(t):
-		v, err = convGeo2(data, &m)
-	case isGeoV1(t):
-		v, err = convGeo1(data, &m)
-	case isSaleBY(t):
-		v, err = convSaleBy(data, &m)
-	default:
-		v, err = convSale(data, &m)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	data, err = json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err = gzutil.Gzip(data)
-	if err != nil {
-		return nil, err
-	}
-
-	putd := &putdWorker{m.marshalJSON(), w.uuid}
-	return putd.Work(data)
-}
 
 func unmarshalSale(data []byte) (*jsonV1Sale, error) {
 	v := &jsonV1Sale{}

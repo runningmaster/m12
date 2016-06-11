@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"internal/gzpool"
 	"internal/minio"
 )
 
@@ -28,13 +29,18 @@ func (w *putdWorker) ReadHeader(h http.Header) {
 }
 
 func (w *putdWorker) Work(data []byte) (interface{}, error) {
-	t, err := tarMetaData(w.meta, data)
-	if err != nil {
-		return nil, err
-	}
-
 	go func() { // ?
-		err := minio.PutObject(backetStreamIn, w.uuid, t)
+		data, err := gzpool.MustGzip(data)
+		if err != nil {
+			//return nil, err
+		}
+
+		t, err := tarMetaData(w.meta, data)
+		if err != nil {
+			//return nil, err
+		}
+
+		err = minio.PutObject(backetStreamIn, w.uuid, t)
 		if err != nil {
 			log.Println("putdWorker go func", err)
 		}

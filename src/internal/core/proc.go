@@ -3,11 +3,10 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 
-	"internal/gzutil"
+	"internal/gzpool"
 	"internal/minio"
 	"internal/strutil"
 )
@@ -27,7 +26,7 @@ const (
 	magicDrugLength = 512
 )
 
-var htags = map[string]struct{}{
+var listHTag = map[string]struct{}{
 	"geoapt.ru":           {},
 	"geoapt.ua":           {},
 	"sale-in.monthly.kz":  {},
@@ -68,6 +67,13 @@ var convHTag = map[string]string{
 	"data.sale-out.daily.ua":   "sale-out.daily.ua",
 }
 
+func checkHTag(t string) error {
+	if _, ok := listHTag[strings.ToLower(t)]; ok {
+		return nil
+	}
+	return fmt.Errorf("core: invalid htag %s", t)
+}
+
 func proc(data []byte) error {
 	meta, data, err := popMetaData(data)
 	if err != nil {
@@ -79,27 +85,17 @@ func proc(data []byte) error {
 		return err
 	}
 
-	d, err := procData(m.HTag, data)
+	d, err := procData(data, &m)
 	if err != nil {
-		fmt.Println("DEBUG", 4)
 		return err
 	}
-
-	fmt.Println("DEBUG", len(d))
 
 	t, err := tarMetaData(m.marshalJSON(), d)
 	if err != nil {
 		return err
 	}
 
-	go func() { // ?
-		err := minio.PutObject(backetStreamOut, m.UUID, t)
-		if err != nil {
-			log.Println("proc go func", err)
-		}
-	}()
-	//goToStreamErr(m.ID, ?) // FIXME
-	return nil
+	return minio.PutObject(backetStreamOut, m.UUID, t)
 }
 
 func procMeta(data []byte, etag string, size int64) (jsonMeta, error) {
@@ -107,7 +103,13 @@ func procMeta(data []byte, etag string, size int64) (jsonMeta, error) {
 	if err != nil {
 		return m, err
 	}
+	/*
+		t := m.HTag
+		if s, ok := convHTag[t]; ok {
+			m.HTag = s
+		}
 
+	*/
 	err = checkHTag(m.HTag)
 	if err != nil {
 		return m, err
@@ -125,13 +127,6 @@ func procMeta(data []byte, etag string, size int64) (jsonMeta, error) {
 	return m, nil
 }
 
-func checkHTag(t string) error {
-	if _, ok := htags[strings.ToLower(t)]; ok {
-		return nil
-	}
-	return fmt.Errorf("core: invalid htag %s", t)
-}
-
 func findLinkMeta(m jsonMeta) (linkAddr, error) {
 	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 	if err != nil {
@@ -140,10 +135,8 @@ func findLinkMeta(m jsonMeta) (linkAddr, error) {
 	return l[0], nil
 }
 
-func procData(htag string, data []byte) ([]byte, error) {
-	var err error
-
-	data, err = gzutil.Gunzip(data)
+func procData(data []byte, m *jsonMeta) ([]byte, error) {
+	data, err := gzpool.Gunzip(data)
 	if err != nil {
 		return nil, err
 	}
@@ -153,51 +146,68 @@ func procData(htag string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	data, err = mineLinks(htag, data)
+	v, err := convData(data, m)
 	if err != nil {
 		return nil, err
 	}
 
-	return gzutil.Gzip(data)
-}
-
-func checkGzip(b []byte) error {
-	if isTypeGzip(b) {
-		return nil
+	data, err = mineLinks(m.HTag, v)
+	if err != nil {
+		return nil, err
 	}
-	return fmt.Errorf("core: content must contain gzip")
+
+	return gzpool.Gzip(data)
 }
 
-func mineLinks(t string, data []byte) ([]byte, error) {
-	var src interface{}
+func convData(data []byte, m *jsonMeta) (interface{}, error) {
+	t := m.HTag
+	var v interface{}
+	var err error
+	switch {
+	case isGeoV2(t):
+		v, err = convGeo2(data, m)
+	case isGeoV1(t):
+		v, err = convGeo1(data, m)
+	case isSaleBY(t):
+		v, err = convSaleBy(data, m)
+	default:
+		v, err = convSale(data, m)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	switch {
 	case isGeo(t):
-		src = jsonV3Geoa{}
+		v = jsonV3Geoa{}
 	case isSaleBY(t):
-		src = jsonV3SaleBy{}
+		v = jsonV3SaleBy{}
 	default:
-		src = jsonV3Sale{}
+		v = jsonV3Sale{}
 	}
 
-	err := json.Unmarshal(data, &src)
+	err = json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	err = mineLinkDrug(t, src.(linkDruger))
+	return v, nil
+}
+
+func mineLinks(t string, v interface{}) ([]byte, error) {
+	err := mineLinkDrug(t, v.(linkDruger))
 	if err != nil {
 		return nil, err
 	}
 
 	if isSaleIn(t) {
-		err = mineLinkAddr(src.(linkAddrer))
+		err = mineLinkAddr(v.(linkAddrer))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return json.Marshal(src)
+	return json.Marshal(v)
 }
 
 func mineLinkDrug(t string, l linkDruger) error {

@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/gzutil"
 	"internal/minio"
 
 	"github.com/spkg/bom"
@@ -39,24 +38,12 @@ func readClose(r io.ReadCloser) ([]byte, error) {
 	return ioutil.ReadAll(r)
 }
 
-func isTypeGzip(b []byte) bool {
-	return gzutil.IsGzipInString(http.DetectContentType(b))
-}
-
-func isTypeUTF8(b []byte) bool {
+func isUTF8(b []byte) bool {
 	return strings.Contains(http.DetectContentType(b), "text/plain; charset=utf-8")
 }
 
-func mendIfGzip(b []byte) ([]byte, error) {
-	if isTypeGzip(b) {
-		return gzutil.Gunzip(b)
-	}
-
-	return b, nil
-}
-
 func mendIfUTF8(b []byte) ([]byte, error) {
-	if isTypeUTF8(b) {
+	if isUTF8(b) {
 		return bom.Clean(b), nil
 	}
 

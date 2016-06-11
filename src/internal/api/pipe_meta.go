@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/gzutil"
+	"internal/gzpool"
 
 	"golang.org/x/net/context"
 )
@@ -52,7 +52,7 @@ func validateHeader(h http.Header) error {
 }
 
 func mustHeaderGzip(h http.Header) error {
-	if !gzutil.IsGzipInString(h.Get("Content-Encoding")) {
+	if !gzpool.IsGzipInString(h.Get("Content-Encoding")) {
 		return fmt.Errorf("api: content-encoding must contain gzip")
 	}
 	return nil

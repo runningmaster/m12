@@ -1,10 +1,11 @@
-package gzutil
+package gzpool
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -100,6 +101,15 @@ func Gzip(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// MustGzip encodes bytes to gzip-bytes if not.
+func MustGzip(data []byte) ([]byte, error) {
+	if IsGzipInString(http.DetectContentType(data)) {
+		return data, nil
+	}
+
+	return Gzip(data)
+}
+
 // Gunzip decodes bytes from gzip-bytes.
 func Gunzip(data []byte) ([]byte, error) {
 	r, err := GetReader()
@@ -115,7 +125,7 @@ func Gunzip(data []byte) ([]byte, error) {
 
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
-		BUG IS HERE
+		//BUG IS HERE
 		return nil, err
 	}
 

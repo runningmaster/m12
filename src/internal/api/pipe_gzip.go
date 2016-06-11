@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"internal/gzutil"
+	"internal/gzpool"
 
 	"github.com/klauspost/compress/gzip"
 	"golang.org/x/net/context"
@@ -39,12 +39,12 @@ func (w *gzipResponseWriter) CloseNotify() <-chan bool {
 
 func pipeGzip(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		if gzutil.IsGzipInString(r.Header.Get("Content-Encoding")) {
-			z, err := gzutil.GetReader()
+		if gzpool.IsGzipInString(r.Header.Get("Content-Encoding")) {
+			z, err := gzpool.GetReader()
 			if err != nil {
 				// FIXME log err
 			}
-			defer func() { _ = gzutil.PutReader(z) }()
+			defer func() { _ = gzpool.PutReader(z) }()
 			err = z.Reset(r.Body)
 			if err != nil {
 				// FIXME log err
@@ -52,12 +52,12 @@ func pipeGzip(h handlerFunc) handlerFunc {
 			r.Body = z
 		}
 
-		if gzutil.IsGzipInString(r.Header.Get("Accept-Encoding")) {
-			z, err := gzutil.GetWriter()
+		if gzpool.IsGzipInString(r.Header.Get("Accept-Encoding")) {
+			z, err := gzpool.GetWriter()
 			if err != nil {
 				// FIXME TODO log err
 			}
-			defer func() { _ = gzutil.PutWriter(z) }()
+			defer func() { _ = gzpool.PutWriter(z) }()
 			z.Reset(w)
 			w = gzipResponseWriter{Writer: z, ResponseWriter: w}
 			w.Header().Add("Vary", "Accept-Encoding")

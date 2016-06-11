@@ -29,6 +29,7 @@ func ListenAndServe(subject string, serveFunc func([]byte) error) error {
 		err := serveFunc(m.Data)
 		if err != nil {
 			log.Println("ListenAndServe", err)
+			//goToStreamErr(m.ID, ?) // FIXME
 		}
 	})
 	return err
