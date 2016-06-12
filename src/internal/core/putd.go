@@ -32,17 +32,19 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 	go func() { // ?
 		data, err := gzpool.MustGzip(data)
 		if err != nil {
+			log.Println("putd: gzip:", err)
 			//return nil, err
 		}
 
 		t, err := tarMetaData(w.meta, data)
 		if err != nil {
+			log.Println("putd: tar:", err)
 			//return nil, err
 		}
 
 		err = minio.PutObject(backetStreamIn, w.uuid, t)
 		if err != nil {
-			log.Println("putdWorker go func", err)
+			log.Println("putd: minio:", err)
 		}
 	}()
 

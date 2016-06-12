@@ -101,12 +101,11 @@ type jsonMeta struct {
 	Host string `json:"host,omitempty"`
 	Auth string `json:"auth,omitempty"`
 	Time int64  `json:"time,omitempty"`
-	Test bool   `json:"test,omitempty"`
 
 	HTag string `json:"htag,omitempty"` // *
 	Spn1 int64  `json:"spn1,omitempty"` // *
 	Spn2 int64  `json:"spn2,omitempty"` // *
-	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) depecated
+	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) deprecated
 
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *
@@ -116,7 +115,9 @@ type jsonMeta struct {
 	ETag string `json:"etag,omitempty"`
 	Size int64  `json:"size,omitempty"`
 
+	CTag string   `json:"ctag,omitempty"`
 	Link linkAddr `json:"link,omitempty"` // ?
+	Test bool     `json:"test,omitempty"`
 }
 
 func unmarshalJSONmeta(b []byte) (jsonMeta, error) {

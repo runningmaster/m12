@@ -80,7 +80,7 @@ func proc(data []byte) error {
 		return err
 	}
 
-	m, err := procMeta(meta, btsToMD5(data), int64(len(data)))
+	m, err := procMeta(meta)
 	if err != nil {
 		return err
 	}
@@ -98,41 +98,28 @@ func proc(data []byte) error {
 	return minio.PutObject(backetStreamOut, m.UUID, t)
 }
 
-func procMeta(data []byte, etag string, size int64) (jsonMeta, error) {
-	m, err := unmarshalJSONmeta(data)
+func procMeta(meta []byte) (jsonMeta, error) {
+	m, err := unmarshalJSONmeta(meta)
 	if err != nil {
 		return m, err
 	}
-	/*
-		t := m.HTag
-		if s, ok := convHTag[t]; ok {
-			m.HTag = s
-		}
 
-	*/
 	err = checkHTag(m.HTag)
 	if err != nil {
 		return m, err
 	}
 
-	l, err := findLinkMeta(m)
-	if err != nil {
-		return m, err
-	}
-
-	m.Link = l
-	m.ETag = etag
-	m.Size = size
+	m.Link = findLinkMeta(m)
 
 	return m, nil
 }
 
-func findLinkMeta(m jsonMeta) (linkAddr, error) {
+func findLinkMeta(m jsonMeta) linkAddr {
 	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 	if err != nil {
-		return linkAddr{}, err
+		return linkAddr{}
 	}
-	return l[0], nil
+	return l[0]
 }
 
 func procData(data []byte, m *jsonMeta) ([]byte, error) {
@@ -146,9 +133,23 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 		return nil, err
 	}
 
-	v, err := convData(data, m)
-	if err != nil {
-		return nil, err
+	var v interface{}
+	if m.CTag == "must convert" {
+		v, err = convDataOld(data, m)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		v, err = convDataNew(data, m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	m.ETag = btsToMD5(data)
+	m.Size = int64(len(data))
+	if s, ok := convHTag[m.HTag]; ok {
+		m.HTag = s
 	}
 
 	data, err = mineLinks(m.HTag, v)
@@ -159,10 +160,12 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 	return gzpool.Gzip(data)
 }
 
-func convData(data []byte, m *jsonMeta) (interface{}, error) {
-	t := m.HTag
-	var v interface{}
-	var err error
+func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
+	var (
+		t   = m.HTag
+		v   interface{}
+		err error
+	)
 	switch {
 	case isGeoV2(t):
 		v, err = convGeo2(data, m)
@@ -177,6 +180,20 @@ func convData(data []byte, m *jsonMeta) (interface{}, error) {
 		return nil, err
 	}
 
+	err = json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
+	var (
+		t   = m.HTag
+		v   interface{}
+		err error
+	)
 	switch {
 	case isGeo(t):
 		v = jsonV3Geoa{}
