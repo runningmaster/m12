@@ -16,7 +16,7 @@ var (
 	NATS = "nats://127.0.0.1:4222"
 
 	// Minio is Minio server address.
-	Minio = "http://akey:skey127.0.0.1:9000"
+	Minio = "http://akey:skey@127.0.0.1:9000"
 
 	// Redis is Redis server address.
 	Redis = "redis://127.0.0.1:6379"
