@@ -25,7 +25,7 @@ func main() {
 		failFast(err)
 	}
 
-	err = minio.Run(pref.Minio, pref.MinioAKey, pref.MinioSKey)
+	err = minio.Run(pref.Minio)
 	if err != nil {
 		failFast(err)
 	}

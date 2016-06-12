@@ -13,16 +13,10 @@ var (
 	Host = "http://127.0.0.1:8080"
 
 	// NATS is NATS server address.
-	NATS = "nats://user:pass@host:4222"
+	NATS = "nats://127.0.0.1:4222"
 
 	// Minio is Minio server address.
-	Minio = "http://127.0.0.1:9000"
-
-	// MinioAKey is Minio access key.
-	MinioAKey = ""
-
-	// MinioSKey is Minio secret key.
-	MinioSKey = ""
+	Minio = "http://akey:skey127.0.0.1:9000"
 
 	// Redis is Redis server address.
 	Redis = "redis://127.0.0.1:6379"
@@ -51,16 +45,6 @@ var (
 			"minio",
 			"Minio S3 object storage address",
 			&Minio,
-		},
-		pref{
-			"minio-akey",
-			"Minio S3 access key",
-			&MinioAKey,
-		},
-		pref{
-			"minio-skey",
-			"Minio S3 secret key",
-			&MinioSKey,
 		},
 		pref{
 			"redis",

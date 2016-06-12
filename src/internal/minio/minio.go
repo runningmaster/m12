@@ -11,13 +11,19 @@ import (
 var cli *minio.Client
 
 // Run FIXME
-func Run(addr, akey, skey string) error {
+func Run(addr string) error {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return err
 	}
 
-	cli, err = minio.New(u.Host, akey, skey, u.Scheme == "https")
+	var aKey, sKey string
+	if u.User != nil {
+		aKey = u.User.Username()
+		sKey, _ = u.User.Password()
+	}
+
+	cli, err = minio.New(u.Host, aKey, sKey, u.Scheme == "https")
 	if err != nil {
 		return fmt.Errorf("minio: %s", err)
 	}
