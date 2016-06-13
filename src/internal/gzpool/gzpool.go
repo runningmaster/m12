@@ -92,11 +92,11 @@ func Gzip(data []byte) ([]byte, error) {
 
 	buf := new(bytes.Buffer)
 	w.Reset(buf)
-
 	_, err = io.Copy(w, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
+	w.Close()
 
 	return buf.Bytes(), nil
 }
@@ -123,13 +123,13 @@ func Gunzip(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadAll(r)
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, r)
 	if err != nil {
-		//BUG IS HERE
 		return nil, err
 	}
 
-	return b, nil
+	return buf.Bytes(), nil
 }
 
 // IsGzipInString returns true if gzip is mentioned in string
