@@ -56,6 +56,11 @@ func Init() error {
 		return err
 	}
 
+	//err = nats.ListenAndServe(subjectSteamOut, proc2)
+	//if err != nil {
+	//	return err
+	//}
+
 	go publishing(backetStreamOut, subjectSteamOut, listN, tickD)
 	go publishing(backetStreamIn, subjectSteamIn, listN, tickD)
 
@@ -115,9 +120,10 @@ type jsonMeta struct {
 	ETag string `json:"etag,omitempty"`
 	Size int64  `json:"size,omitempty"`
 
-	CTag string   `json:"ctag,omitempty"`
+	CTag string `json:"ctag,omitempty"`
+	Test bool   `json:"test,omitempty"`
+
 	Link linkAddr `json:"link,omitempty"` // ?
-	Test bool     `json:"test,omitempty"`
 }
 
 func unmarshalJSONmeta(b []byte) (jsonMeta, error) {

@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -24,6 +25,7 @@ const (
 
 	magicAddrLength = 1024
 	magicDrugLength = 512
+	magicConvString = "conv:"
 )
 
 var listHTag = map[string]struct{}{
@@ -68,10 +70,43 @@ var convHTag = map[string]string{
 }
 
 func checkHTag(t string) error {
-	if _, ok := listHTag[strings.ToLower(t)]; ok {
+	t = strings.ToLower(t)
+	_, ok_old := convHTag[t]
+	_, ok_new := listHTag[t]
+
+	if ok_old || ok_new {
 		return nil
 	}
+
 	return fmt.Errorf("core: invalid htag %s", t)
+}
+
+func proc2(data []byte) error {
+	meta, data, err := popMetaData(data)
+	if err != nil {
+		return err
+	}
+
+	m, err := unmarshalJSONmeta(meta)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("meta.json", m.marshalJSON(), 0644)
+	if err != nil {
+		return err
+	}
+
+	d, err := gzpool.Gunzip(data)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile("data.json", d, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func proc(data []byte) error {
@@ -134,22 +169,16 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 	}
 
 	var v interface{}
-	if m.CTag == "must convert" {
+	if strings.HasPrefix(m.HTag, magicConvString) {
 		v, err = convDataOld(data, m)
-		if err != nil {
-			return nil, err
+		if s, ok := convHTag[m.HTag[len(magicConvString):]]; ok {
+			m.HTag = s
 		}
 	} else {
 		v, err = convDataNew(data, m)
-		if err != nil {
-			return nil, err
-		}
 	}
-
-	m.ETag = btsToMD5(data)
-	m.Size = int64(len(data))
-	if s, ok := convHTag[m.HTag]; ok {
-		m.HTag = s
+	if err != nil {
+		return nil, err
 	}
 
 	data, err = mineLinks(m.HTag, v)
@@ -157,15 +186,15 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 		return nil, err
 	}
 
+	m.ETag = btsToMD5(data)
+	m.Size = int64(len(data))
 	return gzpool.Gzip(data)
 }
 
 func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
-	var (
-		t   = m.HTag
-		v   interface{}
-		err error
-	)
+	t := m.HTag
+	var v interface{}
+	var err error
 	switch {
 	case isGeoV2(t):
 		v, err = convGeo2(data, m)
@@ -176,24 +205,13 @@ func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
 	default:
 		v, err = convSale(data, m)
 	}
-	if err != nil {
-		return nil, err
-	}
 
-	err = json.Unmarshal(data, &v)
-	if err != nil {
-		return nil, err
-	}
-
-	return v, nil
+	return v, err
 }
 
 func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
-	var (
-		t   = m.HTag
-		v   interface{}
-		err error
-	)
+	t := m.HTag
+	var v interface{}
 	switch {
 	case isGeo(t):
 		v = jsonV3Geoa{}
@@ -203,7 +221,7 @@ func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
 		v = jsonV3Sale{}
 	}
 
-	err = json.Unmarshal(data, &v)
+	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
