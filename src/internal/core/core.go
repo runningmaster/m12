@@ -2,12 +2,9 @@ package core
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
-	"internal/minio"
-	"internal/nats"
 	"internal/redis"
 )
 
@@ -43,67 +40,6 @@ type WorkFunc func([]byte) (interface{}, error)
 
 func (f WorkFunc) Work(b []byte) (interface{}, error) {
 	return f(b)
-}
-
-func Init() error {
-	err := nats.Run(pref.NATS)
-	if err != nil {
-		return err
-	}
-
-	err = minio.Run(pref.Minio)
-	if err != nil {
-		return err
-	}
-
-	err = redis.Run(pref.Redis)
-	if err != nil {
-		return err
-	}
-
-	err = minio.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
-	if err != nil {
-		return err
-	}
-
-	err = nats.ListenAndServe(subjectSteamIn, proc)
-	if err != nil {
-		return err
-	}
-
-	//err = nats.ListenAndServe(subjectSteamOut, proc2)
-	//if err != nil {
-	//	return err
-	//}
-
-	go publishing(backetStreamOut, subjectSteamOut, listN, tickD)
-	go publishing(backetStreamIn, subjectSteamIn, listN, tickD)
-
-	return nil
-}
-
-func publishing(backet, subject string, n int, d time.Duration) {
-	var err error
-	for range time.Tick(d) {
-		err = publish(backet, subject, n)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-}
-
-func publish(backet, subject string, n int) error {
-	l, err := minio.ListObjects(backet, n)
-	if err != nil {
-		return err
-	}
-
-	m := make([][]byte, len(l))
-	for i := range l {
-		m[i] = pair{backet, l[i]}.marshalJSON()
-	}
-
-	return nats.PublishEach(subject, m...)
 }
 
 // Ping calls Redis PING

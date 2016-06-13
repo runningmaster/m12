@@ -230,16 +230,19 @@ func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
 }
 
 func mineLinks(t string, v interface{}) ([]byte, error) {
-	err := mineLinkDrug(t, v.(linkDruger))
+	var err error
+	if d, ok := v.(linkDruger); ok {
+		err = mineLinkDrug(t, d)
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	if isSaleIn(t) {
-		err = mineLinkAddr(v.(linkAddrer))
-		if err != nil {
-			return nil, err
-		}
+	if a, ok := v.(linkAddrer); ok {
+		err = mineLinkAddr(a)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	return json.Marshal(v)

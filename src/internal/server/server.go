@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"internal/api"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,17 +30,17 @@ func Run(addr string) error {
 		return err
 	}
 
-	s, err := makeServer(u.Host)
+	r, err := makeRouter()
+	if err != nil {
+		return err
+	}
+
+	s, err := makeServer(u.Host, r)
 	if err != nil {
 		return err
 	}
 
 	return s.ListenAndServe()
-}
-
-// RegHandler is called from another packages
-func RegHandler(m, p string, h http.Handler) {
-	regHandlers = append(regHandlers, regHandler{m, p, h})
 }
 
 // initRouter is work-around wrapper for router in *echo.Echo
@@ -76,11 +77,18 @@ find:
 }
 
 func makeRouter() (*echo.Echo, error) {
+	err := api.Reg(func(m, p string, h http.Handler) {
+		regHandlers = append(regHandlers, regHandler{m, p, h})
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	r := echo.New()
 	r.SetLogOutput(ioutil.Discard)
 	r.SetHTTPErrorHandler(trapErrorHandler)
 
-	err := initRouter(r, regHandlers...)
+	err = initRouter(r, regHandlers...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,12 +96,7 @@ func makeRouter() (*echo.Echo, error) {
 	return r, nil
 }
 
-func makeServer(addr string) (*graceful.Server, error) {
-	r, err := makeRouter()
-	if err != nil {
-		return nil, err
-	}
-
+func makeServer(addr string, r *echo.Echo) (*graceful.Server, error) {
 	s := standard.New(addr)
 	s.SetHandler(r)
 

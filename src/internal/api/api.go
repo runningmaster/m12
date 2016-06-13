@@ -11,7 +11,6 @@ import (
 
 	"internal/core"
 	"internal/pref"
-	"internal/server"
 	"internal/version"
 
 	"golang.org/x/net/context"
@@ -76,16 +75,14 @@ var (
 	}
 )
 
-func init() {
-	Reg()
-}
-
 // Reg is caled from main package for manually initialization
-func Reg() error {
+func Reg(reg func(m, p string, h http.Handler)) error {
 	mapCoreWorkers = make(map[string]core.Worker, len(mapHTTPHandlers))
 	for k, v := range mapHTTPHandlers {
 		s := strings.Split(k, ":")
-		server.RegHandler(s[0], s[1], v.h)
+		if reg != nil {
+			reg(s[0], s[1], v.h)
+		}
 		if v.w != nil {
 			mapCoreWorkers[s[1]] = v.w
 		}
