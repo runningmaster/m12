@@ -45,15 +45,15 @@ var listHTag = map[string]struct{}{
 }
 
 var convHTag = map[string]string{
-	"__ version 1 __":          "",
-	"data.geostore":            "geoapt.ua",
-	"data.sale-inp.monthly":    "sale-in.monthly.ua",
-	"data.sale-inp.weekly":     "sale-in.weekly.ua",
-	"data.sale-inp.daily":      "sale-in.daily.ua",
-	"data.sale-out.monthly":    "sale-out.monthly.ua",
-	"data.sale-out.weekly":     "sale-out.weekly.ua",
-	"data.sale-out.daily":      "sale-out.daily.ua",
-	"__ version 2 __":          "",
+	// version 1 -> version 3
+	"data.geostore":         "geoapt.ua",
+	"data.sale-inp.monthly": "sale-in.monthly.ua",
+	"data.sale-inp.weekly":  "sale-in.weekly.ua",
+	"data.sale-inp.daily":   "sale-in.daily.ua",
+	"data.sale-out.monthly": "sale-out.monthly.ua",
+	"data.sale-out.weekly":  "sale-out.weekly.ua",
+	"data.sale-out.daily":   "sale-out.daily.ua",
+	// version 2 -> version 3
 	"data.geoapt.ru":           "geoapt.ru",
 	"data.geoapt.ua":           "geoapt.ua",
 	"data.sale-inp.monthly.kz": "sale-out.monthly.kz",
