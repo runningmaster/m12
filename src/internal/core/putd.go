@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"internal/gzpool"
-	"internal/minio"
 )
 
 var Putd = newPutdWorker()
@@ -42,7 +41,7 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 			//return nil, err
 		}
 
-		err = minio.PutObject(backetStreamIn, w.uuid, t)
+		_, err = cMINIO.PutObject(backetStreamIn, w.uuid, t, "")
 		if err != nil {
 			log.Println("putd: minio:", err)
 		}

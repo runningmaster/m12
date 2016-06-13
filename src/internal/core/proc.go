@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"internal/gzpool"
-	"internal/minio"
 	"internal/strutil"
 )
 
@@ -130,7 +129,9 @@ func proc(data []byte) error {
 		return err
 	}
 
-	return minio.PutObject(backetStreamOut, m.UUID, t)
+	_, err = cMINIO.PutObject(backetStreamOut, m.UUID, t, "")
+
+	return err
 }
 
 func procMeta(meta []byte) (jsonMeta, error) {

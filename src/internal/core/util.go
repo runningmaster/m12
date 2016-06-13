@@ -13,8 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"internal/minio"
-
 	"github.com/spkg/bom"
 )
 
@@ -133,7 +131,7 @@ func popMetaData(data []byte) ([]byte, []byte, error) {
 		return nil, nil, err
 	}
 
-	o, err := minio.GetObject(p.Backet, p.Object)
+	o, err := cMINIO.GetObject(p.Backet, p.Object)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,10 +144,10 @@ func popMetaData(data []byte) ([]byte, []byte, error) {
 			log.Println("popMetaData", err)
 			return
 		}
-		//err = minio.DelObject(p.Backet, p.Object)
-		//if err != nil {
-		//	log.Println("popMetaData", err)
-		//}
+		err = cMINIO.RemoveObject(p.Backet, p.Object)
+		if err != nil {
+			log.Println("popMetaData", err)
+		}
 	}()
 
 	return untarMetaData(o)
