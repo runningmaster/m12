@@ -76,6 +76,10 @@ var (
 	}
 )
 
+func init() {
+	Reg()
+}
+
 // Reg is caled from main package for manually initialization
 func Reg() error {
 	mapCoreWorkers = make(map[string]core.Worker, len(mapHTTPHandlers))

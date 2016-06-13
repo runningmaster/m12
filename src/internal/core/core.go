@@ -46,7 +46,22 @@ func (f WorkFunc) Work(b []byte) (interface{}, error) {
 }
 
 func Init() error {
-	err := minio.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
+	err := nats.Run(pref.NATS)
+	if err != nil {
+		return err
+	}
+
+	err = minio.Run(pref.Minio)
+	if err != nil {
+		return err
+	}
+
+	err = redis.Run(pref.Redis)
+	if err != nil {
+		return err
+	}
+
+	err = minio.InitBacketList(backetStreamIn, backetStreamOut, backetStreamErr)
 	if err != nil {
 		return err
 	}
