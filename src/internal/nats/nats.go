@@ -1,8 +1,10 @@
 package nats
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/nats-io/nats"
 )
@@ -10,10 +12,17 @@ import (
 var cli *nats.Conn
 
 func Run(addr string) error {
-	var err error
-	// nats.Secure(&tls.Config{InsecureSkipVerify: true})
-	// Reconnect ?
-	cli, err = nats.Connect(addr)
+	u, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+
+	var opts []nats.Option
+	if u.User != nil {
+		opts = append(opts, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
+	}
+
+	cli, err = nats.Connect(addr, opts)
 	if err != nil {
 		return fmt.Errorf("nats: %s", err)
 	}
