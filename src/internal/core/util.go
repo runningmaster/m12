@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"internal/minio"
 
@@ -31,11 +32,6 @@ func btsToSHA1(b []byte) string {
 
 func strToSHA1(s string) string {
 	return btsToSHA1([]byte(s))
-}
-
-func readClose(r io.ReadCloser) ([]byte, error) {
-	defer func() { _ = r.Close() }()
-	return ioutil.ReadAll(r)
 }
 
 func isUTF8(b []byte) bool {
@@ -87,8 +83,10 @@ func tarMetaData(m, d []byte) (io.Reader, error) {
 
 func writeToTar(name string, data []byte, w *tar.Writer) error {
 	h := &tar.Header{
-		Name: name,
-		Size: int64(len(data)),
+		Name:    name,
+		Mode:    0644,
+		ModTime: time.Now(),
+		Size:    int64(len(data)),
 	}
 
 	err := w.WriteHeader(h)
