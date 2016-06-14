@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -96,8 +95,10 @@ func writeToTar(name string, data []byte, w *tar.Writer) error {
 	return err
 }
 
-func untarMetaData(r io.Reader) ([]byte, []byte, error) {
-	tr := tar.NewReader(r)
+func untarMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
+	defer rc.Close()
+
+	tr := tar.NewReader(rc)
 	var (
 		meta = new(bytes.Buffer)
 		data = new(bytes.Buffer)
@@ -123,32 +124,4 @@ func untarMetaData(r io.Reader) ([]byte, []byte, error) {
 	}
 
 	return meta.Bytes(), data.Bytes(), nil
-}
-
-func popMetaData(data []byte) ([]byte, []byte, error) {
-	p, err := unmarshaJSONpair(data)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	o, err := cMINIO.GetObject(p.Backet, p.Object)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer func() {
-		if o == nil {
-			return
-		}
-		err := o.Close()
-		if err != nil {
-			log.Println("popMetaData", err)
-			return
-		}
-		err = cMINIO.RemoveObject(p.Backet, p.Object)
-		if err != nil {
-			log.Println("popMetaData", err)
-		}
-	}()
-
-	return untarMetaData(o)
 }

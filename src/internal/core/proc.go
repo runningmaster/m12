@@ -3,12 +3,15 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"internal/gzpool"
 	"internal/strutil"
+
+	minio "github.com/minio/minio-go"
 )
 
 const (
@@ -83,6 +86,7 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
+/*
 func proc2(data []byte) error {
 	meta, data, err := popMetaData(data)
 	if err != nil {
@@ -110,9 +114,37 @@ func proc2(data []byte) error {
 
 	return nil
 }
+*/
 
-func proc(data []byte) error {
-	meta, data, err := popMetaData(data)
+func proc(data []byte) {
+	p, err := unmarshaJSONpair(data)
+	if err != nil {
+		panic(err)
+	}
+
+	err = procObject(p)
+	if err != nil {
+		cpc := minio.NewCopyConditions()
+		cpc.SetModified(time.Now()) // ?
+		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, cpc)
+		if err != nil {
+			log.Println("proc:", err)
+		}
+	}
+
+	err = cMINIO.RemoveObject(p.Backet, p.Object)
+	if err != nil {
+		log.Println("proc:", err)
+	}
+}
+
+func procObject(p pair) error {
+	o, err := cMINIO.GetObject(p.Backet, p.Object)
+	if err != nil {
+		return err
+	}
+
+	meta, data, err := untarMetaData(o)
 	if err != nil {
 		return err
 	}

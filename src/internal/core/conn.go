@@ -21,12 +21,12 @@ func openNATS(addr string) (*nats.Conn, error) {
 		opts = append(opts, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
 	}
 
-	cli, err := nats.Connect(addr, opts...)
+	c, err := nats.Connect(addr, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return cli, nil
+	return c, nil
 }
 
 var cMINIO *minio.Client
@@ -43,10 +43,10 @@ func openMINIO(addr string) (*minio.Client, error) {
 		sKey, _ = u.User.Password()
 	}
 
-	cli, err := minio.New(u.Host, aKey, sKey, u.Scheme == "https")
+	c, err := minio.New(u.Host, aKey, sKey, u.Scheme == "https")
 	if err != nil {
 		return nil, err
 	}
 
-	return cli, nil
+	return c, nil
 }

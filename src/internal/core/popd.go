@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/base64"
+	"log"
 	"net/http"
 )
 
@@ -25,11 +26,28 @@ func (w *popdWorker) WriteHeader(h http.Header) {
 }
 
 func (w *popdWorker) Work(data []byte) (interface{}, error) {
-	meta, data, err := popMetaData(data)
+	p, err := unmarshaJSONpair(data)
+	if err != nil {
+		return nil, err
+	}
+
+	o, err := cMINIO.GetObject(p.Backet, p.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, data, err := untarMetaData(o)
 	if err != nil {
 		return nil, err
 	}
 	w.meta = meta
+
+	go func(p pair) {
+		err := cMINIO.RemoveObject(p.Backet, p.Object)
+		if err != nil {
+			log.Println("popMetaData", err)
+		}
+	}(p)
 
 	return data, nil
 }
