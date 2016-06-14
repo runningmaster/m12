@@ -122,11 +122,14 @@ func proc(data []byte) {
 
 	err = procObject(p)
 	if err != nil {
+		if err != nil {
+			log.Println("proc: err:", p.Object, err)
+		}
 		cpc := minio.NewCopyConditions()
 		_ = cpc.SetModified(time.Now()) // ?
 		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, cpc)
 		if err != nil {
-			log.Println("proc:", p.Object, err)
+			log.Println("minio:", p.Object, err)
 		}
 	}
 
