@@ -9,7 +9,7 @@ import (
 
 const (
 	tarMeta = "meta.json"
-	tarData = "data.gz"
+	tarData = "data.json.gz"
 )
 
 func tarMetaData(m, d []byte) (io.Reader, error) {
