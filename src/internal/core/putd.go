@@ -32,6 +32,11 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
+	err = checkHTag(m.HTag)
+	if err != nil {
+		return nil, err
+	}
+
 	go func() { // ?
 		d, err := gzpool.MustGzip(data)
 		if err != nil {

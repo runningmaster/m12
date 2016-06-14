@@ -73,10 +73,10 @@ var convHTag = map[string]string{
 
 func checkHTag(t string) error {
 	t = strings.ToLower(t)
-	_, ok_old := convHTag[t]
-	_, ok_new := listHTag[t]
+	_, ok1 := convHTag[t]
+	_, ok2 := listHTag[t]
 
-	if ok_old || ok_new {
+	if ok1 || ok2 {
 		return nil
 	}
 
@@ -123,7 +123,7 @@ func proc(data []byte) {
 	err = procObject(p)
 	if err != nil {
 		cpc := minio.NewCopyConditions()
-		cpc.SetModified(time.Now()) // ?
+		_ = cpc.SetModified(time.Now()) // ?
 		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, cpc)
 		if err != nil {
 			log.Println("proc:", p.Object, err)
@@ -175,22 +175,20 @@ func procMeta(meta []byte) (jsonMeta, error) {
 		return m, err
 	}
 
-	err = checkHTag(m.HTag)
+	m.Link, err = findLinkMeta(m)
 	if err != nil {
 		return m, err
 	}
 
-	m.Link = findLinkMeta(m)
-
 	return m, nil
 }
 
-func findLinkMeta(m jsonMeta) linkAddr {
+func findLinkMeta(m jsonMeta) (linkAddr, error) {
 	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 	if err != nil {
-		return linkAddr{}
+		return linkAddr{}, err
 	}
-	return l[0]
+	return l[0], nil
 }
 
 func procData(data []byte, m *jsonMeta) ([]byte, error) {
@@ -274,11 +272,13 @@ func mineLinks(t string, v interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	if a, ok := v.(linkAddrer); ok {
-		err = mineLinkAddr(a)
-	}
-	if err != nil {
-		return nil, err
+	if isSaleIn(t) {
+		if a, ok := v.(linkAddrer); ok {
+			err = mineLinkAddr(a)
+		}
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return json.Marshal(v)
