@@ -155,7 +155,7 @@ func writeResp(ctx context.Context, w http.ResponseWriter, code int, data interf
 			return 0, fmt.Errorf("unknown data")
 		}
 	} else {
-		if false { // FIXME (flag?)
+		if true { // FIXME (flag?)
 			res, err = json.Marshal(data)
 		} else {
 			res, err = json.MarshalIndent(data, "", "\t")
@@ -171,17 +171,7 @@ func writeResp(ctx context.Context, w http.ResponseWriter, code int, data interf
 	w.WriteHeader(code)
 
 	n, err := w.Write(res)
-	if err != nil {
-		return 0, err
-	}
-
-	_, err = w.Write([]byte("\n")) // ?
-	if err != nil {
-		return 0, err
-	}
-	n++
-
-	return int64(n), nil
+	return int64(n), err
 }
 
 func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
