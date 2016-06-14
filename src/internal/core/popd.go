@@ -22,6 +22,7 @@ func (w *popdWorker) NewWorker() Worker {
 
 func (w *popdWorker) WriteHeader(h http.Header) {
 	h.Set("Content-Encoding", "gzip")
+	h.Set("Content-Type", "gzip") // for writeResp
 	h.Set("Content-Meta", base64.StdEncoding.EncodeToString(w.meta))
 }
 

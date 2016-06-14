@@ -149,7 +149,12 @@ func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 func writeResp(ctx context.Context, w http.ResponseWriter, code int, data interface{}) (int64, error) {
 	var res []byte
 	var err error
-	if w.Header().Get("Content-Encoding") != "" {
+	if w.Header().Get("Content-Type") == "gzip" {
+		var ok bool
+		if res, ok = data.([]byte); !ok {
+			return 0, fmt.Errorf("unknown data")
+		}
+	} else {
 		if false { // FIXME (flag?)
 			res, err = json.Marshal(data)
 		} else {
@@ -158,14 +163,9 @@ func writeResp(ctx context.Context, w http.ResponseWriter, code int, data interf
 		if err != nil {
 			return 0, err
 		}
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	} else {
-		var ok bool
-		if res, ok = data.([]byte); !ok {
-			return 0, fmt.Errorf("unknown data")
-		}
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Powered-By", runtime.Version())
 	w.Header().Set("X-Request-ID", uuidFromCtx(ctx))
 	w.WriteHeader(code)
