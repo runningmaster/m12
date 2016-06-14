@@ -10,6 +10,18 @@ import (
 	"github.com/nats-io/nats"
 )
 
+const (
+	backetStreamIn  = "stream-in"
+	backetStreamOut = "stream-out"
+	backetStreamErr = "stream-err"
+
+	subjectSteamIn  = "m12." + backetStreamIn
+	subjectSteamOut = "m12." + backetStreamOut
+
+	listN = 100
+	tickD = 10 * time.Second
+)
+
 func Init() error {
 	var err error
 	err = redis.Run(pref.Redis)

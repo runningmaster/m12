@@ -37,7 +37,7 @@ func tarMetaData(m, d []byte) (io.Reader, error) {
 func writeToTar(name string, data []byte, w *tar.Writer) error {
 	h := &tar.Header{
 		Name:    name,
-		Mode:    0644,
+		Mode:    0666,
 		ModTime: time.Now(),
 		Size:    int64(len(data)),
 	}
@@ -51,10 +51,8 @@ func writeToTar(name string, data []byte, w *tar.Writer) error {
 	return err
 }
 
-func untarMetaData(rc io.ReadCloser) ([]byte, []byte, error) {
-	defer func() { _ = rc.Close() }()
-
-	tr := tar.NewReader(rc)
+func untarMetaData(r io.Reader) ([]byte, []byte, error) {
+	tr := tar.NewReader(r)
 	var (
 		meta = new(bytes.Buffer)
 		data = new(bytes.Buffer)

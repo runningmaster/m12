@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"path/filepath"
 	"strings"
@@ -12,22 +13,6 @@ import (
 	"internal/strutil"
 
 	minio "github.com/minio/minio-go"
-)
-
-const (
-	extBY = ".by"
-	extKZ = ".kz"
-	extRU = ".ru"
-	extUA = ".ua"
-
-	magicSuffixBY = "{\"COUNTRY_ID\":\"1010\"}"
-	magicSuffixKZ = "{\"COUNTRY_ID\":\"106\"}"
-	magicSuffixRU = "{\"COUNTRY_ID\":\"1027\"}"
-	magicSuffixUA = ""
-
-	magicAddrLength = 1024
-	magicDrugLength = 512
-	magicConvString = "conv"
 )
 
 var listHTag = map[string]struct{}{
@@ -119,15 +104,19 @@ func proc(data []byte) {
 	if err != nil {
 		panic(err)
 	}
+	FIXME return
+	o, err := cMINIO.GetObject(p.Backet, p.Object)
+	if err != nil {
+		log.Println("minio:", p.Object, err)
+	}
+	defer func() { _ = o.Close() }()
 
-	err = procObject(p)
+	err = procObject(o)
 	if err != nil {
 		if err != nil {
 			log.Println("proc: err:", p.Object, err)
 		}
-		cpc := minio.NewCopyConditions()
-		_ = cpc.SetModified(time.Now()) // ?
-		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, cpc)
+		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, minio.NewCopyConditions())
 		if err != nil {
 			log.Println("minio:", p.Object, err)
 		}
@@ -135,18 +124,14 @@ func proc(data []byte) {
 
 	err = cMINIO.RemoveObject(p.Backet, p.Object)
 	if err != nil {
-		log.Println("proc:", p.Object, err)
+		log.Println("minio:", p.Object, err)
 	}
+
 	log.Println("proc:", p.Object, time.Since(t).String())
 }
 
-func procObject(p pair) error {
-	o, err := cMINIO.GetObject(p.Backet, p.Object)
-	if err != nil {
-		return err
-	}
-
-	meta, data, err := untarMetaData(o)
+func procObject(r io.Reader) error {
+	meta, data, err := untarMetaData(r)
 	if err != nil {
 		return err
 	}
@@ -193,6 +178,8 @@ func findLinkMeta(m jsonMeta) (linkAddr, error) {
 	}
 	return l[0], nil
 }
+
+const magicConvString = "conv"
 
 func procData(data []byte, m *jsonMeta) ([]byte, error) {
 	data, err := gzpool.Gunzip(data)
@@ -340,6 +327,16 @@ func mineLinkAddr(l linkAddrer) error {
 	return nil
 }
 
+const (
+	magicSuffixBY = "{\"COUNTRY_ID\":\"1010\"}"
+	magicSuffixKZ = "{\"COUNTRY_ID\":\"106\"}"
+	magicSuffixRU = "{\"COUNTRY_ID\":\"1027\"}"
+	magicSuffixUA = ""
+
+	magicAddrLength = 1024
+	magicDrugLength = 512
+)
+
 func makeMagicHead(name, head, addr string) string {
 	return strings.TrimSpace(
 		strutil.First(
@@ -402,6 +399,13 @@ func isSaleBY(s string) bool {
 func isSaleIn(s string) bool {
 	return strings.Contains(s, "sale-in")
 }
+
+const (
+	extBY = ".by"
+	extKZ = ".kz"
+	extRU = ".ru"
+	extUA = ".ua"
+)
 
 func isBY(s string) bool {
 	return strings.EqualFold(s, extBY)

@@ -51,13 +51,15 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 		f := makeFileName(m.UUID, m.Auth, m.HTag)
 		_, err = cMINIO.PutObject(backetStreamIn, f, t, "")
 		if err != nil {
-			log.Println("putd: minio:", err)
+			log.Println("putd: minio: err:", err)
 		}
 	}()
 
 	return m.UUID, nil
 }
 
+const magicLen = 8
+
 func makeFileName(uuid, auth, htag string) string {
-	return fmt.Sprintf("%s_%s_%s.tar", uuid, auth, htag)
+	return fmt.Sprintf("%s_%s_%s.tar", uuid, auth[:magicLen], htag)
 }

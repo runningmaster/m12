@@ -3,21 +3,8 @@ package core
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"internal/redis"
-)
-
-const (
-	backetStreamIn  = "stream-in"
-	backetStreamOut = "stream-out"
-	backetStreamErr = "stream-err"
-
-	subjectSteamIn  = "m12." + backetStreamIn
-	subjectSteamOut = "m12." + backetStreamOut
-
-	listN = 100
-	tickD = 10 * time.Second
 )
 
 type HTTPHeadReader interface {

@@ -137,13 +137,13 @@ func getLinkAddr(v ...string) ([]linkAddr, error) {
 
 	res := make([]linkAddr, len(vlm))
 	for i := range vlm {
+		res[i].ID = v[i] // key
 		if valIsNill(vlm[i]...) {
 			continue
 		}
 		if len(vlm[i]) != len(fldsAddr) {
 			return nil, fmt.Errorf("core: invalid len (get link addr): got %d, want %d", len(vlm[i]), len(fldsAddr))
 		}
-		res[i].ID = v[i]                                // key
 		res[i].IDLink = redis.ToInt64Safely(vlm[i][0])  // fld "l"
 		res[i].IDAddr = redis.ToInt64Safely(vlm[i][1])  // fld "a"
 		res[i].IDStat = redis.ToInt64Safely(vlm[i][2])  // fld "s"
@@ -238,13 +238,13 @@ func getLinkDrug(v ...string) ([]linkDrug, error) {
 
 	res := make([]linkDrug, len(vlm))
 	for i := range vlm {
+		res[i].ID = v[i] // key
 		if valIsNill(vlm[i]...) {
 			continue
 		}
 		if len(vlm[i]) != len(fldsDrug) {
 			return nil, fmt.Errorf("core: invalid len (get link drug): got %d, want %d", len(vlm[i]), len(fldsDrug))
 		}
-		res[i].ID = v[i]                               // key
 		res[i].IDLink = redis.ToInt64Safely(vlm[i][0]) // fld "l"
 		res[i].IDDrug = redis.ToInt64Safely(vlm[i][1]) // fld "d"
 		res[i].IDBrnd = redis.ToInt64Safely(vlm[i][2]) // fld "b"
@@ -331,10 +331,10 @@ func getLinkStat(v ...int64) ([]linkStat, error) {
 
 	res := make([]linkStat, len(vls))
 	for i := range vls {
+		res[i].ID = v[i]
 		if valIsNill(vls[i]) {
 			continue
 		}
-		res[i].ID = v[i]
 		res[i].Name = redis.ToStringSafely(vls[i])
 	}
 

@@ -36,6 +36,7 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = o.Close() }()
 
 	meta, data, err := untarMetaData(o)
 	if err != nil {
@@ -43,12 +44,12 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 	}
 	w.meta = meta
 
-	go func(p pair) {
+	go func() {
 		err := cMINIO.RemoveObject(p.Backet, p.Object)
 		if err != nil {
-			log.Println("popMetaData", err)
+			log.Println("popd: minio: err:", err)
 		}
-	}(p)
+	}()
 
 	return data, nil
 }
