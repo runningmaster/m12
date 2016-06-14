@@ -58,7 +58,7 @@ func initNATS(addr string) error {
 		return err
 	}
 
-	_, err = cNATS.Subscribe(backetStreamIn, func(m *nats.Msg) {
+	_, err = cNATS.Subscribe(subjectSteamIn, func(m *nats.Msg) {
 		err := proc(m.Data)
 		if err != nil {
 			log.Println("ListenAndServe", err)
