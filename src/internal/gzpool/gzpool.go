@@ -92,11 +92,16 @@ func Gzip(data []byte) ([]byte, error) {
 
 	buf := new(bytes.Buffer)
 	w.Reset(buf)
+
 	_, err = io.Copy(w, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
-	w.Close()
+
+	err = w.Close()
+	if err != nil {
+		return nil, err
+	}
 
 	return buf.Bytes(), nil
 }
