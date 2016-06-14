@@ -70,6 +70,9 @@ var convHTag = map[string]string{
 
 func checkHTag(t string) error {
 	t = strings.ToLower(t)
+	if strings.HasPrefix(t, magicConvString) {
+		t = t[len(magicConvString):]
+	}
 	_, ok_old := convHTag[t]
 	_, ok_new := listHTag[t]
 
