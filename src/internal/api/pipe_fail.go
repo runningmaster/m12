@@ -12,7 +12,7 @@ func pipeFail(h handlerFunc) handlerFunc {
 		if err != nil {
 			if code := codeFromCtx(ctx); code != 0 {
 				var size int64
-				size, err = writeJSON(ctx, w, int(code), "err: "+err.Error())
+				size, err = writeResp(ctx, w, int(code), "err: "+err.Error())
 				if err != nil {
 					ctx = ctxWithFail(ctx, err)
 				}

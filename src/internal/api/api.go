@@ -146,32 +146,36 @@ func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 	return ctxWithSize(ctxWithFail(ctx, fmt.Errorf("api: unreachable")), 0)
 }
 
-func writeJSON(ctx context.Context, w http.ResponseWriter, code int, data interface{}) (int64, error) {
-	b, err := json.Marshal(data)
-	if err != nil {
-		return 0, err
+func writeResp(ctx context.Context, w http.ResponseWriter, code int, data interface{}) (int64, error) {
+	var res []byte
+	var err error
+	if w.Header().Get("Content-Encoding") != "" {
+		if false { // FIXME (flag?)
+			res, err = json.Marshal(data)
+		} else {
+			res, err = json.MarshalIndent(data, "", "\t")
+		}
+		if err != nil {
+			return 0, err
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	} else {
+		var ok bool
+		if res, ok = data.([]byte); !ok {
+			return 0, fmt.Errorf("unknown data")
+		}
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Powered-By", runtime.Version())
 	w.Header().Set("X-Request-ID", uuidFromCtx(ctx))
 	w.WriteHeader(code)
 
-	if true { // FIXME (flag?)
-		var tmp bytes.Buffer
-		err = json.Indent(&tmp, b, "", "\t")
-		if err != nil {
-			return 0, err
-		}
-		b = tmp.Bytes()
-	}
-
-	n, err := w.Write(b)
+	n, err := w.Write(res)
 	if err != nil {
 		return 0, err
 	}
 
-	_, err = w.Write([]byte("\n"))
+	_, err = w.Write([]byte("\n")) // ?
 	if err != nil {
 		return 0, err
 	}
@@ -181,7 +185,7 @@ func writeJSON(ctx context.Context, w http.ResponseWriter, code int, data interf
 }
 
 func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
-	n, err := writeJSON(ctx, w, http.StatusOK, res)
+	n, err := writeResp(ctx, w, http.StatusOK, res)
 	if err != nil {
 		return ctxWithSize(ctxWithFail(ctx, err), n)
 	}
