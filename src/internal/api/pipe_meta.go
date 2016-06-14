@@ -80,9 +80,8 @@ func mustHeaderMETA(h http.Header) error {
 }
 
 func injectIntoMETA(ctx context.Context, h http.Header) error {
-	uuid := uuidFromCtx(ctx)
 	info := fmt.Sprintf(`{ "uuid": %q, "host": %q, "auth": %q, "time": %d, `,
-		uuid,
+		uuidFromCtx(ctx),
 		hostFromCtx(ctx),
 		authFromCtx(ctx),
 		timeFromCtx(ctx).Unix(),
@@ -95,6 +94,5 @@ func injectIntoMETA(ctx context.Context, h http.Header) error {
 
 	meta = bytes.Replace(bytes.TrimSpace(meta), []byte("{"), []byte(info), -1)
 	h.Set("Content-Meta", string(meta))
-	h.Set("Content-UUID", uuid)
 	return nil
 }

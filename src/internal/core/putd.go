@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,7 +12,6 @@ var Putd = newPutdWorker()
 
 type putdWorker struct {
 	meta []byte
-	uuid string
 }
 
 func newPutdWorker() Worker {
@@ -24,28 +24,35 @@ func (w *putdWorker) NewWorker() Worker {
 
 func (w *putdWorker) ReadHeader(h http.Header) {
 	w.meta = []byte(h.Get("Content-Meta"))
-	w.uuid = h.Get("Content-UUID")
 }
 
 func (w *putdWorker) Work(data []byte) (interface{}, error) {
+	m, err := unmarshalJSONmeta(w.meta)
+	if err != nil {
+		return nil, err
+	}
+
 	go func() { // ?
-		data, err := gzpool.MustGzip(data)
+		d, err := gzpool.MustGzip(data)
 		if err != nil {
 			log.Println("putd: gzip:", err)
-			//return nil, err
 		}
 
-		t, err := tarMetaData(w.meta, data)
+		t, err := tarMetaData(w.meta, d)
 		if err != nil {
 			log.Println("putd: tar:", err)
-			//return nil, err
 		}
 
-		_, err = cMINIO.PutObject(backetStreamIn, w.uuid, t, "")
+		f := makeFileName(m.UUID, m.Auth, m.HTag)
+		_, err = cMINIO.PutObject(backetStreamIn, f, t, "")
 		if err != nil {
 			log.Println("putd: minio:", err)
 		}
 	}()
 
-	return w.uuid, nil
+	return m.UUID, nil
+}
+
+func makeFileName(uuid, auth, htag string) string {
+	return fmt.Sprintf("%s_%s_%s.tar", uuid, auth, htag)
 }

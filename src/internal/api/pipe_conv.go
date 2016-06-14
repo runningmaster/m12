@@ -54,8 +54,7 @@ func convHTag(r *http.Request) {
 	}
 
 	if v != "" { // FIXME: remove test (!)
-		v = "conv:" + v
-		v = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`{ "test": true, "htag": %q }`, strings.ToLower(v))))
+		v = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`{ "test": true, "ctag": "conv", "htag": %q }`, strings.ToLower(v))))
 		r.Header.Set("Content-Meta", v)
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		r.Header.Set("Content-Encoding", "gzip")

@@ -27,7 +27,7 @@ const (
 
 	magicAddrLength = 1024
 	magicDrugLength = 512
-	magicConvString = "conv:"
+	magicConvString = "conv"
 )
 
 var listHTag = map[string]struct{}{
@@ -73,9 +73,6 @@ var convHTag = map[string]string{
 
 func checkHTag(t string) error {
 	t = strings.ToLower(t)
-	if strings.HasPrefix(t, magicConvString) {
-		t = t[len(magicConvString):]
-	}
 	_, ok_old := convHTag[t]
 	_, ok_new := listHTag[t]
 
@@ -166,7 +163,8 @@ func procObject(p pair) error {
 		return err
 	}
 
-	_, err = cMINIO.PutObject(backetStreamOut, m.UUID, t, "")
+	f := makeFileName(m.UUID, m.Auth, m.HTag)
+	_, err = cMINIO.PutObject(backetStreamOut, f, t, "")
 
 	return err
 }
@@ -207,9 +205,9 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 	}
 
 	var v interface{}
-	if strings.HasPrefix(m.HTag, magicConvString) {
+	if strings.HasPrefix(m.CTag, magicConvString) {
 		v, err = convDataOld(data, m)
-		if s, ok := convHTag[m.HTag[len(magicConvString):]]; ok {
+		if s, ok := convHTag[m.HTag]; ok {
 			m.HTag = s
 		}
 	} else {
