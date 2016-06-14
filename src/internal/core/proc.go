@@ -117,6 +117,7 @@ func proc2(data []byte) error {
 */
 
 func proc(data []byte) {
+	t := time.Now()
 	p, err := unmarshaJSONpair(data)
 	if err != nil {
 		panic(err)
@@ -128,14 +129,15 @@ func proc(data []byte) {
 		cpc.SetModified(time.Now()) // ?
 		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, cpc)
 		if err != nil {
-			log.Println("proc:", err)
+			log.Println("proc:", p.Object, err)
 		}
 	}
 
 	err = cMINIO.RemoveObject(p.Backet, p.Object)
 	if err != nil {
-		log.Println("proc:", err)
+		log.Println("proc:", p.Object, err)
 	}
+	log.Println("proc:", p.Object, time.Since(t).String())
 }
 
 func procObject(p pair) error {
