@@ -55,6 +55,9 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 const magicLen = 8
 
 func makeFileName(uuid, auth, htag string) string {
+	if len(uuid) > magicLen {
+		uuid = uuid[:magicLen]
+	}
 	if len(auth) > magicLen {
 		auth = auth[:magicLen]
 	}
