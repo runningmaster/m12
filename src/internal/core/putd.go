@@ -61,5 +61,8 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 const magicLen = 8
 
 func makeFileName(uuid, auth, htag string) string {
-	return fmt.Sprintf("%s_%s_%s.tar", uuid, auth[:magicLen], htag)
+	if len(auth) > magicLen {
+		auth = auth[:magicLen]
+	}
+	return fmt.Sprintf("%s_%s_%s.tar", uuid, auth, htag)
 }
