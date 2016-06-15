@@ -39,6 +39,7 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 		t, err := gztarMetaData(w.meta, data)
 		if err != nil {
 			log.Println("putd: tar:", err)
+			return
 		}
 
 		f := makeFileName(m.UUID, m.Auth, m.HTag)
