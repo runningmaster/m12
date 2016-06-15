@@ -42,6 +42,7 @@ func Info(_ []byte) (interface{}, error) {
 type jsonMeta struct {
 	UUID string `json:"uuid,omitempty"`
 	Host string `json:"host,omitempty"`
+	User string `json:"user,omitempty"`
 	Auth string `json:"auth,omitempty"`
 	Time int64  `json:"time,omitempty"`
 
