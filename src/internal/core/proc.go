@@ -7,9 +7,7 @@ import (
 	"log"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"internal/gzpool"
 	"internal/strutil"
 
 	minio "github.com/minio/minio-go"
@@ -68,73 +66,38 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
-/*
-func proc2(data []byte) error {
-	meta, data, err := popMetaData(data)
+func proc(backet, object string) error {
+	o, err := cMINIO.GetObject(backet, object)
 	if err != nil {
-		return err
+		return fmt.Errorf("minio:", object, err)
 	}
 
-	m, err := unmarshalJSONmeta(meta)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile("meta.json", m.marshalJSON(), 0644)
-	if err != nil {
-		return err
-	}
+	defer func(c io.Closer) {
+		if c != nil {
+			_ = c.Close()
+		}
+	}(o)
 
-	d, err := gzpool.Gunzip(data)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile("data.json", d, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-*/
-
-func proc(data []byte) {
-	t := time.Now()
-	p, err := unmarshaJSONpair(data)
-	if err != nil {
-		panic(err)
-	}
-	defer func(t time.Time) {
-		log.Println("proc:", p.Object, time.Since(t).String())
-	}(t)
-
-	o, err := cMINIO.GetObject(p.Backet, p.Object)
-	if err != nil {
-		log.Println("minio:", p.Object, err)
-		return
-	}
-	defer func() { _ = o.Close() }()
+	defer func(backet, object string) {
+		err := cMINIO.RemoveObject(backet, object)
+		if err != nil {
+			log.Println("minio:", object, err)
+		}
+	}(backet, object)
 
 	err = procObject(o)
 	if err != nil {
+		err := cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions())
 		if err != nil {
-			log.Println("proc: err:", p.Object, err)
+			log.Println("minio:", object, err)
 		}
-		err = cMINIO.CopyObject(backetStreamErr, p.Object, p.Backet+"/"+p.Object, minio.NewCopyConditions())
-		if err != nil {
-			log.Println("minio:", p.Object, err)
-		}
-		return
 	}
 
-	err = cMINIO.RemoveObject(p.Backet, p.Object)
-	if err != nil {
-		log.Println("minio:", p.Object, err)
-	}
+	return err
 }
 
 func procObject(r io.Reader) error {
-	meta, data, err := untarMetaData(r)
+	meta, data, err := ungztarMetaData(r)
 	if err != nil {
 		return err
 	}
@@ -149,15 +112,18 @@ func procObject(r io.Reader) error {
 		return err
 	}
 
-	t, err := tarMetaData(m.marshalJSON(), d)
+	t, err := gztarMetaData(m.marshalJSON(), d)
 	if err != nil {
 		return err
 	}
 
 	f := makeFileName(m.UUID, m.Auth, m.HTag)
 	_, err = cMINIO.PutObject(backetStreamOut, f, t, "")
+	if err != nil {
+		return fmt.Errorf("minio:", f, err)
+	}
 
-	return err
+	return nil
 }
 
 func procMeta(meta []byte) (jsonMeta, error) {
@@ -185,37 +151,28 @@ func findLinkMeta(m jsonMeta) (linkAddr, error) {
 const magicConvString = "conv"
 
 func procData(data []byte, m *jsonMeta) ([]byte, error) {
-	data, err := gzpool.Gunzip(data)
-	if err != nil {
-		return nil, err
-	}
+	m.ETag = btsToMD5(data)
+	m.Size = int64(len(data))
 
-	data, err = mendIfUTF8(data)
+	d, err := mendIfUTF8(data)
 	if err != nil {
 		return nil, err
 	}
 
 	var v interface{}
 	if strings.HasPrefix(m.CTag, magicConvString) {
-		v, err = convDataOld(data, m)
+		v, err = convDataOld(d, m)
 		if s, ok := convHTag[m.HTag]; ok {
 			m.HTag = s
 		}
 	} else {
-		v, err = convDataNew(data, m)
+		v, err = convDataNew(d, m)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	data, err = mineLinks(m.HTag, v)
-	if err != nil {
-		return nil, err
-	}
-
-	m.ETag = btsToMD5(data)
-	m.Size = int64(len(data))
-	return gzpool.Gzip(data)
+	return mineLinks(m.HTag, v)
 }
 
 func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
@@ -253,7 +210,21 @@ func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
 		return nil, err
 	}
 
-	return v, nil
+	var l int
+	switch d := v.(type) {
+	case jsonV3Geoa:
+		l = len(d)
+	case jsonV3SaleBy:
+		l = len(d)
+	case jsonV3Sale:
+		l = len(d)
+
+	}
+	if l == 0 {
+		err = fmt.Errorf("core: proc: no data")
+	}
+
+	return v, err
 }
 
 func mineLinks(t string, v interface{}) ([]byte, error) {

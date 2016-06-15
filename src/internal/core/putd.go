@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"internal/gzpool"
 )
 
 var Putd = newPutdWorker()
@@ -38,12 +36,7 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 	}
 
 	go func() { // ?
-		d, err := gzpool.MustGzip(data)
-		if err != nil {
-			log.Println("putd: gzip:", err)
-		}
-
-		t, err := tarMetaData(w.meta, d)
+		t, err := gztarMetaData(w.meta, data)
 		if err != nil {
 			log.Println("putd: tar:", err)
 		}

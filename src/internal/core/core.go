@@ -48,7 +48,7 @@ type jsonMeta struct {
 	HTag string `json:"htag,omitempty"` // *
 	Spn1 int64  `json:"spn1,omitempty"` // *
 	Spn2 int64  `json:"spn2,omitempty"` // *
-	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | MDS_LICENSE / file:FileName (?) deprecated
+	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | Source:MDS_LICENSE | file:FileName (?) deprecated
 
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *

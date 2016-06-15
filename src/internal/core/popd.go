@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/base64"
+	"io"
 	"log"
 	"net/http"
 )
@@ -36,20 +37,25 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = o.Close() }()
 
-	meta, data, err := untarMetaData(o)
+	defer func(c io.Closer) {
+		if c != nil {
+			_ = c.Close()
+		}
+	}(o)
+
+	defer func(backet, object string) {
+		err := cMINIO.RemoveObject(backet, object)
+		if err != nil {
+			log.Println("minio:", object, err)
+		}
+	}(p.Backet, p.Object)
+
+	meta, data, err := ungztarMetaData(o)
 	if err != nil {
 		return nil, err
 	}
 	w.meta = meta
-
-	go func() {
-		err := cMINIO.RemoveObject(p.Backet, p.Object)
-		if err != nil {
-			log.Println("popd: minio: err:", err)
-		}
-	}()
 
 	return data, nil
 }

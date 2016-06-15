@@ -53,6 +53,10 @@ func GetReader() (*gzip.Reader, error) {
 
 // PutReader closes reader and puts it back to the pool.
 func PutReader(c io.Closer) error {
+	if c == nil {
+		return nil
+	}
+
 	err := c.Close()
 	if err != nil {
 		return err
@@ -74,6 +78,10 @@ func GetWriter() (*gzip.Writer, error) {
 
 // PutWriter closes writer and puts it back to the pool.
 func PutWriter(c io.Closer) error {
+	if c == nil {
+		return nil
+	}
+
 	err := c.Close()
 	if err != nil {
 		return err
@@ -135,6 +143,22 @@ func Gunzip(data []byte) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func Copy(dst io.Writer, src io.Reader) error {
+	r, err := GetReader()
+	if err != nil {
+		return err
+	}
+	defer func() { _ = PutReader(r) }()
+
+	err = r.Reset(src)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(dst, r)
+	return err
 }
 
 // IsGzipInString returns true if gzip is mentioned in string

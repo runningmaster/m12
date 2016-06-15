@@ -24,10 +24,10 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv data: no data")
+		return nil, fmt.Errorf("core: conv: no data")
 	}
 	if len(v.Data[0].Item) == 0 {
-		return nil, fmt.Errorf("core: conv data: no data items")
+		return nil, fmt.Errorf("core: conv: no data items")
 	}
 
 	d := make(jsonV3Sale, len(v.Data[0].Item))
@@ -77,10 +77,10 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv data: no data")
+		return nil, fmt.Errorf("core: conv: no data")
 	}
 	if len(v.Data[0].Item) == 0 {
-		return nil, fmt.Errorf("core: conv data: no data items")
+		return nil, fmt.Errorf("core: conv: no data items")
 	}
 
 	d := make(jsonV3SaleBy, len(v.Data[0].Item))
@@ -122,7 +122,7 @@ func convGeo1(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv data: no data")
+		return nil, fmt.Errorf("core: conv: no data")
 	}
 
 	d := make(jsonV3Geoa, len(v.Data))
@@ -164,7 +164,7 @@ func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv data: no data")
+		return nil, fmt.Errorf("core: conv: no data")
 	}
 
 	d := make(jsonV3Geoa, len(v.Data))

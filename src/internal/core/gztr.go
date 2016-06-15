@@ -5,23 +5,25 @@ import (
 	"bytes"
 	"io"
 	"time"
+
+	"internal/gzpool"
 )
 
 const (
-	tarMeta = "meta.json"
+	tarMeta = "meta.json.gz"
 	tarData = "data.json.gz"
 )
 
-func tarMetaData(m, d []byte) (io.Reader, error) {
+func gztarMetaData(m, d []byte) (io.Reader, error) {
 	b := new(bytes.Buffer)
 	t := tar.NewWriter(b)
 
-	err := writeToTar(tarMeta, m, t)
+	err := writeGzTar(tarMeta, m, t)
 	if err != nil {
 		return nil, err
 	}
 
-	err = writeToTar(tarData, d, t)
+	err = writeGzTar(tarData, d, t)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +36,7 @@ func tarMetaData(m, d []byte) (io.Reader, error) {
 	return b, nil
 }
 
-func writeToTar(name string, data []byte, w *tar.Writer) error {
+func writeGzTar(name string, data []byte, w *tar.Writer) error {
 	h := &tar.Header{
 		Name:    name,
 		Mode:    0666,
@@ -47,15 +49,20 @@ func writeToTar(name string, data []byte, w *tar.Writer) error {
 		return err
 	}
 
-	_, err = w.Write(data)
+	d, err := gzpool.MustGzip(data)
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(d)
 	return err
 }
 
-func untarMetaData(r io.Reader) ([]byte, []byte, error) {
+func ungztarMetaData(r io.Reader) ([]byte, []byte, error) {
 	tr := tar.NewReader(r)
 	var (
-		meta = new(bytes.Buffer)
-		data = new(bytes.Buffer)
+		m = new(bytes.Buffer)
+		d = new(bytes.Buffer)
 	)
 	for {
 		h, err := tr.Next()
@@ -67,15 +74,15 @@ func untarMetaData(r io.Reader) ([]byte, []byte, error) {
 		}
 		switch {
 		case h.Name == tarMeta:
-			if _, err := io.Copy(meta, tr); err != nil {
+			if err = gzpool.Copy(m, tr); err != nil {
 				return nil, nil, err
 			}
 		case h.Name == tarData:
-			if _, err := io.Copy(data, tr); err != nil {
+			if err = gzpool.Copy(d, tr); err != nil {
 				return nil, nil, err
 			}
 		}
 	}
 
-	return meta.Bytes(), data.Bytes(), nil
+	return m.Bytes(), d.Bytes(), nil
 }
