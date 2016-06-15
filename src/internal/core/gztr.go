@@ -76,9 +76,9 @@ func ungztarMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
 		switch {
 		case h.Name == tarMeta:
 			if len(gz) > 1 && gz[0] == true {
-				_, err = io.Copy(d, tr)
+				_, err = io.Copy(m, tr)
 			} else {
-				err = gzpool.Copy(d, tr)
+				err = gzpool.Copy(m, tr)
 			}
 		case h.Name == tarData:
 			if len(gz) == 2 && gz[1] == true {
