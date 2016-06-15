@@ -165,6 +165,7 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 		if s, ok := convHTag[m.HTag]; ok {
 			m.HTag = s
 		}
+		m.CTag = "" // cleanup
 	} else {
 		v, err = convDataNew(d, m)
 	}
