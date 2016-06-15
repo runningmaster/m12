@@ -44,11 +44,17 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 		d[i].SuppCode = v.SuppOKPO
 	}
 
-	m.Spn1, _ = convDateTimeToUnix(v.Meta.TRangeLower)
-	m.Spn2, _ = convDateTimeToUnix(v.Meta.TRangeUpper)
+	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
+	if err != nil {
+		return nil, err
+	}
+	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
+	if err != nil {
+		return nil, err
+	}
 	m.Nick = v.Data[0].Head.Source
 	if v.Data[0].Head.MDSLns != "" {
-		m.Nick = v.Data[0].Head.MDSLns
+		m.Nick = m.Nick + ":" + v.Data[0].Head.MDSLns
 	}
 
 	return d, nil
@@ -56,6 +62,9 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 
 func convDateTimeToUnix(s string) (int64, error) {
 	t, err := time.Parse("02.01.2006 15:04:05", s)
+	if err != nil {
+		t, err = time.Parse("02.01.2006", s)
+	}
 	return t.Unix(), err
 }
 
@@ -97,9 +106,15 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 
 	}
 
-	m.Spn1, _ = convDateTimeToUnix(v.Meta.TRangeLower)
-	m.Spn2, _ = convDateTimeToUnix(v.Meta.TRangeUpper)
-	m.Nick = v.Data[0].Head.Source // v.Data[0].Head.Drugstore (?)
+	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
+	if err != nil {
+		return nil, err
+	}
+	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
+	if err != nil {
+		return nil, err
+	}
+	m.Nick = v.Data[0].Head.Source + ":" + v.Data[0].Head.Drugstore
 
 	return d, nil
 }
