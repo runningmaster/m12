@@ -22,10 +22,8 @@ func pipeHead(h handlerFunc) handlerFunc {
 	}
 }
 
-const magicLen = 16
-
 func nextUUID() string {
-	return fmt.Sprintf("%x", genUUID.Next())[:magicLen]
+	return fmt.Sprintf("%x", genUUID.Next())
 }
 
 func mineHost(r *http.Request) string {

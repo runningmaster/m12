@@ -10,6 +10,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const magicLen = 8
+
 func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
@@ -66,7 +68,7 @@ func (i informer) user() string {
 }
 
 func (i informer) uuid() string {
-	return uuidFromCtx(i.c)
+	return uuidFromCtx(i.c)[:magicLen]
 }
 
 func (i informer) auth() string {
