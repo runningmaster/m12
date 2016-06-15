@@ -104,10 +104,14 @@ func proc(data []byte) {
 	if err != nil {
 		panic(err)
 	}
-	FIXME return
+	defer func(t time.Time) {
+		log.Println("proc:", p.Object, time.Since(t).String())
+	}(t)
+
 	o, err := cMINIO.GetObject(p.Backet, p.Object)
 	if err != nil {
 		log.Println("minio:", p.Object, err)
+		return
 	}
 	defer func() { _ = o.Close() }()
 
@@ -120,14 +124,13 @@ func proc(data []byte) {
 		if err != nil {
 			log.Println("minio:", p.Object, err)
 		}
+		return
 	}
 
 	err = cMINIO.RemoveObject(p.Backet, p.Object)
 	if err != nil {
 		log.Println("minio:", p.Object, err)
 	}
-
-	log.Println("proc:", p.Object, time.Since(t).String())
 }
 
 func procObject(r io.Reader) error {
