@@ -79,7 +79,7 @@ func proc(backet, object string) error {
 	}(o)
 
 	defer func(backet, object string) {
-		err := cMINIO.RemoveObject(backet, object)
+		err = cMINIO.RemoveObject(backet, object)
 		if err != nil {
 			log.Println("minio:", object, err)
 		}
@@ -87,7 +87,7 @@ func proc(backet, object string) error {
 
 	err = procObject(o)
 	if err != nil {
-		err := cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions())
+		err = cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions())
 		if err != nil {
 			log.Println("minio:", object, err)
 		}
@@ -133,11 +133,7 @@ func procMeta(meta []byte) (jsonMeta, error) {
 	}
 
 	m.Link, err = findLinkMeta(m)
-	if err != nil {
-		return m, err
-	}
-
-	return m, nil
+	return m, err
 }
 
 func findLinkMeta(m jsonMeta) (linkAddr, error) {

@@ -52,6 +52,7 @@ var (
 
 		"POST:/stream/put-data": {use(pipeHead, pipeAuth, pipeMeta, pipe(work), pipeFail, pipeTail), core.Putd},
 		"POST:/stream/pop-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.Popd},
+		"POST:/stream/get-data": {use(pipeHead, pipeAuth, pipeGzip, pipe(work), pipeFail, pipeTail), core.Getd},
 
 		// Converter from old school style data/add DEPRECATED
 		"POST:/data/add": {use(pipeConv, pipeHead, pipeAuth, pipeMeta, pipe(work), pipeFail, pipeTail), core.Putd},
