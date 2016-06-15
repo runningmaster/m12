@@ -28,12 +28,12 @@ func (w *popdWorker) WriteHeader(h http.Header) {
 }
 
 func (w *popdWorker) Work(data []byte) (interface{}, error) {
-	p, err := unmarshaPair(data)
+	backet, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
 	}
 
-	o, err := cMINIO.GetObject(p.Backet, p.Object)
+	o, err := cMINIO.GetObject(backet, object)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 		if err != nil {
 			log.Println("minio:", object, err)
 		}
-	}(p.Backet, p.Object)
+	}(backet, object)
 
 	meta, data, err := ungztarMetaData(o, false, true)
 	if err != nil {

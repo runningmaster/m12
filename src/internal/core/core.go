@@ -92,6 +92,14 @@ func unmarshaPair(data []byte) (pair, error) {
 	return p, err
 }
 
+func unmarshaPairExt(data []byte) (string, string, error) {
+	p, err := unmarshaPair(data)
+	if err != nil {
+		return "", "", err
+	}
+	return p.Backet, p.Object, nil
+}
+
 // Redis scheme:
 // SET => key="auth"
 // SADD key v [v...]

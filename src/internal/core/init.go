@@ -73,16 +73,16 @@ func initNATS(addr string) error {
 	_, err = cNATS.Subscribe(subjectSteamIn, func(m *nats.Msg) {
 		t := time.Now()
 
-		p, err := unmarshaPair(m.Data)
+		backet, object, err := unmarshaPairExt(m.Data)
 		if err != nil {
 			panic(err)
 		}
 
-		defer func(t time.Time) {
-			log.Println("proc:", p.Object, time.Since(t).String())
-		}(t)
+		defer func(t time.Time, object string) {
+			log.Println("proc: ", object, time.Since(t).String())
+		}(t, object)
 
-		err = proc(p.Backet, p.Object)
+		err = proc(backet, object)
 		if err != nil {
 			log.Println("proc: err:", err)
 		}
