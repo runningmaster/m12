@@ -37,19 +37,19 @@ func gztarMetaData(m, d []byte) (io.Reader, error) {
 }
 
 func writeGzTar(name string, data []byte, w *tar.Writer) error {
-	h := &tar.Header{
-		Name:    name,
-		Mode:    0666,
-		ModTime: time.Now(),
-		Size:    int64(len(data)),
-	}
-
-	err := w.WriteHeader(h)
+	d, err := gzpool.MustGzip(data)
 	if err != nil {
 		return err
 	}
 
-	d, err := gzpool.MustGzip(data)
+	h := &tar.Header{
+		Name:    name,
+		Mode:    0666,
+		ModTime: time.Now(),
+		Size:    int64(len(d)),
+	}
+
+	err = w.WriteHeader(h)
 	if err != nil {
 		return err
 	}
