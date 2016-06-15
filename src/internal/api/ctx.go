@@ -11,6 +11,7 @@ type ctxKey int
 const (
 	ctxUUID ctxKey = iota
 	ctxHost
+	ctxUser
 	ctxAuth
 	ctxFail
 	ctxClen
@@ -33,6 +34,14 @@ func ctxWithHost(ctx context.Context, v string) context.Context {
 
 func hostFromCtx(ctx context.Context) string {
 	return stringFromContext(ctx, ctxHost)
+}
+
+func ctxWithUser(ctx context.Context, v string) context.Context {
+	return context.WithValue(ctx, ctxUser, v)
+}
+
+func userFromCtx(ctx context.Context) string {
+	return stringFromContext(ctx, ctxUser)
 }
 
 func ctxWithAuth(ctx context.Context, v string) context.Context {

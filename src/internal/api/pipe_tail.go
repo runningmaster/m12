@@ -23,7 +23,7 @@ func pipeTail(h handlerFunc) handlerFunc {
 			bytefmt.ByteSize(uint64(inf.clen())),
 			bytefmt.ByteSize(uint64(inf.size())),
 			markEmpty(inf.time()),
-			markEmpty(inf.agent()),
+			markEmpty(inf.user()),
 			inf.fail(),
 		)
 		//if h != nil {
@@ -61,8 +61,8 @@ func (i informer) host() string {
 	return hostFromCtx(i.c)
 }
 
-func (i informer) agent() string {
-	return i.r.UserAgent()
+func (i informer) user() string {
+	return userFromCtx(i.c)
 }
 
 func (i informer) uuid() string {

@@ -16,6 +16,7 @@ func pipeHead(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		ctx = ctxWithUUID(ctx, nextUUID())
 		ctx = ctxWithHost(ctx, mineHost(r))
+		ctx = ctxWithUser(ctx, mineUser(r))
 		ctx = ctxWithTime(ctx, time.Now())
 		h(ctx, w, r)
 	}
@@ -45,4 +46,8 @@ func mineHost(r *http.Request) string {
 	}
 
 	return h
+}
+
+func mineUser(r *http.Request) string {
+	return r.UserAgent()
 }
