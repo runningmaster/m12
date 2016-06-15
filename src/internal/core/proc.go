@@ -112,7 +112,7 @@ func procObject(r io.Reader) error {
 		return err
 	}
 
-	t, err := gztarMetaData(m.marshalJSON(), d)
+	t, err := gztarMetaData(m.marshal(), d)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func procObject(r io.Reader) error {
 }
 
 func procMeta(meta []byte) (jsonMeta, error) {
-	m, err := unmarshalJSONmeta(meta)
+	m, err := unmarshalMeta(meta)
 	if err != nil {
 		return m, err
 	}
@@ -173,7 +173,7 @@ func procData(data []byte, m *jsonMeta) ([]byte, error) {
 		return nil, err
 	}
 
-	return mineLinks(m.HTag, v)
+	return mineLinks(v, m.HTag)
 }
 
 func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
@@ -228,10 +228,10 @@ func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
 	return v, err
 }
 
-func mineLinks(t string, v interface{}) ([]byte, error) {
+func mineLinks(v interface{}, t string) ([]byte, error) {
 	var err error
 	if d, ok := v.(linkDruger); ok {
-		err = mineLinkDrug(t, d)
+		err = mineLinkDrug(d, t)
 	}
 	if err != nil {
 		return nil, err
@@ -249,7 +249,7 @@ func mineLinks(t string, v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func mineLinkDrug(t string, l linkDruger) error {
+func mineLinkDrug(l linkDruger, t string) error {
 	var (
 		ext  = filepath.Ext(t)
 		keys = make([]string, l.len())

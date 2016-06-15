@@ -25,7 +25,7 @@ func (w *putdWorker) ReadHeader(h http.Header) {
 }
 
 func (w *putdWorker) Work(data []byte) (interface{}, error) {
-	m, err := unmarshalJSONmeta(w.meta)
+	m, err := unmarshalMeta(w.meta)
 	if err != nil {
 		return nil, err
 	}

@@ -73,7 +73,7 @@ func initNATS(addr string) error {
 	_, err = cNATS.Subscribe(subjectSteamIn, func(m *nats.Msg) {
 		t := time.Now()
 
-		p, err := unmarshaJSONpair(m.Data)
+		p, err := unmarshaPair(m.Data)
 		if err != nil {
 			panic(err)
 		}
@@ -115,7 +115,7 @@ func publish(backet, subject string, n int) error {
 
 	m := make([][]byte, len(l))
 	for i := range l {
-		m[i] = pair{backet, l[i]}.marshalJSON()
+		m[i] = pair{backet, l[i]}.marshal()
 	}
 
 	return publishEach(subject, m...)

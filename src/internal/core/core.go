@@ -65,13 +65,13 @@ type jsonMeta struct {
 	Link linkAddr `json:"link,omitempty"` // ?
 }
 
-func unmarshalJSONmeta(b []byte) (jsonMeta, error) {
+func unmarshalMeta(b []byte) (jsonMeta, error) {
 	m := jsonMeta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func (m *jsonMeta) marshalJSON() []byte {
+func (m *jsonMeta) marshal() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
@@ -81,12 +81,12 @@ type pair struct {
 	Object string `json:"object,omitempty"`
 }
 
-func (p pair) marshalJSON() []byte {
+func (p pair) marshal() []byte {
 	b, _ := json.Marshal(p)
 	return b
 }
 
-func unmarshaJSONpair(data []byte) (pair, error) {
+func unmarshaPair(data []byte) (pair, error) {
 	p := pair{}
 	err := json.Unmarshal(data, &p)
 	return p, err

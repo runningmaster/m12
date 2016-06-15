@@ -28,7 +28,7 @@ func (w *popdWorker) WriteHeader(h http.Header) {
 }
 
 func (w *popdWorker) Work(data []byte) (interface{}, error) {
-	p, err := unmarshaJSONpair(data)
+	p, err := unmarshaPair(data)
 	if err != nil {
 		return nil, err
 	}
