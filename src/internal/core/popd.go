@@ -51,7 +51,7 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 		}
 	}(p.Backet, p.Object)
 
-	meta, data, err := ungztarMetaData(o)
+	meta, data, err := ungztarMetaData(o, false, true)
 	if err != nil {
 		return nil, err
 	}

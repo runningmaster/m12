@@ -58,7 +58,7 @@ func writeGzTar(name string, data []byte, w *tar.Writer) error {
 	return err
 }
 
-func ungztarMetaData(r io.Reader) ([]byte, []byte, error) {
+func ungztarMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
 	tr := tar.NewReader(r)
 	var (
 		m = new(bytes.Buffer)
@@ -72,15 +72,23 @@ func ungztarMetaData(r io.Reader) ([]byte, []byte, error) {
 			}
 			return nil, nil, err
 		}
+
 		switch {
 		case h.Name == tarMeta:
-			if err = gzpool.Copy(m, tr); err != nil {
-				return nil, nil, err
+			if len(gz) > 1 && gz[0] == true {
+				_, err = io.Copy(d, tr)
+			} else {
+				err = gzpool.Copy(d, tr)
 			}
 		case h.Name == tarData:
-			if err = gzpool.Copy(d, tr); err != nil {
-				return nil, nil, err
+			if len(gz) == 2 && gz[1] == true {
+				_, err = io.Copy(d, tr)
+			} else {
+				err = gzpool.Copy(d, tr)
 			}
+		}
+		if err != nil {
+			return nil, nil, err
 		}
 	}
 
