@@ -38,7 +38,7 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 	go func() { // ?
 		t, err := gztarMetaData(w.meta, data)
 		if err != nil {
-			log.Println("putd: tar:", err)
+			log.Println("putd: tar: %v", err)
 			return
 		}
 

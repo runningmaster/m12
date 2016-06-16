@@ -16,12 +16,12 @@ func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
 		log.Println( // log.New() ?
+			inf.code(),
 			markEmpty(trimPart(inf.uuid())),
+			markEmpty(trimPart(inf.auth())),
 			markEmpty(inf.host()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
-			markEmpty(trimPart(inf.auth())),
-			inf.code(),
 			bytefmt.ByteSize(uint64(inf.clen())),
 			bytefmt.ByteSize(uint64(inf.size())),
 			markEmpty(inf.time()),
@@ -71,7 +71,7 @@ func (i informer) host() string {
 }
 
 func (i informer) user() string {
-	return userFromCtx(i.c)
+	return fmt.Sprintf("%q", userFromCtx(i.c))
 }
 
 func (i informer) uuid() string {

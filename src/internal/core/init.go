@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -75,16 +76,16 @@ func initNATS(addr string) error {
 
 		backet, object, err := unmarshaPairExt(m.Data)
 		if err != nil {
-			panic(err)
+			log.Println("proc: err: %v", err)
 		}
 
 		defer func(t time.Time, object string) {
-			log.Println("proc: ", object, time.Since(t).String())
+			log.Println("proc:", object, time.Since(t).String())
 		}(t, object)
 
 		err = proc(backet, object)
 		if err != nil {
-			log.Println("proc: err:", err)
+			log.Println("proc: err: %v", err)
 		}
 	})
 	if err != nil {
@@ -113,6 +114,7 @@ func publish(backet, subject string, n int) error {
 		return err
 	}
 
+	fmt.Println("DEBUG listObjectsN", backet, len(l))
 	m := make([][]byte, len(l))
 	for i := range l {
 		m[i] = pair{backet, l[i]}.marshal()
@@ -136,7 +138,7 @@ func listObjectsN(backet string, n int) ([]string, error) {
 	doneCh := make(chan struct{}, 1)
 	defer func() { close(doneCh) }()
 
-	i := 0
+	i := 1
 	out := make([]string, 0, n)
 	for o := range cMINIO.ListObjects(backet, "", false, doneCh) {
 		if o.Err != nil {

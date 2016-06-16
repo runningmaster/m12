@@ -69,30 +69,26 @@ func checkHTag(t string) error {
 func proc(backet, object string) error {
 	o, err := cMINIO.GetObject(backet, object)
 	if err != nil {
-		return fmt.Errorf("minio: %s %s", object, err)
+		return fmt.Errorf("minio: %s %v", object, err)
 	}
-
 	defer func(c io.Closer) {
 		if c != nil {
 			_ = c.Close()
 		}
 	}(o)
 
-	defer func(backet, object string) {
-		err = cMINIO.RemoveObject(backet, object)
+	logIfErr := func(err error) {
 		if err != nil {
-			log.Println("minio: %s %s", object, err)
-		}
-	}(backet, object)
-
-	err = procObject(o)
-	if err != nil {
-		err = cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions())
-		if err != nil {
-			log.Println("minio: %s %s", object, err)
+			log.Println("minio:", object, err)
 		}
 	}
 
+	err = procObject(o)
+	if err != nil {
+		logIfErr(cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions()))
+	}
+
+	logIfErr(cMINIO.RemoveObject(backet, object))
 	return err
 }
 
@@ -120,7 +116,7 @@ func procObject(r io.Reader) error {
 	f := makeFileName(m.UUID, m.Auth, m.HTag)
 	_, err = cMINIO.PutObject(backetStreamOut, f, t, "")
 	if err != nil {
-		return fmt.Errorf("minio: %s %s", f, err)
+		return fmt.Errorf("minio: %s %v", f, err)
 	}
 
 	return nil
