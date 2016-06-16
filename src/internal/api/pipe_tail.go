@@ -16,11 +16,11 @@ func pipeTail(h handlerFunc) handlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
 		log.Println( // log.New() ?
-			markEmpty(inf.uuid()),
+			markEmpty(trimPart(inf.uuid())),
 			markEmpty(inf.host()),
 			markEmpty(inf.method()),
 			markEmpty(inf.path()),
-			markEmpty(inf.auth()),
+			markEmpty(trimPart(inf.auth())),
 			inf.code(),
 			bytefmt.ByteSize(uint64(inf.clen())),
 			bytefmt.ByteSize(uint64(inf.size())),
@@ -39,6 +39,13 @@ func markEmpty(s string) string {
 		return s
 	}
 	return "-"
+}
+
+func trimPart(s string) string {
+	if len(s) > magicLen {
+		return s[:magicLen]
+	}
+	return s
 }
 
 type informer struct {
