@@ -1,16 +1,21 @@
 package core
 
 import (
+	"crypto/md5"
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"internal/strutil"
 
 	minio "github.com/minio/minio-go"
+	"github.com/spkg/bom"
 )
 
 var listHTag = map[string]struct{}{
@@ -66,10 +71,20 @@ func checkHTag(t string) error {
 	return fmt.Errorf("core: invalid htag %s", t)
 }
 
-func proc(backet, object string) error {
+func proc(data []byte) {
+	backet, object, err := unmarshaPairExt(data)
+	if err != nil {
+		log.Println("proc: err: pair:", err)
+		return
+	}
+	defer func(t time.Time) {
+		log.Println("proc:", object, time.Since(t).String())
+	}(time.Now())
+
 	o, err := cMINIO.GetObject(backet, object)
 	if err != nil {
-		return fmt.Errorf("minio: %s %v", object, err)
+		log.Println("proc: err: load:", object, err)
+		return
 	}
 	defer func(c io.Closer) {
 		if c != nil {
@@ -77,99 +92,89 @@ func proc(backet, object string) error {
 		}
 	}(o)
 
-	logIfErr := func(err error) {
+	f, r, err := procObject(o)
+	if err != nil {
+		log.Println("proc: err:", err)
+		err = cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions())
 		if err != nil {
-			log.Println("minio:", object, err)
+			log.Println("proc: err: copy:", object, err)
+		}
+	} else {
+		_, err = cMINIO.PutObject(backetStreamOut, f, r, "")
+		if err != nil {
+			log.Println("proc: err: save:", f, err)
 		}
 	}
 
-	err = procObject(o)
+	err = cMINIO.RemoveObject(backet, object)
 	if err != nil {
-		logIfErr(cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions()))
+		log.Println("proc: err: kill:", f, err)
 	}
-
-	logIfErr(cMINIO.RemoveObject(backet, object))
-	return err
 }
 
-func procObject(r io.Reader) error {
+func procObject(r io.Reader) (string, io.Reader, error) {
 	meta, data, err := ungztarMetaData(r)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
-	m, err := procMeta(meta)
+	m, err := unmarshalMeta(meta)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
-	d, err := procData(data, &m)
+	v, err := unmarshalData(data, &m)
 	if err != nil {
-		return err
+		return "", nil, err
+	}
+
+	if r, ok := v.(ruler); ok {
+		if r.len() == 0 {
+			return "", nil, fmt.Errorf("core: proc: no data")
+		}
+	}
+
+	d, err := mineLinks(v, &m)
+	if err != nil {
+		return "", nil, err
 	}
 
 	t, err := gztarMetaData(m.marshal(), d)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
-	f := makeFileName(m.UUID, m.Auth, m.HTag)
-	_, err = cMINIO.PutObject(backetStreamOut, f, t, "")
-	if err != nil {
-		return fmt.Errorf("minio: %s %v", f, err)
-	}
-
-	return nil
+	return makeFileName(m.UUID, m.Auth, m.HTag), t, nil
 }
 
-func procMeta(meta []byte) (jsonMeta, error) {
-	m, err := unmarshalMeta(meta)
-	if err != nil {
-		return m, err
+func mendIfUTF8(data []byte) ([]byte, error) {
+	if strings.Contains(http.DetectContentType(data), "text/plain; charset=utf-8") {
+		return bom.Clean(data), nil
 	}
-
-	m.Link, err = findLinkMeta(m)
-	return m, err
-}
-
-func findLinkMeta(m jsonMeta) (linkAddr, error) {
-	l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
-	if err != nil {
-		return linkAddr{}, err
-	}
-	return l[0], nil
+	return data, nil
 }
 
 const magicConvString = "conv"
 
-func procData(data []byte, m *jsonMeta) ([]byte, error) {
-	m.ETag = btsToMD5(data)
-	m.Size = int64(len(data))
-
+func unmarshalData(data []byte, m *jsonMeta) (interface{}, error) {
 	d, err := mendIfUTF8(data)
 	if err != nil {
 		return nil, err
 	}
 
-	var v interface{}
+	m.ETag = btsToMD5(d)
+	m.Size = int64(len(d))
+
 	if strings.HasPrefix(m.CTag, magicConvString) {
-		v, err = convDataOld(d, m)
-		if s, ok := convHTag[m.HTag]; ok {
-			m.HTag = s
-		}
-		m.CTag = "" // cleanup
-	} else {
-		v, err = convDataNew(d, m)
-	}
-	if err != nil {
-		return nil, err
+		return unmarshalDataOLD(d, m)
 	}
 
-	return mineLinks(v, m.HTag)
+	return unmarshalDataNEW(d, m)
 }
 
-func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
+func unmarshalDataOLD(data []byte, m *jsonMeta) (interface{}, error) {
 	t := m.HTag
+
 	var v interface{}
 	var err error
 	switch {
@@ -183,11 +188,16 @@ func convDataOld(data []byte, m *jsonMeta) (interface{}, error) {
 		v, err = convSale(data, m)
 	}
 
+	// cleanup
+	m.HTag = convHTag[t]
+	m.CTag = ""
+
 	return v, err
 }
 
-func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
+func unmarshalDataNEW(data []byte, m *jsonMeta) (interface{}, error) {
 	t := m.HTag
+
 	var v interface{}
 	switch {
 	case isGeo(t):
@@ -203,24 +213,12 @@ func convDataNew(data []byte, m *jsonMeta) (interface{}, error) {
 		return nil, err
 	}
 
-	var l int
-	switch d := v.(type) {
-	case jsonV3Geoa:
-		l = len(d)
-	case jsonV3SaleBy:
-		l = len(d)
-	case jsonV3Sale:
-		l = len(d)
-
-	}
-	if l == 0 {
-		err = fmt.Errorf("core: proc: no data")
-	}
-
 	return v, err
 }
 
-func mineLinks(v interface{}, t string) ([]byte, error) {
+func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
+	t := m.HTag
+
 	var err error
 	if d, ok := v.(linkDruger); ok {
 		err = mineLinkDrug(d, t)
@@ -238,17 +236,25 @@ func mineLinks(v interface{}, t string) ([]byte, error) {
 		}
 	}
 
+	if isGeo(t) {
+		l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
+		if err != nil {
+			return nil, err
+		}
+		m.Link = l[0]
+	}
+
 	return json.Marshal(v)
 }
 
-func mineLinkDrug(l linkDruger, t string) error {
+func mineLinkDrug(v linkDruger, t string) error {
 	var (
 		ext  = filepath.Ext(t)
-		keys = make([]string, l.len())
+		keys = make([]string, v.len())
 		name string
 	)
-	for i := 0; i < l.len(); i++ {
-		name = l.getName(i)
+	for i := 0; i < v.len(); i++ {
+		name = v.getName(i)
 		switch {
 		case isUA(ext):
 			name = makeMagicDrugUA(name)
@@ -269,17 +275,17 @@ func mineLinkDrug(l linkDruger, t string) error {
 		return err
 	}
 
-	for i := 0; i < l.len(); i++ {
-		l.setLinkDrug(i, lds[i])
+	for i := 0; i < v.len(); i++ {
+		v.setLinkDrug(i, lds[i])
 	}
 
 	return nil
 }
 
-func mineLinkAddr(l linkAddrer) error {
-	var keys = make([]string, l.len())
-	for i := 0; i < l.len(); i++ {
-		keys[i] = strToSHA1(makeMagicAddr(l.getSupp(i)))
+func mineLinkAddr(v linkAddrer) error {
+	var keys = make([]string, v.len())
+	for i := 0; i < v.len(); i++ {
+		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
 	}
 
 	lds, err := getLinkAddr(keys...)
@@ -287,8 +293,8 @@ func mineLinkAddr(l linkAddrer) error {
 		return err
 	}
 
-	for i := 0; i < l.len(); i++ {
-		l.setLinkAddr(i, lds[i])
+	for i := 0; i < v.len(); i++ {
+		v.setLinkAddr(i, lds[i])
 	}
 
 	return nil
@@ -388,4 +394,16 @@ func isRU(s string) bool {
 
 func isUA(s string) bool {
 	return strings.EqualFold(s, extUA)
+}
+
+func btsToMD5(b []byte) string {
+	return fmt.Sprintf("%x", md5.Sum(b))
+}
+
+func btsToSHA1(b []byte) string {
+	return fmt.Sprintf("%x", sha1.Sum(b))
+}
+
+func strToSHA1(s string) string {
+	return btsToSHA1([]byte(s))
 }

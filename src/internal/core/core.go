@@ -41,10 +41,10 @@ func Info(_ []byte) (interface{}, error) {
 
 type jsonMeta struct {
 	UUID string `json:"uuid,omitempty"`
-	Host string `json:"host,omitempty"`
-	User string `json:"user,omitempty"`
 	Auth string `json:"auth,omitempty"`
+	Host string `json:"host,omitempty"`
 	Time int64  `json:"time,omitempty"`
+	User string `json:"user,omitempty"`
 
 	HTag string `json:"htag,omitempty"` // *
 	Spn1 int64  `json:"spn1,omitempty"` // *
@@ -179,14 +179,18 @@ type itemV3SaleBy struct {
 	Link     linkDrug `json:"link,omitempty"`
 }
 
-type linkAddrer interface {
+type ruler interface {
 	len() int
+}
+
+type linkAddrer interface {
+	ruler
 	getSupp(int) string
 	setLinkAddr(int, linkAddr)
 }
 
 type linkDruger interface {
-	len() int
+	ruler
 	getName(int) string
 	setLinkDrug(int, linkDrug)
 }
