@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -100,7 +99,6 @@ func publish(backet, subject string, n int) error {
 		return err
 	}
 
-	fmt.Println("DEBUG listObjectsN", backet, len(l))
 	m := make([][]byte, len(l))
 	for i := range l {
 		m[i] = pair{backet, l[i]}.marshal()
@@ -124,13 +122,15 @@ func listObjectsN(backet string, n int) ([]string, error) {
 	doneCh := make(chan struct{}, 1)
 	defer func() { close(doneCh) }()
 
-	i := 1
+	i := 0
 	out := make([]string, 0, n)
 	for o := range cMINIO.ListObjects(backet, "", false, doneCh) {
 		if o.Err != nil {
 			return nil, o.Err
 		}
-		out = append(out, o.Key)
+		if len(out) < n { // workaround
+			out = append(out, o.Key)
+		}
 		i++
 		if i == n {
 			doneCh <- struct{}{}

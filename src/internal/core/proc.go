@@ -74,16 +74,16 @@ func checkHTag(t string) error {
 func proc(data []byte) {
 	backet, object, err := unmarshaPairExt(data)
 	if err != nil {
-		log.Println("proc: err: pair:", err)
+		log.Println("core: proc: err: pair:", object, err)
 		return
 	}
 	defer func(t time.Time) {
-		log.Println("proc:", object, time.Since(t).String())
+		log.Println("core: proc:", object, time.Since(t).String())
 	}(time.Now())
 
 	o, err := cMINIO.GetObject(backet, object)
 	if err != nil {
-		log.Println("proc: err: load:", object, err)
+		log.Println("core: proc: err: load:", object, err)
 		return
 	}
 	defer func(c io.Closer) {
@@ -94,21 +94,21 @@ func proc(data []byte) {
 
 	f, r, err := procObject(o)
 	if err != nil {
-		log.Println("proc: err:", err)
+		log.Println("core: proc: err:", object, err)
 		err = cMINIO.CopyObject(backetStreamErr, object, backet+"/"+object, minio.NewCopyConditions())
 		if err != nil {
-			log.Println("proc: err: copy:", object, err)
+			log.Println("core: proc: err: copy:", object, err)
 		}
 	} else {
 		_, err = cMINIO.PutObject(backetStreamOut, f, r, "")
 		if err != nil {
-			log.Println("proc: err: save:", f, err)
+			log.Println("core: proc: err: save:", f, err)
 		}
 	}
 
 	err = cMINIO.RemoveObject(backet, object)
 	if err != nil {
-		log.Println("proc: err: kill:", f, err)
+		log.Println("core: proc: err: kill:", f, err)
 	}
 }
 
@@ -130,7 +130,7 @@ func procObject(r io.Reader) (string, io.Reader, error) {
 
 	if r, ok := v.(ruler); ok {
 		if r.len() == 0 {
-			return "", nil, fmt.Errorf("core: proc: no data")
+			return "", nil, fmt.Errorf("no data")
 		}
 	}
 

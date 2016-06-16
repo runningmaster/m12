@@ -38,14 +38,14 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 	go func() { // ?
 		t, err := gztarMetaData(w.meta, data)
 		if err != nil {
-			log.Println("putd: tar:", err)
+			log.Println("putd: err: gztr:", err)
 			return
 		}
 
 		f := makeFileName(m.UUID, m.Auth, m.HTag)
 		_, err = cMINIO.PutObject(backetStreamIn, f, t, "")
 		if err != nil {
-			log.Println("putd: minio: err:", err)
+			log.Println("putd: err: save:", err)
 		}
 	}()
 
