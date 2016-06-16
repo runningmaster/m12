@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -23,11 +22,22 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 		return nil, err
 	}
 
-	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv: no data")
+	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
+	if err != nil {
+		return nil, err
 	}
-	if len(v.Data[0].Item) == 0 {
-		return nil, fmt.Errorf("core: conv: no data items")
+	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(v.Data) == 0 {
+		return jsonV3Sale{}, nil
+	}
+
+	m.Nick = v.Data[0].Head.Source
+	if v.Data[0].Head.MDSLns != "" {
+		m.Nick = m.Nick + ":" + v.Data[0].Head.MDSLns
 	}
 
 	d := make(jsonV3Sale, len(v.Data[0].Item))
@@ -42,19 +52,6 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 		d[i].Reimburse = v.Reimburs != 0
 		d[i].SuppName = v.Supp
 		d[i].SuppCode = v.SuppOKPO
-	}
-
-	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
-	if err != nil {
-		return nil, err
-	}
-	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
-	if err != nil {
-		return nil, err
-	}
-	m.Nick = v.Data[0].Head.Source
-	if v.Data[0].Head.MDSLns != "" {
-		m.Nick = m.Nick + ":" + v.Data[0].Head.MDSLns
 	}
 
 	return d, nil
@@ -85,12 +82,21 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 		return nil, err
 	}
 
+	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
+	if err != nil {
+		return nil, err
+	}
+
+	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv: no data")
+		return jsonV3SaleBy{}, nil
 	}
-	if len(v.Data[0].Item) == 0 {
-		return nil, fmt.Errorf("core: conv: no data items")
-	}
+
+	m.Nick = v.Data[0].Head.Source + ":" + v.Data[0].Head.Drugstore
 
 	d := make(jsonV3SaleBy, len(v.Data[0].Item))
 	for i, v := range v.Data[0].Item {
@@ -105,16 +111,6 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 		d[i].StockTab = v.BalanceT
 
 	}
-
-	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
-	if err != nil {
-		return nil, err
-	}
-	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
-	if err != nil {
-		return nil, err
-	}
-	m.Nick = v.Data[0].Head.Source + ":" + v.Data[0].Head.Drugstore
 
 	return d, nil
 }
@@ -136,8 +132,13 @@ func convGeo1(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 		return nil, err
 	}
 
+	m.Name = v.Meta.Name
+	m.Head = v.Meta.Head
+	m.Addr = v.Meta.Addr
+	m.Code = v.Meta.EGRPOU
+
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv: no data")
+		return jsonV3Geoa{}, nil
 	}
 
 	d := make(jsonV3Geoa, len(v.Data))
@@ -152,11 +153,6 @@ func convGeo1(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 			d[i].Home = v.Link
 		}
 	}
-
-	m.Name = v.Meta.Name
-	m.Head = v.Meta.Head
-	m.Addr = v.Meta.Addr
-	m.Code = v.Meta.EGRPOU
 
 	return d, nil
 }
@@ -178,8 +174,13 @@ func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 		return nil, err
 	}
 
+	m.Name = v.Meta.Name
+	m.Head = v.Meta.Head
+	m.Addr = v.Meta.Addr
+	m.Code = v.Meta.Code
+
 	if len(v.Data) == 0 {
-		return nil, fmt.Errorf("core: conv: no data")
+		return jsonV3Geoa{}, nil
 	}
 
 	d := make(jsonV3Geoa, len(v.Data))
@@ -190,11 +191,6 @@ func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 		d[i].Quant = v.Quant
 		d[i].Price = v.Price
 	}
-
-	m.Name = v.Meta.Name
-	m.Head = v.Meta.Head
-	m.Addr = v.Meta.Addr
-	m.Code = v.Meta.Code
 
 	return d, nil
 }
