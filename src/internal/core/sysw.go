@@ -17,8 +17,18 @@ var (
 	fldsDrug = [...]string{"l", "d", "b", "c", "s"}
 )
 
+func valIsNill(v ...interface{}) bool {
+	for i := range v {
+		if v[i] != nil { // don't work with pointers!
+			return false
+		}
+	}
+
+	return true
+}
+
 func AuthOK(key string) (bool, error) {
-	v, err := redis.SISMEMBER(keyAuth, key)
+	v, err := redis.HEXISTS(keyAuth, key)
 	if err != nil {
 		return false, err
 	}
@@ -39,7 +49,7 @@ func GetAuth(data []byte) (interface{}, error) {
 
 // SetAuth returns
 func SetAuth(data []byte) (interface{}, error) {
-	var v []string
+	var v []linkAuth
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
@@ -59,16 +69,41 @@ func DelAuth(data []byte) (interface{}, error) {
 	return delAuth(v...)
 }
 
-func getAuth(v ...string) ([]interface{}, error) {
-	return redis.SISMEMBERM(redis.ConvFromStringsWithKey(keyAuth, v...)...)
+func getAuth(v ...string) ([]linkAuth, error) {
+	vls, err := redis.HMGET(redis.ConvFromStringsWithKey(keyAuth, v...)...)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(vls) != len(v) {
+		return nil, fmt.Errorf("core: invalid len (get auth): got %d, want %d", len(vls), len(v))
+	}
+
+	res := make([]linkAuth, len(vls))
+	for i := range vls {
+		res[i].ID = v[i]
+		if valIsNill(vls[i]) {
+			continue
+		}
+		res[i].Name = redis.ToStringSafely(vls[i])
+	}
+
+	return res, nil
 }
 
-func setAuth(v ...string) (interface{}, error) {
-	return redis.SADD(redis.ConvFromStringsWithKey(keyAuth, v...)...)
+func setAuth(v ...linkAuth) (interface{}, error) {
+	vls := make([]interface{}, len(v)*2+1)
+	vls[0] = keyAuth
+	for i := range v {
+		vls[i*2+1] = v[i].ID
+		vls[i*2+2] = v[i].Name
+	}
+
+	return redis.HMSET(vls...)
 }
 
 func delAuth(v ...string) (interface{}, error) {
-	return redis.SREM(redis.ConvFromStringsWithKey(keyAuth, v...)...)
+	return redis.HDEL(redis.ConvFromStringsWithKey(keyAuth, v...)...)
 }
 
 // GetAddr returns
@@ -102,16 +137,6 @@ func DelAddr(data []byte) (interface{}, error) {
 	}
 
 	return delAddr(v...)
-}
-
-func valIsNill(v ...interface{}) bool {
-	for i := range v {
-		if v[i] != nil { // don't work with pointers!
-			return false
-		}
-	}
-
-	return true
 }
 
 func getAddr(v ...string) ([]linkAddr, error) {
@@ -326,7 +351,7 @@ func getStat(v ...int64) ([]linkStat, error) {
 	}
 
 	if len(vls) != len(v) {
-		return nil, fmt.Errorf("core: invalid len (get  stat): got %d, want %d", len(vls), len(v))
+		return nil, fmt.Errorf("core: invalid len (get stat): got %d, want %d", len(vls), len(v))
 	}
 
 	res := make([]linkStat, len(vls))

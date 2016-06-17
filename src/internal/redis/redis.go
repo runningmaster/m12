@@ -161,6 +161,14 @@ func ConvFromStringsWithKey(key string, src ...string) []interface{} {
 	return dst
 }
 
+// HEXISTS
+func HEXISTS(key, fld interface{}) (interface{}, error) {
+	c := getConn()
+	defer putConn(c)
+
+	return c.Do("HEXISTS", key, fld)
+}
+
 // HMSET is wrapper func and returns "simple string reply". Key must be first in array.
 func HMSET(keyAndFieldVals ...interface{}) (interface{}, error) {
 	c := getConn()
