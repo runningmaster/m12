@@ -11,22 +11,24 @@ import (
 	"golang.org/x/net/context"
 )
 
-func pipeAuth(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		key, err := getKey(r)
-		if err != nil {
-			goto fail
-		}
+func pipeAuth(master int) handlerPipe {
+	return func(h handlerFunc) handlerFunc {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+			key, err := getKey(r)
+			if err != nil {
+				goto fail
+			}
 
-		err = auth(key)
-		if err != nil {
-			goto fail
-		}
+			err = auth(key, master)
+			if err != nil {
+				goto fail
+			}
 
-		h(ctxWithAuth(ctx, key), w, r)
-		return // success
-	fail:
-		h(ctxWithCode(ctxWithFail(ctxWithAuth(ctx, key), err), http.StatusForbidden), w, r)
+			h(ctxWithAuth(ctx, key), w, r)
+			return // success
+		fail:
+			h(ctxWithCode(ctxWithFail(ctxWithAuth(ctx, key), err), http.StatusForbidden), w, r)
+		}
 	}
 }
 
@@ -39,7 +41,16 @@ func getKey(r *http.Request) (string, error) {
 	return "", fmt.Errorf("api: key not found")
 }
 
-func auth(key string) error {
+func auth(key string, master int) error {
+	if isMasterKey(key) {
+		return nil
+	}
+
+	err403 := fmt.Errorf("api: invalid key: %s: forbidden", key)
+	if master == 1 {
+		return err403
+	}
+
 	ok, err := core.AuthOK(key)
 	if err != nil {
 		return err
@@ -49,11 +60,7 @@ func auth(key string) error {
 		return nil
 	}
 
-	if isMasterKey(key) {
-		return nil
-	}
-
-	return fmt.Errorf("api: invalid key: %s: forbidden", key)
+	return err403
 }
 
 func isMasterKey(key string) bool {
