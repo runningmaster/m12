@@ -221,7 +221,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 
 	var err error
 	if d, ok := v.(linkDruger); ok {
-		err = mineLinkDrug(d, t)
+		err = mineDrugs(d, t)
 	}
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 
 	if isSaleIn(t) {
 		if a, ok := v.(linkAddrer); ok {
-			err = mineLinkAddr(a)
+			err = mineAddrs(a)
 		}
 		if err != nil {
 			return nil, err
@@ -237,7 +237,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	}
 
 	if isGeo(t) {
-		l, err := getLinkAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
+		l, err := getAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +247,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func mineLinkDrug(v linkDruger, t string) error {
+func mineDrugs(v linkDruger, t string) error {
 	var (
 		ext  = filepath.Ext(t)
 		keys = make([]string, v.len())
@@ -270,7 +270,7 @@ func mineLinkDrug(v linkDruger, t string) error {
 		keys[i] = strToSHA1(name)
 	}
 
-	lds, err := getLinkDrug(keys...)
+	lds, err := getDrug(keys...)
 	if err != nil {
 		return err
 	}
@@ -282,13 +282,13 @@ func mineLinkDrug(v linkDruger, t string) error {
 	return nil
 }
 
-func mineLinkAddr(v linkAddrer) error {
+func mineAddrs(v linkAddrer) error {
 	var keys = make([]string, v.len())
 	for i := 0; i < v.len(); i++ {
 		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
 	}
 
-	lds, err := getLinkAddr(keys...)
+	lds, err := getAddr(keys...)
 	if err != nil {
 		return err
 	}
