@@ -38,17 +38,17 @@ var (
 		"POST:/system/set-auth": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetAuth)},
 		"POST:/system/del-auth": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelAuth)},
 
-		"POST:/system/get-link-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetLinkAddr)},
-		"POST:/system/set-link-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetLinkAddr)},
-		"POST:/system/del-link-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelLinkAddr)},
+		"POST:/system/get-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetAddr)},
+		"POST:/system/set-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetAddr)},
+		"POST:/system/del-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelAddr)},
 
-		"POST:/system/get-link-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetLinkDrug)},
-		"POST:/system/set-link-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetLinkDrug)},
-		"POST:/system/del-link-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelLinkDrug)},
+		"POST:/system/get-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetDrug)},
+		"POST:/system/set-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetDrug)},
+		"POST:/system/del-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelDrug)},
 
-		"POST:/system/get-link-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetLinkStat)},
-		"POST:/system/set-link-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetLinkStat)},
-		"POST:/system/del-link-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelLinkStat)},
+		"POST:/system/get-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.GetStat)},
+		"POST:/system/set-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.SetStat)},
+		"POST:/system/del-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeFail, pipeTail), core.WorkFunc(core.DelStat)},
 
 		// Converter from old school style data/add DEPRECATED
 		"POST:/data/add": {use(pipeConv, pipeHead, pipeAuth(0), pipeMeta, pipe(work), pipeFail, pipeTail), core.Putd},
