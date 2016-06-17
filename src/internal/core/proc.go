@@ -144,7 +144,7 @@ func procObject(r io.Reader) (string, io.Reader, error) {
 		return "", nil, err
 	}
 
-	return makeFileName(m.UUID, m.Auth, m.HTag), t, nil
+	return makeFileName(m.UUID, m.Auth.ID, m.HTag), t, nil
 }
 
 func mendIfUTF8(data []byte) ([]byte, error) {
@@ -219,7 +219,12 @@ func unmarshalDataNEW(data []byte, m *jsonMeta) (interface{}, error) {
 func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	t := m.HTag
 
-	var err error
+	a, err := getAuth(m.Auth.ID)
+	if err != nil {
+		return nil, err
+	}
+	m.Auth = a[0]
+
 	if d, ok := v.(druger); ok {
 		err = mineDrugs(d, t)
 	}

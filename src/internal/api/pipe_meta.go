@@ -80,7 +80,7 @@ func mustHeaderMETA(h http.Header) error {
 }
 
 func injectIntoMETA(ctx context.Context, h http.Header) error {
-	info := fmt.Sprintf(`{ "uuid": %q, "host": %q, "user": %q, "auth": %q, "time": %d, `,
+	info := fmt.Sprintf(`{ "uuid": %q, "host": %q, "user": %q, "auth": { "id": %q }, "time": %d, `,
 		uuidFromCtx(ctx),
 		hostFromCtx(ctx),
 		userFromCtx(ctx),
