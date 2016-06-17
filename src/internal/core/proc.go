@@ -220,7 +220,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	t := m.HTag
 
 	var err error
-	if d, ok := v.(linkDruger); ok {
+	if d, ok := v.(druger); ok {
 		err = mineDrugs(d, t)
 	}
 	if err != nil {
@@ -228,7 +228,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	}
 
 	if isSaleIn(t) {
-		if a, ok := v.(linkAddrer); ok {
+		if a, ok := v.(addrer); ok {
 			err = mineAddrs(a)
 		}
 		if err != nil {
@@ -247,7 +247,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func mineDrugs(v linkDruger, t string) error {
+func mineDrugs(v druger, t string) error {
 	var (
 		ext  = filepath.Ext(t)
 		keys = make([]string, v.len())
@@ -276,13 +276,13 @@ func mineDrugs(v linkDruger, t string) error {
 	}
 
 	for i := 0; i < v.len(); i++ {
-		v.setLinkDrug(i, lds[i])
+		v.setDrug(i, lds[i])
 	}
 
 	return nil
 }
 
-func mineAddrs(v linkAddrer) error {
+func mineAddrs(v addrer) error {
 	var keys = make([]string, v.len())
 	for i := 0; i < v.len(); i++ {
 		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
@@ -294,7 +294,7 @@ func mineAddrs(v linkAddrer) error {
 	}
 
 	for i := 0; i < v.len(); i++ {
-		v.setLinkAddr(i, lds[i])
+		v.setAddr(i, lds[i])
 	}
 
 	return nil

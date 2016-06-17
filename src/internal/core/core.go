@@ -49,7 +49,7 @@ type jsonMeta struct {
 	HTag string `json:"htag,omitempty"` // *
 	Spn1 int64  `json:"spn1,omitempty"` // *
 	Spn2 int64  `json:"spn2,omitempty"` // *
-	Nick string `json:"nick,omitempty"` // * BR_NICK:id_addr | Source:MDS_LICENSE | file:FileName (?) deprecated
+	Nick string `json:"nick,omitempty"` // * Source | Source:MDSLns | Source:Drugstore -> conv.go
 
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *
@@ -101,11 +101,13 @@ func unmarshaPairExt(data []byte) (string, string, error) {
 }
 
 // Redis scheme:
-// SET => key="auth"
-// SADD key v [v...]
-// SREM key v [v...]
-// SISMEMBER key v
-// type auth string
+// HASH => key="stat"
+// HMSET key i->n [i->n...]
+// HMGET key i [i..]
+type linkAuth struct {
+	ID   string `json:"id,omitempty"   redis:"i"`
+	Name string `json:"name,omitempty" redis:"n"`
+}
 
 // Redis scheme:
 // HASH => key=ID (SHA1)
@@ -183,16 +185,16 @@ type ruler interface {
 	len() int
 }
 
-type linkAddrer interface {
+type addrer interface {
 	ruler
 	getSupp(int) string
-	setLinkAddr(int, linkAddr)
+	setAddr(int, linkAddr)
 }
 
-type linkDruger interface {
+type druger interface {
 	ruler
 	getName(int) string
-	setLinkDrug(int, linkDrug)
+	setDrug(int, linkDrug)
 }
 
 type jsonV3Geoa []itemV3Geoa
@@ -207,7 +209,7 @@ func (j jsonV3Geoa) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3Geoa) setLinkDrug(i int, l linkDrug) {
+func (j jsonV3Geoa) setDrug(i int, l linkDrug) {
 	j[i].Link = l
 }
 
@@ -219,7 +221,7 @@ func (j jsonV3Sale) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3Sale) setLinkDrug(i int, l linkDrug) {
+func (j jsonV3Sale) setDrug(i int, l linkDrug) {
 	j[i].LinkDrug = l
 }
 
@@ -227,7 +229,7 @@ func (j jsonV3Sale) getSupp(i int) string {
 	return j[i].SuppName
 }
 
-func (j jsonV3Sale) setLinkAddr(i int, l linkAddr) {
+func (j jsonV3Sale) setAddr(i int, l linkAddr) {
 	j[i].LinkAddr = l
 }
 
@@ -239,6 +241,6 @@ func (j jsonV3SaleBy) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3SaleBy) setLinkDrug(i int, l linkDrug) {
+func (j jsonV3SaleBy) setDrug(i int, l linkDrug) {
 	j[i].Link = l
 }
