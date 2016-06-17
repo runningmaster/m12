@@ -77,7 +77,7 @@ func (m *jsonMeta) marshal() []byte {
 }
 
 type pair struct {
-	Backet string `json:"backet,omitempty"`
+	Bucket string `json:"bucket,omitempty"`
 	Object string `json:"object,omitempty"`
 }
 
@@ -97,7 +97,7 @@ func unmarshaPairExt(data []byte) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	return p.Backet, p.Object, nil
+	return p.Bucket, p.Object, nil
 }
 
 // Redis scheme:

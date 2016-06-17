@@ -27,12 +27,12 @@ func (w *getdWorker) WriteHeader(h http.Header) {
 }
 
 func (w *getdWorker) Work(data []byte) (interface{}, error) {
-	backet, object, err := unmarshaPairExt(data)
+	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
 	}
 
-	o, err := cMINIO.GetObject(backet, object)
+	o, err := cMINIO.GetObject(bucket, object)
 	if err != nil {
 		return nil, err
 	}

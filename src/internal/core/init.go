@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	backetStreamIn  = "stream-in"
-	backetStreamOut = "stream-out"
-	backetStreamErr = "stream-err"
+	bucketStreamIn  = "stream-in"
+	bucketStreamOut = "stream-out"
+	bucketStreamErr = "stream-err"
 
-	subjectSteamIn  = "m12." + backetStreamIn
-	subjectSteamOut = "m12." + backetStreamOut
+	subjectSteamIn  = "m12." + bucketStreamIn
+	subjectSteamOut = "m12." + bucketStreamOut
 
 	listN = 100
 	tickD = 10 * time.Second
@@ -44,10 +44,10 @@ func initMINIO(addr string) error {
 		return err
 	}
 
-	return makeBackets(backetStreamIn, backetStreamOut, backetStreamErr)
+	return makeBuckets(bucketStreamIn, bucketStreamOut, bucketStreamErr)
 }
 
-func makeBackets(list ...string) error {
+func makeBuckets(list ...string) error {
 	var err error
 	for i := range list {
 		b := list[i]
@@ -77,31 +77,31 @@ func initNATS(addr string) error {
 		return err
 	}
 
-	go publishing(backetStreamOut, subjectSteamOut, listN, tickD)
-	go publishing(backetStreamIn, subjectSteamIn, listN, tickD)
+	go publishing(bucketStreamOut, subjectSteamOut, listN, tickD)
+	go publishing(bucketStreamIn, subjectSteamIn, listN, tickD)
 
 	return nil
 }
 
-func publishing(backet, subject string, n int, d time.Duration) {
+func publishing(bucket, subject string, n int, d time.Duration) {
 	var err error
 	for range time.Tick(d) {
-		err = publish(backet, subject, n)
+		err = publish(bucket, subject, n)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 }
 
-func publish(backet, subject string, n int) error {
-	l, err := listObjectsN(backet, n)
+func publish(bucket, subject string, n int) error {
+	l, err := listObjectsN(bucket, n)
 	if err != nil {
 		return err
 	}
 
 	m := make([][]byte, len(l))
 	for i := range l {
-		m[i] = pair{backet, l[i]}.marshal()
+		m[i] = pair{bucket, l[i]}.marshal()
 	}
 
 	return publishEach(subject, m...)
@@ -118,13 +118,13 @@ func publishEach(subject string, msgs ...[]byte) error {
 	return nil
 }
 
-func listObjectsN(backet string, n int) ([]string, error) {
+func listObjectsN(bucket string, n int) ([]string, error) {
 	doneCh := make(chan struct{}, 1)
 	defer func() { close(doneCh) }()
 
 	i := 0
 	out := make([]string, 0, n)
-	for o := range cMINIO.ListObjects(backet, "", false, doneCh) {
+	for o := range cMINIO.ListObjects(bucket, "", false, doneCh) {
 		if o.Err != nil {
 			return nil, o.Err
 		}

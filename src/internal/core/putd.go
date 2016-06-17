@@ -43,7 +43,7 @@ func (w *putdWorker) Work(data []byte) (interface{}, error) {
 		}
 
 		f := makeFileName(m.UUID, m.Auth, m.HTag)
-		_, err = cMINIO.PutObject(backetStreamIn, f, t, "")
+		_, err = cMINIO.PutObject(bucketStreamIn, f, t, "")
 		if err != nil {
 			log.Println("putd: err: save:", err)
 		}
