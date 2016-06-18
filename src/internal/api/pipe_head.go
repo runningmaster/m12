@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/rogpeppe/fastuuid"
 	"golang.org/x/net/context"
@@ -47,5 +48,9 @@ func mineHost(r *http.Request) string {
 }
 
 func mineUser(r *http.Request) string {
-	return r.UserAgent()
+	u := r.UserAgent()
+	if !utf8.Valid([]byte(u)) {
+		u = fmt.Sprintf("[Warning: non UTF-8]: %s", u)
+	}
+	return u
 }
