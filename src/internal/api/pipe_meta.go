@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -80,20 +81,34 @@ func mustHeaderMETA(h http.Header) error {
 }
 
 func injectIntoMETA(ctx context.Context, h http.Header) error {
-	info := fmt.Sprintf(`{ "uuid": %q, "host": %q, "user": %q, "auth": { "id": %q }, "time": %d, `,
-		uuidFromCtx(ctx),
-		hostFromCtx(ctx),
-		userFromCtx(ctx),
-		authFromCtx(ctx),
-		timeFromCtx(ctx).Unix(),
-	)
-
 	meta, err := base64.StdEncoding.DecodeString(h.Get("Content-Meta"))
 	if err != nil {
 		return err
 	}
 
-	meta = bytes.Replace(bytes.TrimSpace(meta), []byte("{"), []byte(info), -1)
+	v := struct {
+		UUID string `json:"uuid,omitempty"`
+		Auth struct {
+			ID string `json:"id,omitempty"`
+		} `json:"auth,omitempty"`
+		Host string `json:"host,omitempty"`
+		User string `json:"user,omitempty"`
+		Time int64  `json:"time,omitempty"`
+	}{}
+	v.UUID = uuidFromCtx(ctx)
+	v.Auth.ID = authFromCtx(ctx)
+	v.Host = hostFromCtx(ctx)
+	v.User = userFromCtx(ctx)
+	v.Time = timeFromCtx(ctx).Unix()
+
+	m, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	meta = bytes.Replace(meta, []byte("{"), []byte(","), -1)
+	meta = append(m[:len(m)-1], meta...)
+
 	h.Set("Content-Meta", string(meta))
 	return nil
 }
