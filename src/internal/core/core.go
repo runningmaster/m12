@@ -43,8 +43,8 @@ type jsonMeta struct {
 	UUID string   `json:"uuid,omitempty"`
 	Auth linkAuth `json:"auth,omitempty"`
 	Host string   `json:"host,omitempty"`
-	Time int64    `json:"time,omitempty"`
 	User string   `json:"user,omitempty"`
+	Time int64    `json:"time,omitempty"`
 
 	HTag string `json:"htag,omitempty"` // *
 	Spn1 int64  `json:"spn1,omitempty"` // *
@@ -62,7 +62,8 @@ type jsonMeta struct {
 	CTag string `json:"ctag,omitempty"`
 	Test bool   `json:"test,omitempty"`
 
-	Link linkAddr `json:"link,omitempty"` // ?
+	Link linkAddr `json:"link,omitempty"`
+	Proc string   `json:"link,omitempty"`
 }
 
 func unmarshalMeta(b []byte) (jsonMeta, error) {
@@ -73,6 +74,11 @@ func unmarshalMeta(b []byte) (jsonMeta, error) {
 
 func (m *jsonMeta) marshal() []byte {
 	b, _ := json.Marshal(m)
+	return b
+}
+
+func (m *jsonMeta) marshalIndent() []byte {
+	b, _ := json.MarshalIndent(m, "", "\t")
 	return b
 }
 
@@ -188,13 +194,13 @@ type ruler interface {
 type addrer interface {
 	ruler
 	getSupp(int) string
-	setAddr(int, linkAddr)
+	setAddr(int, linkAddr) bool
 }
 
 type druger interface {
 	ruler
 	getName(int) string
-	setDrug(int, linkDrug)
+	setDrug(int, linkDrug) bool
 }
 
 type jsonV3Geoa []itemV3Geoa
@@ -209,8 +215,9 @@ func (j jsonV3Geoa) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3Geoa) setDrug(i int, l linkDrug) {
+func (j jsonV3Geoa) setDrug(i int, l linkDrug) bool {
 	j[i].Link = l
+	return l.IDLink != 0
 }
 
 func (j jsonV3Sale) len() int {
@@ -221,16 +228,18 @@ func (j jsonV3Sale) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3Sale) setDrug(i int, l linkDrug) {
+func (j jsonV3Sale) setDrug(i int, l linkDrug) bool {
 	j[i].LinkDrug = l
+	return l.IDLink != 0
 }
 
 func (j jsonV3Sale) getSupp(i int) string {
 	return j[i].SuppName
 }
 
-func (j jsonV3Sale) setAddr(i int, l linkAddr) {
+func (j jsonV3Sale) setAddr(i int, l linkAddr) bool {
 	j[i].LinkAddr = l
+	return l.IDLink != 0
 }
 
 func (j jsonV3SaleBy) len() int {
@@ -241,6 +250,7 @@ func (j jsonV3SaleBy) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3SaleBy) setDrug(i int, l linkDrug) {
+func (j jsonV3SaleBy) setDrug(i int, l linkDrug) bool {
 	j[i].Link = l
+	return l.IDLink != 0
 }

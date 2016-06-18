@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/json"
@@ -74,16 +75,13 @@ func checkHTag(t string) error {
 func proc(data []byte) {
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
-		log.Println("core: proc: err: pair:", object, err)
+		log.Println("proc: err: pair:", err)
 		return
 	}
-	defer func(t time.Time) {
-		log.Println("core: proc:", object, time.Since(t).String())
-	}(time.Now())
 
 	o, err := cMINIO.GetObject(bucket, object)
 	if err != nil {
-		log.Println("core: proc: err: load:", object, err)
+		log.Println("proc: err: load:", object, err)
 		return
 	}
 	defer func(c io.Closer) {
@@ -92,76 +90,86 @@ func proc(data []byte) {
 		}
 	}(o)
 
-	f, r, err := procObject(o)
+	var f string
+	m, r, err := procObject(o)
 	if err != nil {
-		log.Println("core: proc: err:", object, err)
+		log.Println("proc: err:", object, err)
+
+		buf := new(bytes.Buffer)
+		buf.WriteString(err.Error())
+		buf.WriteString("\n")
+		buf.Write(m.marshalIndent())
+
+		f = object + ".txt"
+		_, err = cMINIO.PutObject(bucketStreamErr, f, buf, "")
+		if err != nil {
+			log.Println("proc: err: save:", f, err)
+		}
+
 		err = cMINIO.CopyObject(bucketStreamErr, object, bucket+"/"+object, minio.NewCopyConditions())
 		if err != nil {
-			log.Println("core: proc: err: copy:", object, err)
+			log.Println("proc: err: copy:", object, err)
 		}
 	} else {
+		f = makeFileName(m.UUID, m.Auth.ID, m.HTag)
 		_, err = cMINIO.PutObject(bucketStreamOut, f, r, "")
 		if err != nil {
-			log.Println("core: proc: err: save:", f, err)
+			log.Println("proc: err: save:", f, err)
 		}
+
+		log.Println("proc:", f, m.Proc)
 	}
 
-	err = cMINIO.RemoveObject(bucket, object)
-	if err != nil {
-		log.Println("core: proc: err: kill:", f, err)
+	if f != "" {
+		err = cMINIO.RemoveObject(bucket, object)
+		if err != nil {
+			log.Println("proc: err: kill:", f, err)
+		}
 	}
 }
 
-func procObject(r io.Reader) (string, io.Reader, error) {
+func procObject(r io.Reader) (jsonMeta, io.Reader, error) {
+	m := jsonMeta{}
+
 	meta, data, err := ungztarMetaData(r)
 	if err != nil {
-		return "", nil, err
+		return m, nil, err
 	}
 
-	m, err := unmarshalMeta(meta)
+	m, err = unmarshalMeta(meta)
 	if err != nil {
-		return "", nil, err
+		return m, nil, err
 	}
 
 	v, err := unmarshalData(data, &m)
 	if err != nil {
-		return "", nil, err
-	}
-
-	if r, ok := v.(ruler); ok {
-		if r.len() == 0 {
-			return "", nil, fmt.Errorf("no data")
-		}
+		return m, nil, err
 	}
 
 	d, err := mineLinks(v, &m)
 	if err != nil {
-		return "", nil, err
+		return m, nil, err
 	}
 
 	t, err := gztarMetaData(m.marshal(), d)
 	if err != nil {
-		return "", nil, err
+		return m, nil, err
 	}
 
-	return makeFileName(m.UUID, m.Auth.ID, m.HTag), t, nil
+	return m, t, nil
 }
 
-func mendIfUTF8(data []byte) ([]byte, error) {
+func killUTF8BOM(data []byte) []byte {
 	if strings.Contains(http.DetectContentType(data), "text/plain; charset=utf-8") {
-		return bom.Clean(data), nil
+		return bom.Clean(data)
 	}
-	return data, nil
+	return data
 }
 
 const magicConvString = "conv"
 
 func unmarshalData(data []byte, m *jsonMeta) (interface{}, error) {
-	d, err := mendIfUTF8(data)
-	if err != nil {
-		return nil, err
-	}
-
+	d := killUTF8BOM(data)
 	m.ETag = btsToMD5(d)
 	m.Size = int64(len(d))
 
@@ -218,6 +226,7 @@ func unmarshalDataNEW(data []byte, m *jsonMeta) (interface{}, error) {
 
 func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	t := m.HTag
+	s := time.Now()
 
 	a, err := getAuth(m.Auth.ID)
 	if err != nil {
@@ -225,20 +234,31 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	}
 	m.Auth = a[0]
 
+	n := 0
+	if r, ok := v.(ruler); ok {
+		n := r.len()
+		m.Proc = fmt.Sprintf("%d", n)
+		if n == 0 {
+			return nil, fmt.Errorf("no data")
+		}
+	}
+
 	if d, ok := v.(druger); ok {
-		err = mineDrugs(d, t)
+		n, err = mineDrugs(d, t)
 	}
 	if err != nil {
 		return nil, err
 	}
+	m.Proc = fmt.Sprintf("%s:%d", m.Proc, n)
 
 	if isSaleIn(t) {
 		if a, ok := v.(addrer); ok {
-			err = mineAddrs(a)
+			n, err = mineAddrs(a)
 		}
 		if err != nil {
 			return nil, err
 		}
+		m.Proc = fmt.Sprintf("%s:%d", m.Proc, n)
 	}
 
 	if isGeo(t) {
@@ -249,10 +269,12 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 		m.Link = l[0]
 	}
 
+	m.Proc = fmt.Sprintf("%s:%s", m.Proc, time.Since(s).String())
+
 	return json.Marshal(v)
 }
 
-func mineDrugs(v druger, t string) error {
+func mineDrugs(v druger, t string) (int, error) {
 	var (
 		ext  = filepath.Ext(t)
 		keys = make([]string, v.len())
@@ -277,17 +299,20 @@ func mineDrugs(v druger, t string) error {
 
 	lds, err := getDrug(keys...)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
+	n := 0
 	for i := 0; i < v.len(); i++ {
-		v.setDrug(i, lds[i])
+		if v.setDrug(i, lds[i]) {
+			n++
+		}
 	}
 
-	return nil
+	return n, nil
 }
 
-func mineAddrs(v addrer) error {
+func mineAddrs(v addrer) (int, error) {
 	var keys = make([]string, v.len())
 	for i := 0; i < v.len(); i++ {
 		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
@@ -295,14 +320,17 @@ func mineAddrs(v addrer) error {
 
 	lds, err := getAddr(keys...)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
+	n := 0
 	for i := 0; i < v.len(); i++ {
-		v.setAddr(i, lds[i])
+		if v.setAddr(i, lds[i]) {
+			n++
+		}
 	}
 
-	return nil
+	return n, nil
 }
 
 const (
