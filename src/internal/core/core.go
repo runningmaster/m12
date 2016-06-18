@@ -63,7 +63,7 @@ type jsonMeta struct {
 	Test bool   `json:"test,omitempty"`
 
 	Link linkAddr `json:"link,omitempty"`
-	Proc string   `json:"link,omitempty"`
+	Proc string   `json:"proc,omitempty"`
 }
 
 func unmarshalMeta(b []byte) (jsonMeta, error) {

@@ -97,7 +97,7 @@ func proc(data []byte) {
 
 		buf := new(bytes.Buffer)
 		buf.WriteString(err.Error())
-		buf.WriteString("\n")
+		buf.WriteString("\n\n")
 		buf.Write(m.marshalIndent())
 
 		f = object + ".txt"
@@ -120,11 +120,9 @@ func proc(data []byte) {
 		log.Println("proc:", f, m.Proc)
 	}
 
-	if f != "" {
-		err = cMINIO.RemoveObject(bucket, object)
-		if err != nil {
-			log.Println("proc: err: kill:", f, err)
-		}
+	err = cMINIO.RemoveObject(bucket, object)
+	if err != nil {
+		log.Println("proc: err: kill:", object, err)
 	}
 }
 
