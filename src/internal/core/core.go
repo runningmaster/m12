@@ -56,14 +56,14 @@ type jsonMeta struct {
 	Addr string `json:"addr,omitempty"` // *
 	Code string `json:"code,omitempty"` // egrpou (okpo)
 
-	ETag string `json:"etag,omitempty"`
-	Size int64  `json:"size,omitempty"`
+	Link linkAddr `json:"link,omitempty"`
 
 	CTag string `json:"ctag,omitempty"`
+	ETag string `json:"etag,omitempty"`
+	Size int64  `json:"size,omitempty"`
+	Proc string `json:"proc,omitempty"`
+	Fail string `json:"fail,omitempty"`
 	Test bool   `json:"test,omitempty"`
-
-	Link linkAddr `json:"link,omitempty"`
-	Proc string   `json:"proc,omitempty"`
 }
 
 func unmarshalMeta(b []byte) (jsonMeta, error) {

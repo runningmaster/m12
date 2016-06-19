@@ -115,7 +115,7 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 	return d, nil
 }
 
-func unmarshalGeo1(data []byte) (*jsonV1Geoa, error) {
+func unmarshalGeoa(data []byte) (*jsonV1Geoa, error) {
 	v := &jsonV1Geoa{}
 
 	err := json.Unmarshal(data, &v)
@@ -126,50 +126,8 @@ func unmarshalGeo1(data []byte) (*jsonV1Geoa, error) {
 	return v, nil
 }
 
-func convGeo1(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
-	v, err := unmarshalGeo1(data)
-	if err != nil {
-		return nil, err
-	}
-
-	m.Name = v.Meta.Name
-	m.Head = v.Meta.Head
-	m.Addr = v.Meta.Addr
-	m.Code = v.Meta.EGRPOU
-
-	if len(v.Data) == 0 {
-		return jsonV3Geoa{}, nil
-	}
-
-	d := make(jsonV3Geoa, len(v.Data))
-	for i, v := range v.Data {
-		d[i].ID = v.Code
-		d[i].Name = v.Name
-		d[i].Home = v.Addr
-		d[i].Quant = v.Quant
-		d[i].Price = v.Price
-		// workaround
-		if v.Link != "" {
-			d[i].Home = v.Link
-		}
-	}
-
-	return d, nil
-}
-
-func unmarshalGeo2(data []byte) (*jsonV2Geoa, error) {
-	v := &jsonV2Geoa{}
-
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return nil, err
-	}
-
-	return v, nil
-}
-
-func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
-	v, err := unmarshalGeo2(data)
+func convGeoa(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
+	v, err := unmarshalGeoa(data)
 	if err != nil {
 		return nil, err
 	}
@@ -178,6 +136,9 @@ func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	m.Head = v.Meta.Head
 	m.Addr = v.Meta.Addr
 	m.Code = v.Meta.Code
+	if v.Meta.EGRPOU != "" {
+		m.Code = v.Meta.EGRPOU
+	}
 
 	if len(v.Data) == 0 {
 		return jsonV3Geoa{}, nil
@@ -186,8 +147,14 @@ func convGeo2(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	d := make(jsonV3Geoa, len(v.Data))
 	for i, v := range v.Data {
 		d[i].ID = v.ID
+		if v.Code != "" {
+			d[i].ID = v.Code
+		}
 		d[i].Name = v.Name
 		d[i].Home = v.Link
+		if v.Addr != "" {
+			d[i].Home = v.Addr
+		}
 		d[i].Quant = v.Quant
 		d[i].Price = v.Price
 	}
@@ -246,32 +213,18 @@ type jsonV1SaleBy struct {
 
 type jsonV1Geoa struct {
 	Meta struct {
-		Head   string
-		Name   string
-		Addr   string
-		EGRPOU string
-	}
-	Data []struct {
-		Code  string
-		Name  string
-		Desc  string
-		Addr  string `json:",omitempty"`
-		Link  string
-		Price float64
-		Quant float64
-	}
-}
-
-type jsonV2Geoa struct {
-	Meta struct {
-		Name string `json:"name"`
-		Head string `json:"head"`
-		Addr string `json:"addr"`
-		Code string `json:"code"`
+		Name   string `json:"name,omitempty"`
+		Head   string `json:"head,omitempty"`
+		Addr   string `json:"addr,omitempty"`
+		Code   string `json:"code,omitempty"`
+		EGRPOU string `json:"EGRPOU,omitempty"` // deprecated from 1.0
 	} `json:"meta"`
 	Data []struct {
-		ID    string  `json:"id"`
+		ID    string  `json:"id,omitempty"`
+		Code  string  `json:"Code,omitempty"` // deprecated from 1.0
 		Name  string  `json:"name"`
+		Desc  string  `json:"Desc,omitempty"` // deprecated from 1.0
+		Addr  string  `json:"Addr,omitempty"` // deprecated from 1.0
 		Link  string  `json:"link"`
 		Quant float64 `json:"quant"`
 		Price float64 `json:"price"`

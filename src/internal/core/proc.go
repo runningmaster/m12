@@ -91,17 +91,13 @@ func proc(data []byte) {
 	}(o)
 
 	var f string
-	m, r, err := procObject(o)
+	m, d, err := procObject(o)
 	if err != nil {
 		log.Println("proc: err:", object, err)
-
-		buf := new(bytes.Buffer)
-		buf.WriteString(err.Error())
-		buf.WriteString("\n\n")
-		buf.Write(m.marshalIndent())
+		m.Fail = err.Error()
 
 		f = object + ".txt"
-		_, err = cMINIO.PutObject(bucketStreamErr, f, buf, "")
+		_, err = cMINIO.PutObject(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()), "")
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
@@ -112,7 +108,7 @@ func proc(data []byte) {
 		}
 	} else {
 		f = makeFileName(m.UUID, m.Auth.ID, m.HTag)
-		_, err = cMINIO.PutObject(bucketStreamOut, f, r, "")
+		_, err = cMINIO.PutObject(bucketStreamOut, f, d, "")
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
@@ -172,10 +168,12 @@ func unmarshalData(data []byte, m *jsonMeta) (interface{}, error) {
 	m.Size = int64(len(d))
 
 	if strings.HasPrefix(m.CTag, magicConvString) {
+		m.CTag = fmt.Sprintf("converted from %s format", m.HTag)
+		m.HTag = convHTag[m.HTag]
 		return unmarshalDataOLD(d, m)
 	}
 
-	return unmarshalDataNEW(d, m)
+	return unmarshalDataNEW(d, m.HTag)
 }
 
 func unmarshalDataOLD(data []byte, m *jsonMeta) (interface{}, error) {
@@ -184,26 +182,18 @@ func unmarshalDataOLD(data []byte, m *jsonMeta) (interface{}, error) {
 	var v interface{}
 	var err error
 	switch {
-	case isGeoV2(t):
-		v, err = convGeo2(data, m)
-	case isGeoV1(t):
-		v, err = convGeo1(data, m)
+	case isGeo(t):
+		v, err = convGeoa(data, m)
 	case isSaleBY(t):
 		v, err = convSaleBy(data, m)
 	default:
 		v, err = convSale(data, m)
 	}
 
-	// cleanup
-	m.HTag = convHTag[t]
-	m.CTag = ""
-
 	return v, err
 }
 
-func unmarshalDataNEW(data []byte, m *jsonMeta) (interface{}, error) {
-	t := m.HTag
-
+func unmarshalDataNEW(data []byte, t string) (interface{}, error) {
 	var v interface{}
 	switch {
 	case isGeo(t):
