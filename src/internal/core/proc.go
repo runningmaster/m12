@@ -232,6 +232,12 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	}
 	m.Auth = a[0]
 
+	l, err := getAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
+	if err != nil {
+		return nil, err
+	}
+	m.Link = l[0]
+
 	n := 0
 	if r, ok := v.(ruler); ok {
 		n := r.len()
@@ -258,15 +264,6 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 		}
 		m.Proc = fmt.Sprintf("%s:%d", m.Proc, n)
 	}
-
-	if isGeo(t) {
-		l, err := getAddr(strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr)))
-		if err != nil {
-			return nil, err
-		}
-		m.Link = l[0]
-	}
-
 	m.Proc = fmt.Sprintf("%s:%s", m.Proc, time.Since(s).String())
 
 	return json.Marshal(v)
