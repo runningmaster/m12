@@ -73,6 +73,7 @@ func checkHTag(t string) error {
 }
 
 func proc(data []byte) {
+	s := time.Now()
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		log.Println("proc: err: pair:", err)
@@ -113,7 +114,7 @@ func proc(data []byte) {
 			log.Println("proc: err: save:", f, err)
 		}
 
-		log.Println("proc:", f, m.Proc)
+		log.Println("proc:", f, m.Proc, time.Since(s).String())
 	}
 
 	err = cMINIO.RemoveObject(bucket, object)
