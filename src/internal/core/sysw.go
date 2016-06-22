@@ -2,9 +2,9 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
+	//"internal/redis"
 
-	"internal/redis"
+	"github.com/garyburd/redigo/redis"
 )
 
 const (
@@ -13,8 +13,8 @@ const (
 )
 
 var (
-	fldsAddr = [...]string{"l", "a", "s", "e"}
-	fldsDrug = [...]string{"l", "d", "b", "c", "s"}
+	fldsAddr = []interface{}{"l", "a", "s", "e"}
+	fldsDrug = []interface{}{"l", "d", "b", "c", "s"}
 )
 
 func valIsNill(v ...interface{}) bool {
@@ -28,12 +28,15 @@ func valIsNill(v ...interface{}) bool {
 }
 
 func AuthOK(key string) (bool, error) {
-	v, err := redis.HEXISTS(keyAuth, key)
+	c := pREDIS.Get()
+	defer c.Close()
+
+	v, err := redis.Int(c.Do("HEXISTS", keyAuth, key))
 	if err != nil {
 		return false, err
 	}
 
-	return redis.ToInt64Safely(v) == 1, nil
+	return v == 1, nil
 }
 
 // GetAuth returns
@@ -44,7 +47,7 @@ func GetAuth(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return getAuth(v...)
+	return getAuth(v)
 }
 
 // SetAuth returns
@@ -55,7 +58,7 @@ func SetAuth(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return setAuth(v...)
+	return setAuth(v)
 }
 
 // DelAuth returns
@@ -66,44 +69,68 @@ func DelAuth(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return delAuth(v...)
+	return delAuth(v)
 }
 
-func getAuth(v ...string) ([]linkAuth, error) {
-	vls, err := redis.HMGET(redis.ConvFromStringsWithKey(keyAuth, v...)...)
+func getAuth(v []string) ([]linkAuth, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("HGET", keyAuth, v[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = c.Flush()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(vls) != len(v) {
-		return nil, fmt.Errorf("core: invalid len (get auth): got %d, want %d", len(vls), len(v))
-	}
-
-	res := make([]linkAuth, len(vls))
-	for i := range vls {
-		res[i].ID = v[i]
-		if valIsNill(vls[i]) {
-			continue
-		}
-		res[i].Name = redis.ToStringSafely(vls[i])
-	}
-
-	return res, nil
-}
-
-func setAuth(v ...linkAuth) (interface{}, error) {
-	vls := make([]interface{}, len(v)*2+1)
-	vls[0] = keyAuth
+	out := make([]linkAuth, len(v))
+	var r string
 	for i := range v {
-		vls[i*2+1] = v[i].ID
-		vls[i*2+2] = v[i].Name
+		out[i].ID = v[i]
+		r, err = redis.String(c.Receive())
+		if err != nil {
+			return nil, err
+		}
+		out[i].Name = r
 	}
 
-	return redis.HMSET(vls...)
+	return out, nil
 }
 
-func delAuth(v ...string) (interface{}, error) {
-	return redis.HDEL(redis.ConvFromStringsWithKey(keyAuth, v...)...)
+func setAuth(v []linkAuth) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("HSET", keyAuth, v[i].ID, v[i].Name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statusOK, c.Flush()
+}
+
+func delAuth(v []string) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("HDEL", keyAuth, v[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statusOK, c.Flush()
 }
 
 // GetAddr returns
@@ -114,7 +141,7 @@ func GetAddr(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return getAddr(v...)
+	return getAddr(v)
 }
 
 // SetAddr returns
@@ -125,7 +152,7 @@ func SetAddr(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return setAddr(v...)
+	return setAddr(v)
 }
 
 // DelAddr returns
@@ -136,53 +163,61 @@ func DelAddr(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return delAddr(v...)
+	return delAddr(v)
 }
 
-func getAddr(v ...string) ([]linkAddr, error) {
-	vlm := make([][]interface{}, len(v))
-	var vls []interface{}
-	for i := range vlm {
-		vls = make([]interface{}, len(fldsAddr)+1)
-		vls[0] = v[i]        // key
-		vls[1] = fldsAddr[0] // fld "l"
-		vls[2] = fldsAddr[1] // fld "a"
-		vls[3] = fldsAddr[2] // fld "s"
-		vls[4] = fldsAddr[3] // fld "e"
-		vlm[i] = vls
+func getAddr(v []string) ([]linkAddr, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	vls := make([]interface{}, 0, len(fldsAddr)+1)
+	var err error
+	for i := range v {
+		vls = append(vls, v[i]) // key
+		vls = append(vls, fldsAddr...)
+
+		err = c.Send("HMGET", vls...)
+		if err != nil {
+			return nil, err
+		}
+
+		vls = vls[:0]
 	}
 
-	vlm, err := redis.HMGETM(vlm...)
+	err = c.Flush()
 	if err != nil {
 		return nil, err
 	}
-	if len(vlm) != len(v) {
-		return nil, fmt.Errorf("core: invalid len (get addr): got %d, want %d", len(vlm), len(v))
+
+	out := make([]linkAddr, len(v))
+	var r []interface{}
+	for i := range v {
+		out[i].ID = v[i] // key
+		r, err = redis.Values(c.Receive())
+		if err != nil {
+			return nil, err
+		}
+		if len(r) == len(fldsAddr) {
+			out[i].IDLink, err = redis.Int64(r[0], err)  // fld "l"
+			out[i].IDAddr, err = redis.Int64(r[1], err)  // fld "a"
+			out[i].IDStat, err = redis.Int64(r[2], err)  // fld "s"
+			out[i].EGRPOU, err = redis.String(r[3], err) // fld "e"
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
-	res := make([]linkAddr, len(vlm))
-	for i := range vlm {
-		res[i].ID = v[i] // key
-		if valIsNill(vlm[i]...) {
-			continue
-		}
-		if len(vlm[i]) != len(fldsAddr) {
-			return nil, fmt.Errorf("core: invalid len (get addr): got %d, want %d", len(vlm[i]), len(fldsAddr))
-		}
-		res[i].IDLink = redis.ToInt64Safely(vlm[i][0])  // fld "l"
-		res[i].IDAddr = redis.ToInt64Safely(vlm[i][1])  // fld "a"
-		res[i].IDStat = redis.ToInt64Safely(vlm[i][2])  // fld "s"
-		res[i].EGRPOU = redis.ToStringSafely(vlm[i][3]) // fld "e"
-	}
-
-	return res, nil
+	return out, nil
 }
 
-func setAddr(v ...linkAddr) (interface{}, error) {
-	vlm := make([][]interface{}, len(v))
-	var vls []interface{}
-	for i := range vlm {
-		vls = make([]interface{}, 0, len(fldsAddr)*2+1)
+func setAddr(v []linkAddr) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	vls := make([]interface{}, 0, len(fldsAddr)*2+1)
+	var err error
+	for i := range v {
 		vls = append(vls, v[i].ID) // key
 		if v[i].IDLink != 0 {
 			vls = append(vls, fldsAddr[0], v[i].IDLink) // fld "l"
@@ -196,14 +231,36 @@ func setAddr(v ...linkAddr) (interface{}, error) {
 		if v[i].EGRPOU != "" {
 			vls = append(vls, fldsAddr[3], v[i].EGRPOU) // fld "e"
 		}
-		vlm[i] = vls
+
+		err = c.Send("DEL", v[i].ID)
+		if err != nil {
+			return nil, err
+		}
+
+		err = c.Send("HMSET", vls...)
+		if err != nil {
+			return nil, err
+		}
+
+		vls = vls[:0]
 	}
 
-	return redis.HMSETM(vlm...)
+	return statusOK, c.Flush()
 }
 
-func delAddr(v ...string) (interface{}, error) {
-	return redis.DEL(redis.ConvFromStrings(v...)...)
+func delAddr(v []string) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("DEL", v[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statusOK, c.Flush()
 }
 
 // GetDrug returns
@@ -214,7 +271,7 @@ func GetDrug(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return getDrug(v...)
+	return getDrug(v)
 }
 
 // SetDrug returns
@@ -225,7 +282,7 @@ func SetDrug(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return setDrug(v...)
+	return setDrug(v)
 }
 
 // DelDrug returns
@@ -236,55 +293,63 @@ func DelDrug(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return delDrug(v...)
+	return delDrug(v)
 }
 
-func getDrug(v ...string) ([]linkDrug, error) {
-	vlm := make([][]interface{}, len(v))
-	var vls []interface{}
-	for i := range vlm {
-		vls = make([]interface{}, len(fldsDrug)+1)
-		vls[0] = v[i]        // key
-		vls[1] = fldsDrug[0] // fld "l"
-		vls[2] = fldsDrug[1] // fld "d"
-		vls[3] = fldsDrug[2] // fld "b"
-		vls[4] = fldsDrug[3] // fld "c"
-		vls[5] = fldsDrug[4] // fld "s"
-		vlm[i] = vls
+func getDrug(v []string) ([]linkDrug, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	vls := make([]interface{}, 0, len(fldsDrug)+1)
+	var err error
+	for i := range v {
+		vls = append(vls, v[i]) // key
+		vls = append(vls, fldsDrug...)
+
+		err = c.Send("HMGET", vls...)
+		if err != nil {
+			return nil, err
+		}
+
+		vls = vls[:0]
 	}
 
-	vlm, err := redis.HMGETM(vlm...)
+	err = c.Flush()
 	if err != nil {
 		return nil, err
 	}
-	if len(vlm) != len(v) {
-		return nil, fmt.Errorf("core: invalid len (get drug): got %d, want %d", len(vlm), len(v))
+
+	out := make([]linkDrug, len(v))
+	var r []interface{}
+	for i := range v {
+		out[i].ID = v[i] // key
+		r, err = redis.Values(c.Receive())
+		if err != nil {
+			return nil, err
+		}
+		if len(r) == len(fldsDrug) {
+			out[i].IDLink, err = redis.Int64(r[0], err) // fld "l"
+			out[i].IDDrug, err = redis.Int64(r[1], err) // fld "d"
+			out[i].IDBrnd, err = redis.Int64(r[2], err) // fld "b"
+			out[i].IDCatg, err = redis.Int64(r[3], err) // fld "c"
+			out[i].IDStat, err = redis.Int64(r[4], err) // fld "s"
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
-	res := make([]linkDrug, len(vlm))
-	for i := range vlm {
-		res[i].ID = v[i] // key
-		if valIsNill(vlm[i]...) {
-			continue
-		}
-		if len(vlm[i]) != len(fldsDrug) {
-			return nil, fmt.Errorf("core: invalid len (get drug): got %d, want %d", len(vlm[i]), len(fldsDrug))
-		}
-		res[i].IDLink = redis.ToInt64Safely(vlm[i][0]) // fld "l"
-		res[i].IDDrug = redis.ToInt64Safely(vlm[i][1]) // fld "d"
-		res[i].IDBrnd = redis.ToInt64Safely(vlm[i][2]) // fld "b"
-		res[i].IDCatg = redis.ToInt64Safely(vlm[i][3]) // fld "c"
-		res[i].IDStat = redis.ToInt64Safely(vlm[i][4]) // fld "s"
-	}
+	return out, nil
 
-	return res, nil
 }
 
-func setDrug(v ...linkDrug) (interface{}, error) {
-	vlm := make([][]interface{}, len(v))
-	var vls []interface{}
-	for i := range vlm {
-		vls = make([]interface{}, 0, len(fldsDrug)*2+1)
+func setDrug(v []linkDrug) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	vls := make([]interface{}, 0, len(fldsDrug)*2+1)
+	var err error
+	for i := range v {
 		vls = append(vls, v[i].ID) // key
 		if v[i].IDLink != 0 {
 			vls = append(vls, fldsDrug[0], v[i].IDLink) // fld "l"
@@ -301,14 +366,36 @@ func setDrug(v ...linkDrug) (interface{}, error) {
 		if v[i].IDStat != 0 {
 			vls = append(vls, fldsDrug[4], v[i].IDStat) // fld "s"
 		}
-		vlm[i] = vls
+
+		err = c.Send("DEL", v[i].ID)
+		if err != nil {
+			return nil, err
+		}
+
+		err = c.Send("HMSET", vls...)
+		if err != nil {
+			return nil, err
+		}
+
+		vls = vls[:0]
 	}
 
-	return redis.HMSETM(vlm...)
+	return statusOK, c.Flush()
 }
 
-func delDrug(v ...string) (interface{}, error) {
-	return redis.DEL(redis.ConvFromStrings(v...)...)
+func delDrug(v []string) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("DEL", v[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statusOK, c.Flush()
 }
 
 // GetStat returns
@@ -319,7 +406,7 @@ func GetStat(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return getStat(v...)
+	return getStat(v)
 }
 
 // SetStat returns
@@ -330,7 +417,7 @@ func SetStat(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return setStat(v...)
+	return setStat(v)
 }
 
 // DelStat returns
@@ -341,42 +428,66 @@ func DelStat(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return delStat(v...)
+	return delStat(v)
 }
 
-func getStat(v ...int64) ([]linkStat, error) {
-	vls, err := redis.HMGET(redis.ConvFromInt64sWithKey(keyStat, v...)...)
+func getStat(v []int64) ([]linkStat, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("HGET", keyStat, v[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = c.Flush()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(vls) != len(v) {
-		return nil, fmt.Errorf("core: invalid len (get stat): got %d, want %d", len(vls), len(v))
-	}
-
-	res := make([]linkStat, len(vls))
-	for i := range vls {
-		res[i].ID = v[i]
-		if valIsNill(vls[i]) {
-			continue
-		}
-		res[i].Name = redis.ToStringSafely(vls[i])
-	}
-
-	return res, nil
-}
-
-func setStat(v ...linkStat) (interface{}, error) {
-	vls := make([]interface{}, len(v)*2+1)
-	vls[0] = keyStat
+	out := make([]linkStat, len(v))
+	var r string
 	for i := range v {
-		vls[i*2+1] = v[i].ID
-		vls[i*2+2] = v[i].Name
+		out[i].ID = v[i]
+		r, err = redis.String(c.Receive())
+		if err != nil {
+			return nil, err
+		}
+		out[i].Name = r
 	}
 
-	return redis.HMSET(vls...)
+	return out, nil
 }
 
-func delStat(v ...int64) (interface{}, error) {
-	return redis.HDEL(redis.ConvFromInt64sWithKey(keyStat, v...)...)
+func setStat(v []linkStat) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("HSET", keyStat, v[i].ID, v[i].Name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statusOK, c.Flush()
+}
+
+func delStat(v []int64) (interface{}, error) {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	var err error
+	for i := range v {
+		err = c.Send("HDEL", keyStat, v[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statusOK, c.Flush()
 }

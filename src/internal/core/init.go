@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"internal/pref"
-	"internal/redis"
 
 	"github.com/nats-io/nats"
 )
@@ -24,7 +23,7 @@ const (
 
 func Init() error {
 	var err error
-	err = redis.Run(pref.Redis)
+	err = initREDIS(pref.Redis)
 	if err != nil {
 		return err
 	}
@@ -35,6 +34,34 @@ func Init() error {
 	}
 
 	return initNATS(pref.NATS)
+}
+
+func initREDIS(addr string) error {
+	var err error
+	pREDIS, err = openREDIS(addr)
+	if err != nil {
+		return err
+	}
+
+	return waitDBFromDisk(1 * time.Second)
+}
+
+func waitDBFromDisk(d time.Duration) error {
+	c := pREDIS.Get()
+	defer c.Close()
+
+	t := time.NewTicker(d)
+	var err error
+	for range t.C {
+		_, err = c.Do("PING")
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		break
+	}
+	t.Stop()
+	return err
 }
 
 func initMINIO(addr string) error {
@@ -101,6 +128,7 @@ func publish(bucket, subject string, n int) error {
 
 	m := make([][]byte, len(l))
 	for i := range l {
+		log.Println("DEBUG", bucket, l[i])
 		m[i] = pair{bucket, l[i]}.marshal()
 	}
 

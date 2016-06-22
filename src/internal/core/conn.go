@@ -3,7 +3,9 @@ package core
 import (
 	"crypto/tls"
 	"net/url"
+	"time"
 
+	"github.com/garyburd/redigo/redis"
 	minio "github.com/minio/minio-go"
 	"github.com/nats-io/nats"
 )
@@ -49,4 +51,26 @@ func openMINIO(addr string) (*minio.Client, error) {
 	}
 
 	return c, nil
+}
+
+var pREDIS *redis.Pool
+
+func openREDIS(addr string) (*redis.Pool, error) {
+	u, err := url.Parse(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	p := &redis.Pool{
+		MaxIdle:     128,
+		IdleTimeout: 60 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp", u.Host)
+		},
+	}
+
+	c := p.Get()
+	defer c.Close()
+
+	return p, c.Err()
 }

@@ -3,9 +3,9 @@ package core
 import (
 	"encoding/json"
 	"net/http"
-
-	"internal/redis"
 )
+
+const statusOK = http.StatusOK
 
 type HTTPHeadReader interface {
 	ReadHeader(http.Header)
@@ -27,16 +27,6 @@ type WorkFunc func([]byte) (interface{}, error)
 
 func (f WorkFunc) Work(b []byte) (interface{}, error) {
 	return f(b)
-}
-
-// Ping calls Redis PING
-func Ping(_ []byte) (interface{}, error) {
-	return redis.Ping()
-}
-
-// Info calls Redis INFO
-func Info(_ []byte) (interface{}, error) {
-	return redis.Info()
 }
 
 type jsonMeta struct {
