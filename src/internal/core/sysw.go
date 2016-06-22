@@ -94,7 +94,7 @@ func getAuth(v []string) ([]linkAuth, error) {
 	for i := range v {
 		out[i].ID = v[i]
 		r, err = redis.String(c.Receive())
-		if err != nil {
+		if err != nil && err != redis.ErrNil {
 			return nil, err
 		}
 		out[i].Name = r
@@ -194,7 +194,7 @@ func getAddr(v []string) ([]linkAddr, error) {
 	for i := range v {
 		out[i].ID = v[i] // key
 		r, err = redis.Values(c.Receive())
-		if err != nil {
+		if err != nil && err != redis.ErrNil {
 			return nil, err
 		}
 		if len(r) == len(fldsAddr) {
@@ -202,7 +202,7 @@ func getAddr(v []string) ([]linkAddr, error) {
 			out[i].IDAddr, err = redis.Int64(r[1], err)  // fld "a"
 			out[i].IDStat, err = redis.Int64(r[2], err)  // fld "s"
 			out[i].EGRPOU, err = redis.String(r[3], err) // fld "e"
-			if err != nil {
+			if err != nil && err != redis.ErrNil {
 				return nil, err
 			}
 		}
@@ -324,7 +324,7 @@ func getDrug(v []string) ([]linkDrug, error) {
 	for i := range v {
 		out[i].ID = v[i] // key
 		r, err = redis.Values(c.Receive())
-		if err != nil {
+		if err != nil && err != redis.ErrNil {
 			return nil, err
 		}
 		if len(r) == len(fldsDrug) {
@@ -333,7 +333,7 @@ func getDrug(v []string) ([]linkDrug, error) {
 			out[i].IDBrnd, err = redis.Int64(r[2], err) // fld "b"
 			out[i].IDCatg, err = redis.Int64(r[3], err) // fld "c"
 			out[i].IDStat, err = redis.Int64(r[4], err) // fld "s"
-			if err != nil {
+			if err != nil && err != redis.ErrNil {
 				return nil, err
 			}
 		}
@@ -453,7 +453,7 @@ func getStat(v []int64) ([]linkStat, error) {
 	for i := range v {
 		out[i].ID = v[i]
 		r, err = redis.String(c.Receive())
-		if err != nil {
+		if err != nil && err != redis.ErrNil {
 			return nil, err
 		}
 		out[i].Name = r
