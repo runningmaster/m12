@@ -13,7 +13,7 @@ func pipeConv(h http.HandlerFunc) http.HandlerFunc {
 		convHost(r)
 		convAuth(r)
 		convHTag(r)
-		h(ctx, w, r)
+		h(w, r)
 	}
 }
 

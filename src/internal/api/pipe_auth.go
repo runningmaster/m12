@@ -12,53 +12,51 @@ import (
 func pipeAuth(master int) handlerPipe {
 	return func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			key, err := getKey(r)
+			ctx := r.Context()
+			key, err := auth(r, master)
 			if err != nil {
-				goto fail
+				ctx = ctxWithFail(ctx, err)
+				ctx = ctxWithCode(ctx, http.StatusForbidden)
 			}
-
-			err = auth(key, master)
-			if err != nil {
-				goto fail
-			}
-
-			h(ctxWithAuth(ctx, key), w, r)
-			return // success
-		fail:
-			h(ctxWithCode(ctxWithFail(ctxWithAuth(ctx, key), err), http.StatusForbidden), w, r)
+			ctx = ctxWithAuth(ctx, key)
+			h(w, r.WithContext(ctx))
 		}
 	}
 }
 
-func getKey(r *http.Request) (string, error) {
-	// V3 api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
-	if _, pass, ok := r.BasicAuth(); ok {
-		return pass[4:], nil
+func auth(r *http.Request, master int) (string, error) {
+	key, err := getKey(r)
+	if err != nil {
+		return key, err
 	}
 
-	return "", fmt.Errorf("api: key not found")
-}
-
-func auth(key string, master int) error {
 	if isMasterKey(key) {
-		return nil
+		return key, nil
 	}
 
 	err403 := fmt.Errorf("api: invalid key: %s: forbidden", key)
 	if master == 1 {
-		return err403
+		return key, err403
 	}
 
 	ok, err := core.AuthOK(key)
 	if err != nil {
-		return err
+		return key, err
 	}
 
 	if ok {
-		return nil
+		return key, nil
 	}
 
-	return err403
+	return key, err403
+}
+
+// V3 api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
+func getKey(r *http.Request) (string, error) {
+	if _, pass, ok := r.BasicAuth(); ok {
+		return pass[4:], nil
+	}
+	return "", fmt.Errorf("api: key not found")
 }
 
 func isMasterKey(key string) bool {

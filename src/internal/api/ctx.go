@@ -2,6 +2,9 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -52,7 +55,7 @@ func authFromCtx(ctx context.Context) string {
 }
 
 func ctxWithFail(ctx context.Context, v error) context.Context {
-	return context.WithValue(ctx, ctxFail, v)
+	return context.WithValue(ctx, ctxFail, "err: "+v.Error())
 }
 
 func failFromCtx(ctx context.Context) error {
@@ -107,4 +110,17 @@ func stringFromContext(ctx context.Context, key interface{}) string {
 func int64FromContext(ctx context.Context, key interface{}) int64 {
 	v, _ := ctx.Value(key).(int64)
 	return v
+}
+
+func ctxWith200(ctx context.Context, size int64) context.Context {
+	return ctxWithCode(ctxWithSize(ctx, size), http.StatusOK)
+}
+
+func ctxWith500(ctx context.Context, err error) context.Context {
+	return ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError)
+}
+
+func ctxWithErr(ctx context.Context, code int) context.Context {
+	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
+	return ctxWithCode(ctxWithFail(ctx, err), int64(code))
 }

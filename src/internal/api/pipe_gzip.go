@@ -63,6 +63,6 @@ func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 			w.Header().Set("Content-Encoding", "gzip")
 		}
 
-		h(ctx, w, r)
+		h(w, r)
 	}
 }

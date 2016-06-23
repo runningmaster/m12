@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +13,7 @@ const magicLen = 8
 
 func pipeTail(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		inf := informer{ctx, w, r}
+		inf := informer{r}
 		log.Println( // log.New() ?
 			inf.code(),
 			markEmpty(trimPart(inf.uuid())),
@@ -49,8 +48,6 @@ func trimPart(s string) string {
 }
 
 type informer struct {
-	c context.Context
-	w http.ResponseWriter
 	r *http.Request
 }
 
@@ -67,7 +64,7 @@ func (i informer) method() string {
 }
 
 func (i informer) host() string {
-	return hostFromCtx(i.c)
+	return hostFromCtx(i.r.Context())
 }
 
 func (i informer) user() string {
@@ -75,35 +72,31 @@ func (i informer) user() string {
 }
 
 func (i informer) uuid() string {
-	return uuidFromCtx(i.c)[:magicLen]
+	return uuidFromCtx(i.r.Context())[:magicLen]
 }
 
 func (i informer) auth() string {
-	return authFromCtx(i.c)
+	return authFromCtx(i.r.Context())
 }
 
 func (i informer) code() int64 {
-	return codeFromCtx(i.c)
+	return codeFromCtx(i.r.Context())
 }
 
 func (i informer) clen() int64 {
-	return clenFromCtx(i.c)
+	return clenFromCtx(i.r.Context())
 }
 
 func (i informer) size() int64 {
-	return sizeFromCtx(i.c)
+	return sizeFromCtx(i.r.Context())
 }
 
 func (i informer) fail() string {
-	err := failFromCtx(i.c)
-	if err != nil {
-		return fmt.Sprintf("err: %v", err)
-	}
-	return ""
+	return failFromCtx(i.r.Context()).Error()
 }
 
 func (i informer) time() string {
-	if t := timeFromCtx(i.c); !t.IsZero() {
+	if t := timeFromCtx(i.r.Context()); !t.IsZero() {
 		return time.Since(t).String()
 	}
 	return ""

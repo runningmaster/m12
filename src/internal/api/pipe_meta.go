@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -14,21 +13,53 @@ import (
 
 func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := validateHeader(r.Header)
+		ctx := r.Context()
+		err := injectMeta(r)
 		if err != nil {
-			goto fail
+			ctx = ctxWithFail(ctx, err)
 		}
-
-		err = injectIntoMETA(ctx, r.Header)
-		if err != nil {
-			goto fail
-		}
-
-		h(ctx, w, r)
-		return // success
-	fail:
-		h(ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError), w, r)
+		h(w, r.WithContext(ctx))
 	}
+}
+
+func injectMeta(r *http.Request) error {
+	err := validateHeader(r.Header)
+	if err != nil {
+		return err
+	}
+
+	meta, err := base64.StdEncoding.DecodeString(h.Get("Content-Meta"))
+	if err != nil {
+		return err
+	}
+
+	v := struct {
+		UUID string `json:"uuid,omitempty"`
+		Auth struct {
+			ID string `json:"id,omitempty"`
+		} `json:"auth,omitempty"`
+		Host string `json:"host,omitempty"`
+		User string `json:"user,omitempty"`
+		Time int64  `json:"time,omitempty"`
+	}{}
+
+	ctx := r.Context()
+	v.UUID = uuidFromCtx(ctx)
+	v.Auth.ID = authFromCtx(ctx)
+	v.Host = hostFromCtx(ctx)
+	v.User = userFromCtx(ctx)
+	v.Time = timeFromCtx(ctx).Unix()
+
+	m, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	meta = bytes.Replace(meta, []byte("{"), []byte(","), -1)
+	meta = append(m[:len(m)-1], meta...)
+
+	r.Header.Set("Content-Meta", string(meta))
+	return nil
 }
 
 func validateHeader(h http.Header) error {
@@ -76,38 +107,5 @@ func mustHeaderMETA(h http.Header) error {
 	if len(h.Get("Content-Meta")) == 0 {
 		return fmt.Errorf("api: content-meta must contain value")
 	}
-	return nil
-}
-
-func injectIntoMETA(ctx context.Context, h http.Header) error {
-	meta, err := base64.StdEncoding.DecodeString(h.Get("Content-Meta"))
-	if err != nil {
-		return err
-	}
-
-	v := struct {
-		UUID string `json:"uuid,omitempty"`
-		Auth struct {
-			ID string `json:"id,omitempty"`
-		} `json:"auth,omitempty"`
-		Host string `json:"host,omitempty"`
-		User string `json:"user,omitempty"`
-		Time int64  `json:"time,omitempty"`
-	}{}
-	v.UUID = uuidFromCtx(ctx)
-	v.Auth.ID = authFromCtx(ctx)
-	v.Host = hostFromCtx(ctx)
-	v.User = userFromCtx(ctx)
-	v.Time = timeFromCtx(ctx).Unix()
-
-	m, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	meta = bytes.Replace(meta, []byte("{"), []byte(","), -1)
-	meta = append(m[:len(m)-1], meta...)
-
-	h.Set("Content-Meta", string(meta))
 	return nil
 }
