@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -13,8 +12,8 @@ import (
 
 var genUUID = fastuuid.MustNewGenerator()
 
-func pipeHead(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func pipeHead(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx = ctxWithUUID(ctx, nextUUID())
 		ctx = ctxWithHost(ctx, mineHost(r))
 		ctx = ctxWithUser(ctx, mineUser(r))

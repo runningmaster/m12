@@ -2,7 +2,6 @@ package api
 
 import (
 	"bufio"
-	"context"
 	"io"
 	"net"
 	"net/http"
@@ -37,8 +36,8 @@ func (w *gzipResponseWriter) CloseNotify() <-chan bool {
 	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }
 
-func pipeGzip(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if gzpool.IsGzipInString(r.Header.Get("Content-Encoding")) {
 			z, err := gzpool.GetReader()
 			if err != nil {

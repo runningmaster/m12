@@ -15,16 +15,10 @@ import (
 	"internal/version"
 )
 
-type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
-type handlerFuncCtx func(context.Context, http.ResponseWriter, *http.Request) context.Context
-type handlerPipe func(h handlerFunc) handlerFunc
+type handlerPipe func(h http.HandlerFunc) http.HandlerFunc
 type bundle struct {
 	h http.Handler
 	w core.Worker
-}
-
-func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	f(context.Background(), w, r)
 }
 
 var (
@@ -71,8 +65,8 @@ var (
 		"GET:/debug/pprof/block":        {use(pipeHead, pipeGzip, pipe(stdh), pipeFail, pipeTail), nil},                      // runtime/pprof
 
 		// => Workarounds for 404/405
-		"GET:/error/404": {use(pipeHead, pipe(with404), pipeFail, pipeTail), nil},
-		"GET:/error/405": {use(pipeHead, pipe(with405), pipeFail, pipeTail), nil},
+		"GET:/error/404": {use(pipeHead, pipe(resp404), pipeFail, pipeTail), nil},
+		"GET:/error/405": {use(pipeHead, pipe(resp405), pipeFail, pipeTail), nil},
 	}
 )
 
@@ -92,17 +86,17 @@ func Reg(reg func(m, p string, h http.Handler)) error {
 	return core.Init()
 }
 
-func root(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+func root(w http.ResponseWriter, r *http.Request) {
 	res := fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo())
-	return with200(ctx, w, res)
+	resp200(r.Context(), w, res)
 }
 
-func work(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+func work(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = r.Body.Close() }()
 
 	wrk, ok := mapCoreWorkers[r.URL.Path]
 	if !ok {
-		return with500(ctx, fmt.Errorf("api: core method not found"))
+		return resp500(ctx, fmt.Errorf("api: core method not found"))
 	}
 
 	var buf = new(bytes.Buffer)
@@ -131,12 +125,12 @@ func work(ctx context.Context, w http.ResponseWriter, r *http.Request) context.C
 		hw.WriteHeader(w.Header())
 	}
 
-	return with200(ctx, w, res)
+	return resp200(ctx, w, res)
 }
 
-func stdh(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+func stdh(w http.ResponseWriter, r *http.Request) {
 	if !pref.Debug {
-		return with500(ctx, fmt.Errorf("api: flag debug not found"))
+		return resp500(ctx, fmt.Errorf("api: flag debug not found"))
 	}
 
 	if h, p := http.DefaultServeMux.Handler(r); p != "" {
@@ -175,7 +169,7 @@ func writeResp(ctx context.Context, w http.ResponseWriter, code int, data interf
 	return int64(n), err
 }
 
-func with200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
+func resp200(ctx context.Context, w http.ResponseWriter, res interface{}) context.Context {
 	n, err := writeResp(ctx, w, http.StatusOK, res)
 	if err != nil {
 		return ctxWithSize(ctxWithFail(ctx, err), n)
@@ -183,19 +177,19 @@ func with200(ctx context.Context, w http.ResponseWriter, res interface{}) contex
 	return ctxWithCode(ctxWithSize(ctx, n), http.StatusOK)
 }
 
-func with500(ctx context.Context, err error) context.Context {
+func resp500(ctx context.Context, err error) context.Context {
 	return ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError)
 }
 
-func withErr(ctx context.Context, code int) context.Context {
+func respErr(ctx context.Context, code int) context.Context {
 	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
 	return ctxWithCode(ctxWithFail(ctx, err), int64(code))
 }
 
-func with404(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	return withErr(ctx, http.StatusNotFound)
+func resp404(w http.ResponseWriter, r *http.Request) {
+	return respErr(ctx, http.StatusNotFound)
 }
 
-func with405(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	return withErr(ctx, http.StatusMethodNotAllowed)
+func resp405(w http.ResponseWriter, r *http.Request) {
+	return respErr(ctx, http.StatusMethodNotAllowed)
 }

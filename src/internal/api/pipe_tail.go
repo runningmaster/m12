@@ -12,8 +12,8 @@ import (
 
 const magicLen = 8
 
-func pipeTail(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func pipeTail(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		inf := informer{ctx, w, r}
 		log.Println( // log.New() ?
 			inf.code(),

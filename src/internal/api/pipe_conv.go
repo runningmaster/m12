@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"mime"
@@ -9,8 +8,8 @@ import (
 	"strings"
 )
 
-func pipeConv(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func pipeConv(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		convHost(r)
 		convAuth(r)
 		convHTag(r)

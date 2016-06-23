@@ -1,12 +1,9 @@
 package api
 
-import (
-	"context"
-	"net/http"
-)
+import "net/http"
 
-func pipeFail(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func pipeFail(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		err := failFromCtx(ctx)
 		if err != nil {
 			if code := codeFromCtx(ctx); code != 0 {

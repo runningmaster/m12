@@ -12,8 +12,8 @@ import (
 	"internal/gzpool"
 )
 
-func pipeMeta(h handlerFunc) handlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		err := validateHeader(r.Header)
 		if err != nil {
 			goto fail

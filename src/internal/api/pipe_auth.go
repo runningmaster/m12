@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,8 +10,8 @@ import (
 )
 
 func pipeAuth(master int) handlerPipe {
-	return func(h handlerFunc) handlerFunc {
-		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	return func(h http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
 			key, err := getKey(r)
 			if err != nil {
 				goto fail
