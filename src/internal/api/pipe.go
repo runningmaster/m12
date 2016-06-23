@@ -1,9 +1,8 @@
 package api
 
 import (
+	"context"
 	"net/http"
-
-	"golang.org/x/net/context"
 )
 
 func use(pipes ...handlerPipe) http.Handler {

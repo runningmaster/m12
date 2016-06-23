@@ -1,13 +1,12 @@
 package api
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"mime"
 	"net/http"
 	"strings"
-
-	"golang.org/x/net/context"
 )
 
 func pipeConv(h handlerFunc) handlerFunc {

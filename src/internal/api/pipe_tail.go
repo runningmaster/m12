@@ -1,13 +1,13 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/pivotal-golang/bytefmt"
-	"golang.org/x/net/context"
 )
 
 const magicLen = 8

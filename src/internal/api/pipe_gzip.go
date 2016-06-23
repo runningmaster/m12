@@ -2,6 +2,7 @@ package api
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"net"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"internal/gzpool"
 
 	"github.com/klauspost/compress/gzip"
-	"golang.org/x/net/context"
 )
 
 type gzipResponseWriter struct {

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/rogpeppe/fastuuid"
-	"golang.org/x/net/context"
 )
 
 var genUUID = fastuuid.MustNewGenerator()

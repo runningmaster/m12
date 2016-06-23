@@ -1,7 +1,3 @@
-# Package context defines the Context type, which carries deadlines, cancelation signals, and other request-scoped values across API boundaries and between processes.
-# https://godoc.org/golang.org/x/net/context
-golang.org/x/net/context
-
 # Graceful is a Go 1.3+ package enabling graceful shutdown of http.Handler servers.
 # https://godoc.org/github.com/tylerb/graceful
 github.com/tylerb/graceful

@@ -1,9 +1,8 @@
 package api
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 type ctxKey int

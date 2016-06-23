@@ -1,14 +1,13 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"internal/core"
 	"internal/pref"
-
-	"golang.org/x/net/context"
 )
 
 func pipeAuth(master int) handlerPipe {

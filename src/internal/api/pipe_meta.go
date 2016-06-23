@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -9,8 +10,6 @@ import (
 	"strings"
 
 	"internal/gzpool"
-
-	"golang.org/x/net/context"
 )
 
 func pipeMeta(h handlerFunc) handlerFunc {

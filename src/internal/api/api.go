@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,8 +13,6 @@ import (
 	"internal/core"
 	"internal/pref"
 	"internal/version"
-
-	"golang.org/x/net/context"
 )
 
 type handlerFunc func(context.Context, http.ResponseWriter, *http.Request)
