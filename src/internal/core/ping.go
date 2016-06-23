@@ -10,16 +10,16 @@ import (
 
 // Ping calls Redis PING
 func Ping(_ []byte) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	return c.Do("PING")
 }
 
 // Info calls Redis INFO
 func Info(_ []byte) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	b, err := redis.Bytes(c.Do("INFO"))
 	if err != nil {

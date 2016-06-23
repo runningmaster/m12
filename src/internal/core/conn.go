@@ -2,6 +2,7 @@ package core
 
 import (
 	"crypto/tls"
+	"io"
 	"net/url"
 	"time"
 
@@ -18,7 +19,7 @@ func openNATS(addr string) (*nats.Conn, error) {
 		return nil, err
 	}
 
-	var opts []nats.Option
+	opts := []nats.Option{nats.MaxReconnects(-1)}
 	if u.User != nil {
 		opts = append(opts, nats.Secure(&tls.Config{InsecureSkipVerify: true}))
 	}
@@ -70,7 +71,17 @@ func openREDIS(addr string) (*redis.Pool, error) {
 	}
 
 	c := p.Get()
-	defer c.Close()
+	defer closeConn(c)
 
 	return p, c.Err()
+}
+
+func redisConn() redis.Conn {
+	return pREDIS.Get()
+}
+
+func closeConn(c io.Closer) {
+	if c != nil {
+		_ = c.Close()
+	}
 }

@@ -72,20 +72,11 @@ func ungztarMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
 			}
 			return nil, nil, err
 		}
-
 		switch {
 		case h.Name == tarMeta:
-			if len(gz) > 1 && gz[0] {
-				_, err = io.Copy(m, tr)
-			} else {
-				err = gzpool.Copy(m, tr)
-			}
+			err = copyMetaData(m, tr, len(gz) > 1 && gz[0])
 		case h.Name == tarData:
-			if len(gz) == 2 && gz[1] {
-				_, err = io.Copy(d, tr)
-			} else {
-				err = gzpool.Copy(d, tr)
-			}
+			err = copyMetaData(d, tr, len(gz) == 2 && gz[1])
 		}
 		if err != nil {
 			return nil, nil, err
@@ -93,4 +84,13 @@ func ungztarMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
 	}
 
 	return m.Bytes(), d.Bytes(), nil
+}
+
+func copyMetaData(dst io.Writer, src io.Reader, gz bool) error {
+	if gz {
+		_, err := io.Copy(dst, src)
+		return err
+
+	}
+	return gzpool.Copy(dst, src)
 }

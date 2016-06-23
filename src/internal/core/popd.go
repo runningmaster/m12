@@ -45,7 +45,7 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 	}(o)
 
 	defer func() {
-		err := cMINIO.RemoveObject(bucket, object)
+		err = cMINIO.RemoveObject(bucket, object)
 		if err != nil {
 			log.Println("minio:", object, err)
 		}

@@ -3,7 +3,6 @@ package core
 var Deld = newDeldWorker()
 
 type deldWorker struct {
-	meta []byte
 }
 
 func newDeldWorker() Worker {

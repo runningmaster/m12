@@ -17,19 +17,9 @@ var (
 	fldsDrug = []interface{}{"l", "d", "b", "c", "s"}
 )
 
-func valIsNill(v ...interface{}) bool {
-	for i := range v {
-		if v[i] != nil { // don't work with pointers!
-			return false
-		}
-	}
-
-	return true
-}
-
 func AuthOK(key string) (bool, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	v, err := redis.Int(c.Do("HEXISTS", keyAuth, key))
 	if err != nil {
@@ -73,8 +63,8 @@ func DelAuth(data []byte) (interface{}, error) {
 }
 
 func getAuth(v []string) ([]linkAuth, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -104,8 +94,8 @@ func getAuth(v []string) ([]linkAuth, error) {
 }
 
 func setAuth(v []linkAuth) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -119,8 +109,8 @@ func setAuth(v []linkAuth) (interface{}, error) {
 }
 
 func delAuth(v []string) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -167,8 +157,8 @@ func DelAddr(data []byte) (interface{}, error) {
 }
 
 func getAddr(v []string) ([]linkAddr, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	vls := make([]interface{}, 0, len(fldsAddr)+1)
 	var err error
@@ -212,8 +202,8 @@ func getAddr(v []string) ([]linkAddr, error) {
 }
 
 func setAddr(v []linkAddr) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	vls := make([]interface{}, 0, len(fldsAddr)*2+1)
 	var err error
@@ -249,8 +239,8 @@ func setAddr(v []linkAddr) (interface{}, error) {
 }
 
 func delAddr(v []string) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -297,8 +287,8 @@ func DelDrug(data []byte) (interface{}, error) {
 }
 
 func getDrug(v []string) ([]linkDrug, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	vls := make([]interface{}, 0, len(fldsDrug)+1)
 	var err error
@@ -344,8 +334,8 @@ func getDrug(v []string) ([]linkDrug, error) {
 }
 
 func setDrug(v []linkDrug) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	vls := make([]interface{}, 0, len(fldsDrug)*2+1)
 	var err error
@@ -384,8 +374,8 @@ func setDrug(v []linkDrug) (interface{}, error) {
 }
 
 func delDrug(v []string) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -432,8 +422,8 @@ func DelStat(data []byte) (interface{}, error) {
 }
 
 func getStat(v []int64) ([]linkStat, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -463,8 +453,8 @@ func getStat(v []int64) ([]linkStat, error) {
 }
 
 func setStat(v []linkStat) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {
@@ -478,8 +468,8 @@ func setStat(v []linkStat) (interface{}, error) {
 }
 
 func delStat(v []int64) (interface{}, error) {
-	c := pREDIS.Get()
-	defer c.Close()
+	c := redisConn()
+	defer closeConn(c)
 
 	var err error
 	for i := range v {

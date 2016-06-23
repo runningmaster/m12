@@ -48,7 +48,7 @@ func initREDIS(addr string) error {
 
 func waitDBFromDisk(d time.Duration) error {
 	c := pREDIS.Get()
-	defer c.Close()
+	defer closeConn(c)
 
 	t := time.NewTicker(d)
 	var err error
@@ -128,7 +128,6 @@ func publish(bucket, subject string, n int) error {
 
 	m := make([][]byte, len(l))
 	for i := range l {
-		log.Println("DEBUG", bucket, l[i])
 		m[i] = pair{bucket, l[i]}.marshal()
 	}
 

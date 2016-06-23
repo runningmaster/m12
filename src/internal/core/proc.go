@@ -231,7 +231,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 
 	n := 0
 	if r, ok := v.(ruler); ok {
-		n := r.len()
+		n = r.len()
 		m.Proc = fmt.Sprintf("%d", n)
 		if n == 0 {
 			return nil, fmt.Errorf("no data")
@@ -374,14 +374,6 @@ func makeMagicDrugUA(name string) string {
 
 func isGeo(s string) bool {
 	return strings.Contains(s, "geo")
-}
-
-func isGeoV1(s string) bool {
-	return strings.Contains(s, "geostore")
-}
-
-func isGeoV2(s string) bool {
-	return strings.Contains(s, "geoapt")
 }
 
 func isSaleBY(s string) bool {
