@@ -38,15 +38,17 @@ func (w *gzipResponseWriter) CloseNotify() <-chan bool {
 
 func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		if gzpool.IsGzipInString(r.Header.Get("Content-Encoding")) {
 			z, err := gzpool.GetReader()
 			if err != nil {
-				// FIXME log err
+				ctx = ctxWithFail(ctx, err)
 			}
 			defer func() { _ = gzpool.PutReader(z) }()
 			err = z.Reset(r.Body)
 			if err != nil {
-				// FIXME log err
+				ctx = ctxWithFail(ctx, err)
 			}
 			r.Body = z
 		}
@@ -54,7 +56,7 @@ func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 		if gzpool.IsGzipInString(r.Header.Get("Accept-Encoding")) {
 			z, err := gzpool.GetWriter()
 			if err != nil {
-				// FIXME TODO log err
+				ctx = ctxWithFail(ctx, err)
 			}
 			defer func() { _ = gzpool.PutWriter(z) }()
 			z.Reset(w)
@@ -63,6 +65,6 @@ func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 			w.Header().Set("Content-Encoding", "gzip")
 		}
 
-		h(w, r)
+		h(w, r.WithContext(ctx))
 	}
 }

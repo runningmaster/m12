@@ -26,7 +26,7 @@ func pipeTail(h http.HandlerFunc) http.HandlerFunc {
 			convSize(sizeFromCtx(ctx)),
 			markEmpty(convTime(timeFromCtx(ctx))),
 			markEmpty(fmt.Sprintf("%q", userFromCtx(ctx))),
-			failFromCtx(ctx).Error(),
+			convFail(failFromCtx(ctx)),
 		)
 		//if h != nil {
 		//	h(ctx, w, r)
@@ -64,4 +64,11 @@ func convTime(t time.Time) string {
 
 func convSize(n int64) string {
 	return bytefmt.ByteSize(uint64(n))
+}
+
+func convFail(err error) string {
+	if err != nil {
+		return fmt.Sprintf("err: %v", err)
+	}
+	return ""
 }

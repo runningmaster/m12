@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -54,11 +55,16 @@ func authFromCtx(ctx context.Context) string {
 }
 
 func ctxWithFail(ctx context.Context, v error) context.Context {
-	ctx = ctxWithCode(ctx, http.StatusInternalServerError)
-	return context.WithValue(ctx, ctxFail, "err: "+v.Error())
+	if v != nil {
+		ctx = ctxWithCode(ctx, http.StatusInternalServerError)
+		fmt.Println("DEBUG", 5)
+		return context.WithValue(ctx, ctxFail, v)
+	}
+	return ctx
 }
 
 func failFromCtx(ctx context.Context) error {
+	fmt.Println("DEBUG", 6)
 	return errorFromContext(ctx, ctxFail)
 }
 

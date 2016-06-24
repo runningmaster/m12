@@ -86,7 +86,7 @@ func Reg(reg func(m, p string, h http.Handler)) error {
 func root(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	ctx = ctxWithData(ctx, fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()))
-	r = r.WithContext(ctx)
+	*r = *r.WithContext(ctx)
 }
 
 func work(w http.ResponseWriter, r *http.Request) {
@@ -94,8 +94,8 @@ func work(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	wrk, ok := mapCoreWorkers[r.URL.Path]
-	if !ok {
-		r = r.WithContext(ctxWithFail(ctx, fmt.Errorf("api: core method not found")))
+	if err := fmt.Errorf("api: core method not found"); !ok {
+		r = r.WithContext(ctxWithFail(ctx, err))
 		return
 	}
 
@@ -128,14 +128,14 @@ func work(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx = ctxWithData(ctx, out)
-	r = r.WithContext(ctx)
+	*r = *r.WithContext(ctx)
 }
 
 func stdh(w http.ResponseWriter, r *http.Request) {
 	if !pref.Debug {
 		ctx := r.Context()
 		ctx = ctxWithFail(ctx, fmt.Errorf("api: flag debug not found"))
-		r = r.WithContext(ctx)
+		*r = *r.WithContext(ctx)
 		return
 	}
 
@@ -145,16 +145,27 @@ func stdh(w http.ResponseWriter, r *http.Request) {
 }
 
 func respErr(r *http.Request, code int) {
+	fmt.Println("DEBUG", 3)
 	ctx := r.Context()
 	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code))))
 	ctx = ctxWithCode(ctx, code)
-	r = r.WithContext(ctx)
+	*r = *r.WithContext(ctx)
 }
 
 func resp404(w http.ResponseWriter, r *http.Request) {
-	respErr(r, http.StatusNotFound)
+	//respErr(r, http.StatusNotFound)
+	fmt.Println("DEBUG", 3)
+	ctx := r.Context()
+	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusNotFound))))
+	ctx = ctxWithCode(ctx, http.StatusNotFound)
+	*r = *r.WithContext(ctx)
 }
 
 func resp405(w http.ResponseWriter, r *http.Request) {
-	respErr(r, http.StatusMethodNotAllowed)
+	//respErr(r, http.StatusMethodNotAllowed)
+	fmt.Println("DEBUG", 3)
+	ctx := r.Context()
+	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusMethodNotAllowed))))
+	ctx = ctxWithCode(ctx, http.StatusMethodNotAllowed)
+	*r = *r.WithContext(ctx)
 }

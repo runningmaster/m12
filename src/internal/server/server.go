@@ -5,6 +5,7 @@ import (
 	"internal/api"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,6 +41,12 @@ func Run(addr string) error {
 		return err
 	}
 
+	_, p, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("server: started and listening to :%s", p)
 	return s.ListenAndServe()
 }
 
@@ -61,19 +68,19 @@ func initRouter(r *echo.Echo, reg ...regHandler) error {
 // trapErrorHandler replaces echo.DefaultHTTPErrorHandler() with workaround for 404 and 405 errors
 func trapErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok && !c.Response().Committed() {
-		switch he.Code {
-		case http.StatusNotFound:
-			c.Echo().Router().Find("GET", "/error/404", c)
-			goto find
-		case http.StatusMethodNotAllowed:
-			c.Echo().Router().Find("GET", "/error/405", c)
-			goto find
+		fmt.Println("DEBUG", 1)
+		if he.Code == http.StatusNotFound || he.Code == http.StatusMethodNotAllowed {
+			_ = execErrorHandler(he.Code, c)
+			return
 		}
 	}
 	c.Echo().DefaultHTTPErrorHandler(err, c)
-	return
-find:
-	_ = c.Handler()(c)
+}
+
+func execErrorHandler(code int, c echo.Context) error {
+	c.Echo().Router().Find("GET", fmt.Sprintf("/error/%d", code), c)
+	fmt.Println("DEBUG", 2)
+	return c.Handler()(c)
 }
 
 func makeRouter() (*echo.Echo, error) {

@@ -12,6 +12,7 @@ func pipeResp(h http.HandlerFunc) http.HandlerFunc {
 		ctx := r.Context()
 		data, err := dataFromCtx(ctx), failFromCtx(ctx)
 		if err != nil {
+			fmt.Println("DEBUG", 4)
 			data = err
 		}
 
