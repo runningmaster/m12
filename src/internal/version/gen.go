@@ -52,8 +52,9 @@ const (
 `
 )
 
+var flagFile = flag.String("o", "tip.go", "output file name")
+
 func main() {
-	flagFile := flag.String("o", "tip.go", "output file name")
 	flag.Parse()
 	fmt.Printf("go:generate in %s -> %s\n", os.Getenv("GOFILE"), *flagFile)
 
@@ -81,16 +82,16 @@ func main() {
 
 	out, err := format.Source(buf.Bytes())
 	if err != nil {
-		goto fail
+		panicWithErr(err)
 	}
 
 	err = ioutil.WriteFile(*flagFile, out, 0644)
 	if err != nil {
-		goto fail
+		panicWithErr(err)
 	}
+}
 
-	return // success
-fail:
+func panicWithErr(err error) {
 	panic(fmt.Errorf("can not generate %s: %v", *flagFile, err))
 }
 
