@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		err := injectMeta(r)
+		err := injectMeta(ctx, r.Header)
 		if err != nil {
 			ctx = ctxWithFail(ctx, err)
 		}
@@ -22,8 +23,8 @@ func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func injectMeta(r *http.Request) error {
-	err := validateHeader(r.Header)
+func injectMeta(ctx context.Context, h http.Header) error {
+	err := checkHeader(h)
 	if err != nil {
 		return err
 	}
@@ -43,7 +44,6 @@ func injectMeta(r *http.Request) error {
 		Time int64  `json:"time,omitempty"`
 	}{}
 
-	ctx := r.Context()
 	v.UUID = uuidFromCtx(ctx)
 	v.Auth.ID = authFromCtx(ctx)
 	v.Host = hostFromCtx(ctx)
@@ -58,11 +58,11 @@ func injectMeta(r *http.Request) error {
 	meta = bytes.Replace(meta, []byte("{"), []byte(","), -1)
 	meta = append(m[:len(m)-1], meta...)
 
-	r.Header.Set("Content-Meta", string(meta))
+	h.Set("Content-Meta", string(meta))
 	return nil
 }
 
-func validateHeader(h http.Header) error {
+func checkHeader(h http.Header) error {
 	err := mustHeaderGzip(h)
 	if err != nil {
 		return err

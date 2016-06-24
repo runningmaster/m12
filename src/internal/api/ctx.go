@@ -2,9 +2,7 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -15,6 +13,7 @@ const (
 	ctxHost
 	ctxUser
 	ctxAuth
+	ctxData
 	ctxFail
 	ctxClen
 	ctxSize
@@ -55,6 +54,7 @@ func authFromCtx(ctx context.Context) string {
 }
 
 func ctxWithFail(ctx context.Context, v error) context.Context {
+	ctx = ctxWithCode(ctx, http.StatusInternalServerError)
 	return context.WithValue(ctx, ctxFail, "err: "+v.Error())
 }
 
@@ -78,12 +78,16 @@ func sizeFromCtx(ctx context.Context) int64 {
 	return int64FromContext(ctx, ctxSize)
 }
 
-func ctxWithCode(ctx context.Context, v int64) context.Context {
+func ctxWithCode(ctx context.Context, v int) context.Context {
 	return context.WithValue(ctx, ctxCode, v)
 }
 
-func codeFromCtx(ctx context.Context) int64 {
-	return int64FromContext(ctx, ctxCode)
+func codeFromCtx(ctx context.Context) int {
+	code := int64FromContext(ctx, ctxCode)
+	if code == 0 {
+		return http.StatusOK
+	}
+	return int(code)
 }
 
 func ctxWithTime(ctx context.Context, v time.Time) context.Context {
@@ -112,15 +116,10 @@ func int64FromContext(ctx context.Context, key interface{}) int64 {
 	return v
 }
 
-func ctxWith200(ctx context.Context, size int64) context.Context {
-	return ctxWithCode(ctxWithSize(ctx, size), http.StatusOK)
+func ctxWithData(ctx context.Context, v interface{}) context.Context {
+	return context.WithValue(ctx, ctxData, v)
 }
 
-func ctxWith500(ctx context.Context, err error) context.Context {
-	return ctxWithCode(ctxWithFail(ctx, err), http.StatusInternalServerError)
-}
-
-func ctxWithErr(ctx context.Context, code int) context.Context {
-	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
-	return ctxWithCode(ctxWithFail(ctx, err), int64(code))
+func dataFromCtx(ctx context.Context) interface{} {
+	return ctx.Value(ctxData)
 }

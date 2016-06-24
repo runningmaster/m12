@@ -2,12 +2,9 @@ package api
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 	"strings"
 
 	"internal/core"
@@ -87,24 +84,27 @@ func Reg(reg func(m, p string, h http.Handler)) error {
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
-	s := fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo())
-
-	r ctxWith200(w, r, s)
+	ctx := r.Context()
+	ctx = ctxWithData(ctx, fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()))
+	r = r.WithContext(ctx)
 }
 
 func work(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = r.Body.Close() }()
 
+	ctx := r.Context()
 	wrk, ok := mapCoreWorkers[r.URL.Path]
 	if !ok {
-		return resp500(ctx, fmt.Errorf("api: core method not found"))
+		r = r.WithContext(ctxWithFail(ctx, fmt.Errorf("api: core method not found")))
+		return
 	}
 
 	var buf = new(bytes.Buffer)
 	if r.Method == "POST" {
 		n, err := io.Copy(buf, r.Body)
 		if err != nil {
-			return with500(ctxWithClen(ctx, n), err)
+			r = r.WithContext(ctxWithFail(ctx, err))
+			return
 		}
 		ctx = ctxWithClen(ctx, n)
 	}
@@ -117,35 +117,44 @@ func work(w http.ResponseWriter, r *http.Request) {
 		hr.ReadHeader(r.Header)
 	}
 
-	res, err := wrk.Work(buf.Bytes())
-	if err != nil {
-		return with500(ctx, err)
-	}
-
 	if hw, ok := wrk.(core.HTTPHeadWriter); ok {
 		hw.WriteHeader(w.Header())
 	}
 
-	return resp200(ctx, w, res)
+	out, err := wrk.Work(buf.Bytes())
+	if err != nil {
+		r = r.WithContext(ctxWithFail(ctx, err))
+		return
+	}
+
+	ctx = ctxWithData(ctx, out)
+	r = r.WithContext(ctx)
 }
 
 func stdh(w http.ResponseWriter, r *http.Request) {
 	if !pref.Debug {
-		return resp500(ctx, fmt.Errorf("api: flag debug not found"))
+		ctx := r.Context()
+		ctx = ctxWithFail(ctx, fmt.Errorf("api: flag debug not found"))
+		r = r.WithContext(ctx)
+		return
 	}
 
 	if h, p := http.DefaultServeMux.Handler(r); p != "" {
-		h.ServeHTTP(w, r)
-		return ctxWithCode(ctxWithSize(ctx, 0), http.StatusOK) // TODO: wrap w to get real size
+		h.ServeHTTP(w, r) // TODO: wrap w to get real size
 	}
+}
 
-	return ctxWithSize(ctxWithFail(ctx, fmt.Errorf("api: unreachable")), 0)
+func respErr(r *http.Request, code int) {
+	ctx := r.Context()
+	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code))))
+	ctx = ctxWithCode(ctx, code)
+	r = r.WithContext(ctx)
 }
 
 func resp404(w http.ResponseWriter, r *http.Request) {
-	return respErr(ctx, http.StatusNotFound)
+	respErr(r, http.StatusNotFound)
 }
 
 func resp405(w http.ResponseWriter, r *http.Request) {
-	return respErr(ctx, http.StatusMethodNotAllowed)
+	respErr(r, http.StatusMethodNotAllowed)
 }

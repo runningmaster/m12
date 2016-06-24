@@ -13,19 +13,20 @@ const magicLen = 8
 
 func pipeTail(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		inf := informer{r}
+		ctx := r.Context()
+
 		log.Println( // log.New() ?
-			inf.code(),
-			markEmpty(trimPart(inf.uuid())),
-			markEmpty(trimPart(inf.auth())),
-			markEmpty(inf.host()),
-			markEmpty(inf.method()),
-			markEmpty(inf.path()),
-			bytefmt.ByteSize(uint64(inf.clen())),
-			bytefmt.ByteSize(uint64(inf.size())),
-			markEmpty(inf.time()),
-			markEmpty(inf.user()),
-			inf.fail(),
+			codeFromCtx(ctx),
+			trimPart(uuidFromCtx(ctx)),
+			markEmpty(trimPart(authFromCtx(ctx))),
+			markEmpty(hostFromCtx(ctx)),
+			markEmpty(r.Method),
+			markEmpty(makePath(r.URL.Path)),
+			convSize(clenFromCtx(ctx)),
+			convSize(sizeFromCtx(ctx)),
+			markEmpty(convTime(timeFromCtx(ctx))),
+			markEmpty(fmt.Sprintf("%q", userFromCtx(ctx))),
+			failFromCtx(ctx).Error(),
 		)
 		//if h != nil {
 		//	h(ctx, w, r)
@@ -47,57 +48,20 @@ func trimPart(s string) string {
 	return s
 }
 
-type informer struct {
-	r *http.Request
-}
-
-func (i informer) path() string {
-	var p string
-	if p = i.r.URL.Path; p == "" {
+func makePath(p string) string {
+	if p == "" {
 		p = "/"
 	}
 	return p
 }
 
-func (i informer) method() string {
-	return i.r.Method
-}
-
-func (i informer) host() string {
-	return hostFromCtx(i.r.Context())
-}
-
-func (i informer) user() string {
-	return fmt.Sprintf("%q", userFromCtx(i.c))
-}
-
-func (i informer) uuid() string {
-	return uuidFromCtx(i.r.Context())[:magicLen]
-}
-
-func (i informer) auth() string {
-	return authFromCtx(i.r.Context())
-}
-
-func (i informer) code() int64 {
-	return codeFromCtx(i.r.Context())
-}
-
-func (i informer) clen() int64 {
-	return clenFromCtx(i.r.Context())
-}
-
-func (i informer) size() int64 {
-	return sizeFromCtx(i.r.Context())
-}
-
-func (i informer) fail() string {
-	return failFromCtx(i.r.Context()).Error()
-}
-
-func (i informer) time() string {
-	if t := timeFromCtx(i.r.Context()); !t.IsZero() {
+func convTime(t time.Time) string {
+	if !t.IsZero() {
 		return time.Since(t).String()
 	}
 	return ""
+}
+
+func convSize(n int64) string {
+	return bytefmt.ByteSize(uint64(n))
 }

@@ -13,12 +13,13 @@ func use(pipes ...handlerPipe) http.Handler {
 func pipe(h http.HandlerFunc) handlerPipe {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			err := failFromCtx(ctx)
+			err := failFromCtx(r.Context())
 			if err != nil {
-				next(ctx, w, r)
-				return
+				goto exit
 			}
-			next(h(ctx, w, r), w, r)
+			h(w, r)
+		exit:
+			next(w, r)
 		}
 	}
 }
