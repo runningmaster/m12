@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -54,18 +53,25 @@ func authFromCtx(ctx context.Context) string {
 	return stringFromContext(ctx, ctxAuth)
 }
 
-func ctxWithFail(ctx context.Context, v error) context.Context {
-	if v != nil {
-		ctx = ctxWithCode(ctx, http.StatusInternalServerError)
-		fmt.Println("DEBUG", 5)
-		return context.WithValue(ctx, ctxFail, v)
+func ctxWithFail(ctx context.Context, v error, code ...int) context.Context {
+	if v == nil {
+		return ctx
 	}
-	return ctx
+
+	if len(code) == 0 {
+		ctx = ctxWithCode(ctx, http.StatusInternalServerError)
+	} else {
+		for i := range code {
+			ctx = ctxWithCode(ctx, code[i])
+		}
+	}
+
+	return context.WithValue(ctx, ctxFail, v)
 }
 
 func failFromCtx(ctx context.Context) error {
-	fmt.Println("DEBUG", 6)
-	return errorFromContext(ctx, ctxFail)
+	v, _ := ctx.Value(ctxFail).(error)
+	return v
 }
 
 func ctxWithClen(ctx context.Context, v int64) context.Context {
@@ -89,11 +95,11 @@ func ctxWithCode(ctx context.Context, v int) context.Context {
 }
 
 func codeFromCtx(ctx context.Context) int {
-	code := int64FromContext(ctx, ctxCode)
+	code := intFromContext(ctx, ctxCode)
 	if code == 0 {
 		return http.StatusOK
 	}
-	return int(code)
+	return code
 }
 
 func ctxWithTime(ctx context.Context, v time.Time) context.Context {
@@ -107,13 +113,13 @@ func timeFromCtx(ctx context.Context) time.Time {
 	return time.Time{}
 }
 
-func errorFromContext(ctx context.Context, key interface{}) error {
-	v, _ := ctx.Value(key).(error)
+func stringFromContext(ctx context.Context, key interface{}) string {
+	v, _ := ctx.Value(key).(string)
 	return v
 }
 
-func stringFromContext(ctx context.Context, key interface{}) string {
-	v, _ := ctx.Value(key).(string)
+func intFromContext(ctx context.Context, key interface{}) int {
+	v, _ := ctx.Value(key).(int)
 	return v
 }
 

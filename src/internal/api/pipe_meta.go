@@ -15,10 +15,17 @@ import (
 func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		err := injectMeta(ctx, r.Header)
+		err := failFromCtx(ctx)
+		if err != nil {
+			h(w, r)
+			return
+		}
+
+		err = injectMeta(ctx, r.Header)
 		if err != nil {
 			ctx = ctxWithFail(ctx, err)
 		}
+
 		h(w, r.WithContext(ctx))
 	}
 }

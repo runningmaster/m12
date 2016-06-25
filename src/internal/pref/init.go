@@ -60,7 +60,7 @@ func init4(p ...pref) {
 }
 
 func init5(key string) {
-	expvar.NewInt(key).Set(1)
+	expvar.NewInt(key).Set(0)
 	d, _ := strconv.Atoi(expvar.Get(key).String())
 	Debug = d == 1
 }

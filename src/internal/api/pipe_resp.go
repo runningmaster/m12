@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+
+	"internal/pref"
 )
 
 func pipeResp(h http.HandlerFunc) http.HandlerFunc {
@@ -12,14 +14,16 @@ func pipeResp(h http.HandlerFunc) http.HandlerFunc {
 		ctx := r.Context()
 		data, err := dataFromCtx(ctx), failFromCtx(ctx)
 		if err != nil {
-			fmt.Println("DEBUG", 4)
-			data = err
+			data = err.Error()
 		}
 
-		uuid := uuidFromCtx(ctx)
-		code := codeFromCtx(ctx)
+		// workaround for stdh
+		if sizeFromCtx(ctx) != 0 {
+			h(w, r)
+			return
+		}
 
-		n, err := writeResp(w, uuid, code, data)
+		n, err := writeResp(w, uuidFromCtx(ctx), codeFromCtx(ctx), data)
 		if err != nil {
 			ctx = ctxWithFail(ctx, err)
 		}
@@ -32,13 +36,14 @@ func pipeResp(h http.HandlerFunc) http.HandlerFunc {
 func writeResp(w http.ResponseWriter, uuid string, code int, data interface{}) (int, error) {
 	var out []byte
 	var err error
+	// FIXME
 	if w.Header().Get("Content-Type") == "gzip" {
 		var ok bool
 		if out, ok = data.([]byte); !ok {
 			return 0, fmt.Errorf("unknown data")
 		}
 	} else {
-		if true { // FIXME (flag?)
+		if !pref.Debug { // FIXME (flag?)
 			out, err = json.Marshal(data)
 		} else {
 			out, err = json.MarshalIndent(data, "", "\t")

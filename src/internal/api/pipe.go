@@ -20,6 +20,7 @@ func pipe(h http.HandlerFunc) handlerPipe {
 				next(w, r)
 				return
 			}
+
 			h(w, r)
 			next(w, r)
 		}

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"internal/core"
-	"internal/pref"
 	"internal/version"
 )
 
@@ -95,7 +94,7 @@ func work(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	wrk, ok := mapCoreWorkers[r.URL.Path]
 	if err := fmt.Errorf("api: core method not found"); !ok {
-		r = r.WithContext(ctxWithFail(ctx, err))
+		*r = *r.WithContext(ctxWithFail(ctx, err))
 		return
 	}
 
@@ -103,7 +102,7 @@ func work(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		n, err := io.Copy(buf, r.Body)
 		if err != nil {
-			r = r.WithContext(ctxWithFail(ctx, err))
+			*r = *r.WithContext(ctxWithFail(ctx, err))
 			return
 		}
 		ctx = ctxWithClen(ctx, n)
@@ -123,7 +122,7 @@ func work(w http.ResponseWriter, r *http.Request) {
 
 	out, err := wrk.Work(buf.Bytes())
 	if err != nil {
-		r = r.WithContext(ctxWithFail(ctx, err))
+		*r = *r.WithContext(ctxWithFail(ctx, err))
 		return
 	}
 
@@ -131,41 +130,16 @@ func work(w http.ResponseWriter, r *http.Request) {
 	*r = *r.WithContext(ctx)
 }
 
-func stdh(w http.ResponseWriter, r *http.Request) {
-	if !pref.Debug {
-		ctx := r.Context()
-		ctx = ctxWithFail(ctx, fmt.Errorf("api: flag debug not found"))
-		*r = *r.WithContext(ctx)
-		return
-	}
-
-	if h, p := http.DefaultServeMux.Handler(r); p != "" {
-		h.ServeHTTP(w, r) // TODO: wrap w to get real size
-	}
-}
-
 func respErr(r *http.Request, code int) {
-	fmt.Println("DEBUG", 3)
 	ctx := r.Context()
-	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code))))
-	ctx = ctxWithCode(ctx, code)
+	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code))), code)
 	*r = *r.WithContext(ctx)
 }
 
 func resp404(w http.ResponseWriter, r *http.Request) {
-	//respErr(r, http.StatusNotFound)
-	fmt.Println("DEBUG", 3)
-	ctx := r.Context()
-	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusNotFound))))
-	ctx = ctxWithCode(ctx, http.StatusNotFound)
-	*r = *r.WithContext(ctx)
+	respErr(r, http.StatusNotFound)
 }
 
 func resp405(w http.ResponseWriter, r *http.Request) {
-	//respErr(r, http.StatusMethodNotAllowed)
-	fmt.Println("DEBUG", 3)
-	ctx := r.Context()
-	ctx = ctxWithFail(ctx, fmt.Errorf("api: %s", strings.ToLower(http.StatusText(http.StatusMethodNotAllowed))))
-	ctx = ctxWithCode(ctx, http.StatusMethodNotAllowed)
-	*r = *r.WithContext(ctx)
+	respErr(r, http.StatusMethodNotAllowed)
 }

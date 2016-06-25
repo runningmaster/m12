@@ -16,13 +16,13 @@ func pipeAuth(master int) handlerPipe {
 
 			key, err := getKey(r)
 			if err != nil {
-				h(w, r.WithContext(ctxWithCode(ctxWithFail(ctx, err), http.StatusForbidden)))
+				h(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
 				return
 			}
 
 			err = auth(key, master)
 			if err != nil {
-				h(w, r.WithContext(ctxWithCode(ctxWithFail(ctx, err), http.StatusForbidden)))
+				h(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
 				return
 			}
 

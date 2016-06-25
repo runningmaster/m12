@@ -11,34 +11,14 @@ import (
 	"github.com/klauspost/compress/gzip"
 )
 
-type gzipResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-}
-
-func (w gzipResponseWriter) Write(b []byte) (int, error) {
-	if w.Header().Get("Content-Type") == "" {
-		w.Header().Set("Content-Type", http.DetectContentType(b))
-	}
-
-	return w.Writer.Write(b)
-}
-
-func (w gzipResponseWriter) Flush() error {
-	return w.Writer.(*gzip.Writer).Flush()
-}
-
-func (w gzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return w.ResponseWriter.(http.Hijacker).Hijack()
-}
-
-func (w *gzipResponseWriter) CloseNotify() <-chan bool {
-	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
-}
-
 func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		err := failFromCtx(ctx)
+		if err != nil {
+			h(w, r)
+			return
+		}
 
 		if gzpool.IsGzipInString(r.Header.Get("Content-Encoding")) {
 			z, err := gzpool.GetReader()
@@ -67,4 +47,29 @@ func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 
 		h(w, r.WithContext(ctx))
 	}
+}
+
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	if w.Header().Get("Content-Type") == "" {
+		w.Header().Set("Content-Type", http.DetectContentType(b))
+	}
+
+	return w.Writer.Write(b)
+}
+
+func (w gzipResponseWriter) Flush() error {
+	return w.Writer.(*gzip.Writer).Flush()
+}
+
+func (w gzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return w.ResponseWriter.(http.Hijacker).Hijack()
+}
+
+func (w *gzipResponseWriter) CloseNotify() <-chan bool {
+	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }
