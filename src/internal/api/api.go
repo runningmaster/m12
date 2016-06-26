@@ -112,18 +112,21 @@ func work(w http.ResponseWriter, r *http.Request) {
 		wrk = m.NewWorker()
 	}
 
+	// 1
 	if hr, ok := wrk.(core.HTTPHeadReader); ok {
 		hr.ReadHeader(r.Header)
 	}
 
-	if hw, ok := wrk.(core.HTTPHeadWriter); ok {
-		hw.WriteHeader(w.Header())
-	}
-
+	// 2
 	out, err := wrk.Work(buf.Bytes())
 	if err != nil {
 		*r = *r.WithContext(ctxWithFail(ctx, err))
 		return
+	}
+
+	// 3
+	if hw, ok := wrk.(core.HTTPHeadWriter); ok {
+		hw.WriteHeader(w.Header())
 	}
 
 	ctx = ctxWithData(ctx, out)
