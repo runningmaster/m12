@@ -2,10 +2,6 @@
 # https://godoc.org/github.com/tylerb/graceful
 github.com/tylerb/graceful
 
-# Package echo implements a fast and unfancy micro web framework for Go.
-# https://godoc.org/github.com/labstack/echo
-github.com/labstack/echo
-
 # Package httprouter is a trie based high performance HTTP request router.
 # https://godoc.org/github.com/julienschmidt/httprouter
 github.com/julienschmidt/httprouter

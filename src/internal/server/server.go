@@ -1,9 +1,6 @@
 package server
 
 import (
-	"fmt"
-	"internal/api"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -11,8 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
+	"internal/api"
+
+	"github.com/julienschmidt/httprouter"
 	"github.com/tylerb/graceful"
 )
 
@@ -50,38 +48,7 @@ func Run(addr string) error {
 	return s.ListenAndServe()
 }
 
-// initRouter is work-around wrapper for router in *echo.Echo
-func initRouter(r *echo.Echo, reg ...regHandler) error {
-	for _, v := range reg {
-		switch v.m {
-		case echo.GET:
-			r.Get(v.p, standard.WrapHandler(v.h))
-		case echo.POST:
-			r.Post(v.p, standard.WrapHandler(v.h))
-		default:
-			return fmt.Errorf("server: unsupported method")
-		}
-	}
-	return nil
-}
-
-// trapErrorHandler replaces echo.DefaultHTTPErrorHandler() with workaround for 404 and 405 errors
-func trapErrorHandler(err error, c echo.Context) {
-	if he, ok := err.(*echo.HTTPError); ok && !c.Response().Committed() {
-		if he.Code == http.StatusNotFound || he.Code == http.StatusMethodNotAllowed {
-			_ = execErrorHandler(he.Code, c)
-			return
-		}
-	}
-	c.Echo().DefaultHTTPErrorHandler(err, c)
-}
-
-func execErrorHandler(code int, c echo.Context) error {
-	c.Echo().Router().Find("GET", fmt.Sprintf("/error/%d", code), c)
-	return c.Handler()(c)
-}
-
-func makeRouter() (*echo.Echo, error) {
+func makeRouter() (http.Handler, error) {
 	err := api.Reg(func(m, p string, h http.Handler) {
 		regHandlers = append(regHandlers, regHandler{m, p, h})
 	})
@@ -89,24 +56,27 @@ func makeRouter() (*echo.Echo, error) {
 		return nil, err
 	}
 
-	r := echo.New()
-	r.SetLogOutput(ioutil.Discard)
-	r.SetHTTPErrorHandler(trapErrorHandler)
-
-	err = initRouter(r, regHandlers...)
-	if err != nil {
-		return nil, err
+	r := httprouter.New()
+	for _, v := range regHandlers {
+		switch v.p {
+		case "/error/404":
+			r.NotFound = v.h
+		case "/error/405":
+			r.MethodNotAllowed = v.h
+		default:
+			r.Handler(v.m, v.p, v.h)
+		}
 	}
 
 	return r, nil
 }
 
-func makeServer(addr string, r *echo.Echo) (*graceful.Server, error) {
-	s := standard.New(addr)
-	s.SetHandler(r)
-
+func makeServer(addr string, h http.Handler) (*graceful.Server, error) {
 	return &graceful.Server{
-			Server:  s.Server,
+			Server: &http.Server{
+				Addr:    addr,
+				Handler: h,
+			},
 			Timeout: 5 * time.Second,
 			Logger:  log.New(os.Stderr, "server: ", 0)},
 		nil

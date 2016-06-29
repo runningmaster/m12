@@ -62,7 +62,7 @@ var (
 		"POST:/system/set-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetStat)},
 		"POST:/system/del-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelStat)},
 
-		// Converter from old school style data/add DEPRECATED
+		// Converter from old school style /data/add DEPRECATED
 		"POST:/data/add": {use(pipeConv, pipeHead, pipeAuth(0), pipeMeta, pipe(work), pipeResp, pipeTail), core.Putd},
 
 		"POST:/stream/put-data": {use(pipeHead, pipeAuth(0), pipeMeta, pipe(work), pipeResp, pipeTail), core.Putd},
@@ -102,7 +102,7 @@ func Reg(reg func(m, p string, h http.Handler)) error {
 		}
 	}
 
-	return core.Init()
+	return nil //core.Init()
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
