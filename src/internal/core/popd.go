@@ -7,21 +7,17 @@ import (
 	"net/http"
 )
 
-var Popd = newPopdWorker()
+var Popd = &popd{}
 
-type popdWorker struct {
+type popd struct {
 	meta []byte
 }
 
-func newPopdWorker() Worker {
-	return &popdWorker{}
+func (w *popd) New() interface{} {
+	return &popd{}
 }
 
-func (w *popdWorker) NewWorker() Worker {
-	return newPopdWorker()
-}
-
-func (w *popdWorker) Work(data []byte) (interface{}, error) {
+func (w *popd) Work(data []byte) (interface{}, error) {
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
@@ -54,7 +50,7 @@ func (w *popdWorker) Work(data []byte) (interface{}, error) {
 	return data, nil
 }
 
-func (w *popdWorker) WriteHeader(h http.Header) {
+func (w *popd) WriteHeader(h http.Header) {
 	h.Set("Content-Encoding", "gzip")
 	h.Set("Content-Type", "gzip") // for writeResp
 	h.Set("Content-Meta", base64.StdEncoding.EncodeToString(w.meta))

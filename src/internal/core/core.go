@@ -1,33 +1,6 @@
 package core
 
-import (
-	"encoding/json"
-	"net/http"
-)
-
-const statusOK = http.StatusOK
-
-type HTTPHeadReader interface {
-	ReadHeader(http.Header)
-}
-
-type HTTPHeadWriter interface {
-	WriteHeader(http.Header)
-}
-
-type Master interface {
-	NewWorker() Worker
-}
-
-type Worker interface {
-	Work([]byte) (interface{}, error)
-}
-
-type WorkFunc func([]byte) (interface{}, error)
-
-func (f WorkFunc) Work(b []byte) (interface{}, error) {
-	return f(b)
-}
+import "encoding/json"
 
 type jsonMeta struct {
 	UUID string   `json:"uuid,omitempty"`

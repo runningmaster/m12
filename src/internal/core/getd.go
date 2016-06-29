@@ -6,21 +6,17 @@ import (
 	"net/http"
 )
 
-var Getd = newGetdWorker()
+var Getd = &getd{}
 
-type getdWorker struct {
+type getd struct {
 	meta []byte
 }
 
-func newGetdWorker() Worker {
-	return &getdWorker{}
+func (w *getd) New() interface{} {
+	return &getd{}
 }
 
-func (w *getdWorker) NewWorker() Worker {
-	return newGetdWorker()
-}
-
-func (w *getdWorker) Work(data []byte) (interface{}, error) {
+func (w *getd) Work(data []byte) (interface{}, error) {
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
@@ -46,7 +42,7 @@ func (w *getdWorker) Work(data []byte) (interface{}, error) {
 	return data, nil
 }
 
-func (w *getdWorker) WriteHeader(h http.Header) {
+func (w *getd) WriteHeader(h http.Header) {
 	h.Set("Content-Encoding", "gzip")
 	h.Set("Content-Type", "gzip") // for writeResp
 	h.Set("Content-Meta", base64.StdEncoding.EncodeToString(w.meta))

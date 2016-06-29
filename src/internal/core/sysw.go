@@ -2,14 +2,15 @@ package core
 
 import (
 	"encoding/json"
-	//"internal/redis"
+	"net/http"
 
 	"github.com/garyburd/redigo/redis"
 )
 
 const (
-	keyAuth = "list:auth"
-	keyStat = "list:stat"
+	keyAuth  = "list:auth"
+	keyStat  = "list:stat"
+	statusOK = http.StatusOK
 )
 
 var (

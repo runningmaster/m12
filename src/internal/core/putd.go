@@ -6,25 +6,21 @@ import (
 	"net/http"
 )
 
-var Putd = newPutdWorker()
+var Putd = &putd{}
 
-type putdWorker struct {
+type putd struct {
 	meta []byte
 }
 
-func newPutdWorker() Worker {
-	return &putdWorker{}
+func (w *putd) New() interface{} {
+	return &putd{}
 }
 
-func (w *putdWorker) NewWorker() Worker {
-	return newPutdWorker()
-}
-
-func (w *putdWorker) ReadHeader(h http.Header) {
+func (w *putd) ReadHeader(h http.Header) {
 	w.meta = []byte(h.Get("Content-Meta"))
 }
 
-func (w *putdWorker) Work(data []byte) (interface{}, error) {
+func (w *putd) Work(data []byte) (interface{}, error) {
 	m, err := unmarshalMeta(w.meta)
 	if err != nil {
 		return nil, err

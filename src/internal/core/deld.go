@@ -1,19 +1,15 @@
 package core
 
-var Deld = newDeldWorker()
+var Deld = &deld{}
 
-type deldWorker struct {
+type deld struct {
 }
 
-func newDeldWorker() Worker {
-	return &deldWorker{}
+func (w *deld) New() interface{} {
+	return &deld{}
 }
 
-func (w *deldWorker) NewWorker() Worker {
-	return newDeldWorker()
-}
-
-func (w *deldWorker) Work(data []byte) (interface{}, error) {
+func (w *deld) Work(data []byte) (interface{}, error) {
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
