@@ -54,7 +54,7 @@ func writeResp(w http.ResponseWriter, uuid string, code int, data interface{}) (
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("X-Powered-By", runtime.Version())
+	w.Header().Set("X-Powered-By", fmt.Sprintf("go version %s", runtime.Version()))
 	w.Header().Set("X-Request-ID", uuid)
 	w.WriteHeader(code)
 
