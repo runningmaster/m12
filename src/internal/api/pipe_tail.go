@@ -11,8 +11,8 @@ import (
 
 const magicLen = 8
 
-func pipeTail(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func pipeTail(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		log.Println( // log.New() ?
@@ -28,10 +28,10 @@ func pipeTail(h http.HandlerFunc) http.HandlerFunc {
 			markEmpty(fmt.Sprintf("%q", userFromCtx(ctx))),
 			convFail(failFromCtx(ctx)),
 		)
-		//if h != nil {
-		//	h(ctx, w, r)
+		//if next != nil {
+		//	next.ServerHTTP(ctx, w, r)
 		//}
-	}
+	})
 }
 
 func markEmpty(s string) string {

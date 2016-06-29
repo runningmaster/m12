@@ -33,7 +33,7 @@ func (f workFunc) Work(b []byte) (interface{}, error) {
 	return f(b)
 }
 
-type handlerPipe func(h http.HandlerFunc) http.HandlerFunc
+type handlerPipe func(h http.Handler) http.Handler
 
 type handlerPair struct {
 	h http.Handler

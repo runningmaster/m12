@@ -9,8 +9,8 @@ import (
 	"internal/pref"
 )
 
-func pipeResp(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func pipeResp(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		data, err := dataFromCtx(ctx), failFromCtx(ctx)
 		if err != nil {
@@ -19,7 +19,7 @@ func pipeResp(h http.HandlerFunc) http.HandlerFunc {
 
 		// workaround for stdh
 		if sizeFromCtx(ctx) != 0 {
-			h(w, r)
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -29,8 +29,8 @@ func pipeResp(h http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx = ctxWithSize(ctx, int64(n))
-		h(w, r.WithContext(ctx))
-	}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func writeResp(w http.ResponseWriter, uuid string, code int, data interface{}) (int, error) {

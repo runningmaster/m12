@@ -12,15 +12,15 @@ import (
 
 var genUUID = fastuuid.MustNewGenerator()
 
-func pipeHead(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func pipeHead(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		ctx = ctxWithUUID(ctx, nextUUID())
 		ctx = ctxWithHost(ctx, mineHost(r))
 		ctx = ctxWithUser(ctx, mineUser(r))
 		ctx = ctxWithTime(ctx, time.Now())
-		h(w, r.WithContext(ctx))
-	}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func nextUUID() string {

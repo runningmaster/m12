@@ -12,12 +12,12 @@ import (
 	"internal/gzpool"
 )
 
-func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func pipeMeta(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		err := failFromCtx(ctx)
 		if err != nil {
-			h(w, r)
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -26,8 +26,8 @@ func pipeMeta(h http.HandlerFunc) http.HandlerFunc {
 			ctx = ctxWithFail(ctx, err)
 		}
 
-		h(w, r.WithContext(ctx))
-	}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func injectMeta(ctx context.Context, h http.Header) error {

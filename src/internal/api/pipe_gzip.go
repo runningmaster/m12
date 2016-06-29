@@ -11,12 +11,12 @@ import (
 	"github.com/klauspost/compress/gzip"
 )
 
-func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func pipeGzip(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		err := failFromCtx(ctx)
 		if err != nil {
-			h(w, r)
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -45,8 +45,8 @@ func pipeGzip(h http.HandlerFunc) http.HandlerFunc {
 			w.Header().Set("Content-Encoding", "gzip")
 		}
 
-		h(w, r.WithContext(ctx))
-	}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 type gzipResponseWriter struct {

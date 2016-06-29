@@ -8,13 +8,13 @@ import (
 	"strings"
 )
 
-func pipeConv(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func pipeConv(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		convHost(r)
 		convAuth(r)
 		convHTag(r)
-		h(w, r)
-	}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func convHost(r *http.Request) {

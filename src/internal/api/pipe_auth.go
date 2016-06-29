@@ -10,25 +10,25 @@ import (
 )
 
 func pipeAuth(master int) handlerPipe {
-	return func(h http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
 			key, err := getKey(r)
 			if err != nil {
-				h(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
+				next.ServeHTTP(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
 				return
 			}
 
 			err = auth(key, master)
 			if err != nil {
-				h(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
+				next.ServeHTTP(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
 				return
 			}
 
 			ctx = ctxWithAuth(ctx, key)
-			h(w, r.WithContext(ctx))
-		}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
 	}
 }
 
