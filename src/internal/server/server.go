@@ -45,8 +45,8 @@ func Run(addr string) error {
 	if err != nil {
 		return err
 	}
-
 	log.Printf("server: started and listening to :%s", p)
+
 	return s.ListenAndServe()
 }
 
