@@ -6,6 +6,10 @@ github.com/tylerb/graceful
 # https://godoc.org/github.com/labstack/echo
 github.com/labstack/echo
 
+# Package httprouter is a trie based high performance HTTP request router.
+# https://godoc.org/github.com/julienschmidt/httprouter
+github.com/julienschmidt/httprouter
+
 # Package fastuuid provides fast UUID generation of 192 bit universally unique identifiers.
 # https://godoc.org/github.com/rogpeppe/fastuuid
 github.com/rogpeppe/fastuuid
