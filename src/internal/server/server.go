@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log"
 	"net"
 	"net/http"
@@ -64,7 +65,17 @@ func makeRouter() (http.Handler, error) {
 		case "/error/405":
 			r.MethodNotAllowed = v.h
 		default:
-			r.Handler(v.m, v.p, v.h)
+			func(m, p string, h http.Handler) {
+				r.Handle(m, p,
+					func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+						ctx := r.Context()
+						for i := range p {
+							ctx = context.WithValue(ctx, p[i].Key, p[i].Value)
+						}
+						r = r.WithContext(ctx)
+						h.ServeHTTP(w, r)
+					})
+			}(v.m, v.p, v.h)
 		}
 	}
 
