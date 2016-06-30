@@ -145,6 +145,7 @@ func Gunzip(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// Copy reads and ungzips from Reader to Writer
 func Copy(dst io.Writer, src io.Reader) error {
 	r, err := GetReader()
 	if err != nil {

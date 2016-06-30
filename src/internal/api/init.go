@@ -10,6 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Init inits package vars
 func Init() (http.Handler, error) {
 	err := core.Init()
 	if err != nil {

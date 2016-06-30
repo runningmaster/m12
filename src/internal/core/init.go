@@ -21,6 +21,7 @@ const (
 	tickD = 10 * time.Second
 )
 
+// Init inits package vars
 func Init() error {
 	var err error
 	err = initREDIS(pref.Redis)
