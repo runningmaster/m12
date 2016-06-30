@@ -41,8 +41,7 @@ type handlerPair struct {
 }
 
 var (
-	mapCoreWorkers  map[string]worker
-	mapHTTPHandlers = map[string]handlerPair{
+	httpHandlers = map[string]handlerPair{
 		"GET>/":     {use(pipeHead, pipeGzip, pipe(root), pipeResp, pipeTail), nil},
 		"GET>/ping": {use(pipeHead, pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.Ping)},
 
@@ -87,23 +86,8 @@ var (
 		"GET>/error/404": {use(pipeHead, pipe(resp404), pipeResp, pipeTail), nil},
 		"GET>/error/405": {use(pipeHead, pipe(resp405), pipeResp, pipeTail), nil},
 	}
+	httpWorkers map[string]worker
 )
-
-// Reg is called manually initialization
-func Reg(reg func(m, p string, h http.Handler)) error {
-	mapCoreWorkers = make(map[string]worker, len(mapHTTPHandlers))
-	for k, v := range mapHTTPHandlers {
-		s := strings.Split(k, ">")
-		if reg != nil {
-			reg(s[0], s[1], v.h)
-		}
-		if v.w != nil {
-			mapCoreWorkers[s[1]] = v.w
-		}
-	}
-
-	return core.Init()
-}
 
 func root(w http.ResponseWriter, r *http.Request) {
 	*r = *r.WithContext(
@@ -117,7 +101,7 @@ func work(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = r.Body.Close() }()
 
 	ctx := r.Context()
-	wrk, ok := mapCoreWorkers[r.URL.Path]
+	wrk, ok := httpWorkers[r.URL.Path]
 	if !ok {
 		*r = *r.WithContext(ctxWithFail(ctx, fmt.Errorf("api: core method not found")))
 		return

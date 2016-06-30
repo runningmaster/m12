@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"log"
 	"net"
 	"net/http"
@@ -11,84 +10,34 @@ import (
 
 	"internal/api"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/tylerb/graceful"
 )
 
-type regHandler struct {
-	m string
-	p string
-	h http.Handler
-}
-
-var regHandlers []regHandler
-
 // Run starts a server with router
 func Run(addr string) error {
+	h, err := api.Init()
+	if err != nil {
+		return err
+	}
+
 	u, err := url.Parse(addr)
 	if err != nil {
 		return err
 	}
 
-	r, err := makeRouter()
-	if err != nil {
-		return err
-	}
-
-	s, err := makeServer(u.Host, r)
-	if err != nil {
-		return err
-	}
-
-	_, p, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		return err
-	}
-	log.Printf("server: started and listening to :%s", p)
-
-	return s.ListenAndServe()
+	return makeServer(u.Host, h).ListenAndServe()
 }
 
-func makeRouter() (http.Handler, error) {
-	err := api.Reg(func(m, p string, h http.Handler) {
-		regHandlers = append(regHandlers, regHandler{m, p, h})
-	})
-	if err != nil {
-		return nil, err
+func makeServer(addr string, h http.Handler) *graceful.Server {
+	if _, p, _ := net.SplitHostPort(addr); p != "" {
+		log.Printf("server: must be on port :%s", p)
 	}
 
-	r := httprouter.New()
-	for _, v := range regHandlers {
-		switch v.p {
-		case "/error/404":
-			r.NotFound = v.h
-		case "/error/405":
-			r.MethodNotAllowed = v.h
-		default:
-			func(m, p string, h http.Handler) {
-				r.Handle(m, p,
-					func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-						ctx := r.Context()
-						for i := range p {
-							ctx = context.WithValue(ctx, p[i].Key, p[i].Value)
-						}
-						r = r.WithContext(ctx)
-						h.ServeHTTP(w, r)
-					})
-			}(v.m, v.p, v.h)
-		}
-	}
-
-	return r, nil
-}
-
-func makeServer(addr string, h http.Handler) (*graceful.Server, error) {
 	return &graceful.Server{
-			Server: &http.Server{
-				Addr:    addr,
-				Handler: h,
-			},
-			Timeout: 5 * time.Second,
-			Logger:  log.New(os.Stderr, "server: ", 0)},
-		nil
+		Server: &http.Server{
+			Addr:    addr,
+			Handler: h,
+		},
+		Timeout: 5 * time.Second,
+		Logger:  log.New(os.Stderr, "server: ", 0)}
 }
