@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	keyAuth  = "list:auth"
-	keyStat  = "list:stat"
+	keyAuth  = "list:auth" // FIXME: hset:auth
+	keyStat  = "list:stat" // FIXME: hset:stat
 	statusOK = http.StatusOK
 )
 

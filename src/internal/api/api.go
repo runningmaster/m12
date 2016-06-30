@@ -61,6 +61,8 @@ var (
 		"POST>/system/set-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetStat)},
 		"POST>/system/del-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelStat)},
 
+		"POST>/system/get-zlog": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetZlog)},
+
 		// Converter from old school style /data/add DEPRECATED
 		"POST>/data/add": {use(pipeConv, pipeHead, pipeAuth(0), pipeMeta, pipe(work), pipeResp, pipeTail), core.Putd},
 
@@ -123,19 +125,19 @@ func work(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 1
+	// 1) worker might read params from header
 	if hr, ok := wrk.(headReader); ok {
 		hr.ReadHeader(r.Header)
 	}
 
-	// 2
+	// 2) worker must work
 	out, err := wrk.Work(buf.Bytes())
 	if err != nil {
 		*r = *r.WithContext(ctxWithFail(ctx, err))
 		return
 	}
 
-	// 3
+	// 3) worker might write params to header (after 2)
 	if hw, ok := wrk.(headWriter); ok {
 		hw.WriteHeader(w.Header())
 	}

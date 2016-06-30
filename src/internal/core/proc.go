@@ -121,6 +121,11 @@ func proc(data []byte) {
 	if err != nil {
 		log.Println("proc: err: kill:", object, err)
 	}
+
+	err = zlog(m)
+	if err != nil {
+		log.Println("proc: err: zlog:", object, err)
+	}
 }
 
 func procObject(r io.Reader) (jsonMeta, io.Reader, error) {
