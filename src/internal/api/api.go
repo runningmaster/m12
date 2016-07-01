@@ -61,6 +61,7 @@ var (
 		"POST>/system/set-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetStat)},
 		"POST>/system/del-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelStat)},
 
+		"POST>/system/get-meta": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetMeta)},
 		"POST>/system/get-zlog": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetZlog)},
 
 		// Converter from old school style /data/add DEPRECATED
