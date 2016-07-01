@@ -15,7 +15,7 @@ func zlog(m jsonMeta) error {
 	c := redisConn()
 	defer closeConn(c)
 
-	z, err := gzpool.Gzip(m.marshalIndent())
+	z, err := gzpool.Gzip(m.marshal())
 	if err != nil {
 		return err
 	}
@@ -56,12 +56,19 @@ func GetZlog(data []byte) (interface{}, error) {
 
 	out := make([]jsonMeta, 0, len(res))
 	var r []byte
+	var z []byte
 	var m jsonMeta
 	for range res {
-		r, err = redis.Bytes(c.Receive())
+		z, err = redis.Bytes(c.Receive())
 		if err != nil && err != redis.ErrNil {
 			return nil, err
 		}
+
+		r, err = gzpool.Gunzip(z)
+		if err != nil {
+			return nil, err
+		}
+
 		m, err = unmarshalMeta(r)
 		if err != nil {
 			return nil, err
@@ -83,10 +90,20 @@ func GetMeta(data []byte) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
-	res, err := redis.Bytes(c.Do("GET", v))
+	z, err := redis.Bytes(c.Do("GET", v))
+	if err != nil /*&& err != redis.ErrNil*/ {
+		return nil, err
+	}
+
+	r, err := gzpool.Gunzip(z)
 	if err != nil {
 		return nil, err
 	}
 
-	return gzpool.Gunzip(res)
+	m, err := unmarshalMeta(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }
