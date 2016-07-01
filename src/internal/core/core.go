@@ -7,12 +7,12 @@ type jsonMeta struct {
 	Auth linkAuth `json:"auth,omitempty"`
 	Host string   `json:"host,omitempty"`
 	User string   `json:"user,omitempty"`
-	Time int64    `json:"time,omitempty"`
+	Time string   `json:"time,omitempty"`
+	Unix int64    `json:"unix,omitempty"`
 
-	HTag string `json:"htag,omitempty"` // *
-	Spn1 int64  `json:"spn1,omitempty"` // *
-	Spn2 int64  `json:"spn2,omitempty"` // *
-	Nick string `json:"nick,omitempty"` // * Source | Source:MDSLns | Source:Drugstore -> conv.go
+	HTag string   `json:"htag,omitempty"` // *
+	Span []string `json:"span,omitempty"` // *
+	Nick string   `json:"nick,omitempty"` // * Source | Source:MDSLns | Source:Drugstore -> conv.go
 
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *

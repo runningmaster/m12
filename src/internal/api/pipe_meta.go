@@ -48,14 +48,16 @@ func injectMeta(ctx context.Context, h http.Header) error {
 		} `json:"auth,omitempty"`
 		Host string `json:"host,omitempty"`
 		User string `json:"user,omitempty"`
-		Time int64  `json:"time,omitempty"`
+		Time string `json:"time,omitempty"`
+		Unix int64  `json:"unix,omitempty"`
 	}{}
 
 	v.UUID = uuidFromCtx(ctx)
 	v.Auth.ID = authFromCtx(ctx)
 	v.Host = hostFromCtx(ctx)
 	v.User = userFromCtx(ctx)
-	v.Time = timeFromCtx(ctx).Unix()
+	v.Time = timeFromCtx(ctx).String()
+	v.Unix = timeFromCtx(ctx).Unix()
 
 	m, err := json.Marshal(v)
 	if err != nil {

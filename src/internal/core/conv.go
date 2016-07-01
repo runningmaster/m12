@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -22,11 +23,8 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 		return nil, err
 	}
 
-	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
-	if err != nil {
-		return nil, err
-	}
-	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
+	m.Span = []string{v.Meta.TRangeLower, v.Meta.TRangeUpper}
+	err = testDateTimeSpan(m.Span)
 	if err != nil {
 		return nil, err
 	}
@@ -57,14 +55,6 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 	return d, nil
 }
 
-func convDateTimeToUnix(s string) (int64, error) {
-	t, err := time.Parse("02.01.2006 15:04:05", s)
-	if err != nil {
-		t, err = time.Parse("02.01.2006", s)
-	}
-	return t.Unix(), err
-}
-
 func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
 	v := &jsonV1SaleBy{}
 
@@ -82,12 +72,8 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 		return nil, err
 	}
 
-	m.Spn1, err = convDateTimeToUnix(v.Meta.TRangeLower)
-	if err != nil {
-		return nil, err
-	}
-
-	m.Spn2, err = convDateTimeToUnix(v.Meta.TRangeUpper)
+	m.Span = []string{v.Meta.TRangeLower, v.Meta.TRangeUpper}
+	err = testDateTimeSpan(m.Span)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +146,25 @@ func convGeoa(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	}
 
 	return d, nil
+}
+
+func testDateTimeSpan(s []string) error {
+	if len(s) != 2 {
+		return fmt.Errorf("core: conv: not enough values inside time span")
+	}
+
+	var err error
+	for i := range s {
+		_, err = time.Parse("02.01.2006 15:04:05", s[i])
+		if err != nil {
+			_, err = time.Parse("02.01.2006", s[i])
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 type jsonV1Sale struct {

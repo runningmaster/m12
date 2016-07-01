@@ -19,7 +19,7 @@ func zlog(m jsonMeta) error {
 		return err
 	}
 
-	_, err = c.Do("ZADD", keyZlog, m.Time, z)
+	_, err = c.Do("ZADD", keyZlog, m.Unix, z)
 	return err
 }
 
