@@ -20,7 +20,7 @@ github.com/spkg/bom
 
 # Package bytefmt contains helper methods and constants for converting to and from a human-readable byte format.
 # https://godoc.org/github.com/pivotal-golang/bytefmt
-github.com/pivotal-golang/bytefmt
+code.cloudfoundry.org/bytefmt
 
 # Package redis is a client for the Redis database.
 # https://godoc.org/github.com/garyburd/redigo/redis

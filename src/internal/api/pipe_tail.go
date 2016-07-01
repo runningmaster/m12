@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pivotal-golang/bytefmt"
+	"code.cloudfoundry.org/bytefmt"
 )
 
 const magicLen = 8
