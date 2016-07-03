@@ -21,16 +21,15 @@ func Init() (http.Handler, error) {
 
 func initRouter() http.Handler {
 	r := httprouter.New()
-	httpWorkers = make(map[string]worker, len(httpHandlers))
 
 	for k, v := range httpHandlers {
 		s := strings.Split(k, ">") // [m,p]
 
 		switch s[1] {
 		case "/error/404":
-			r.NotFound = v.h
+			r.NotFound = v
 		case "/error/405":
-			r.MethodNotAllowed = v.h
+			r.MethodNotAllowed = v
 		default:
 			func(m, p string, h http.Handler) {
 				r.Handle(m, p,
@@ -42,11 +41,7 @@ func initRouter() http.Handler {
 						r = r.WithContext(ctx)
 						h.ServeHTTP(w, r)
 					})
-			}(s[0], s[1], v.h)
-		}
-
-		if v.w != nil {
-			httpWorkers[s[1]] = v.w
+			}(s[0], s[1], v)
 		}
 	}
 

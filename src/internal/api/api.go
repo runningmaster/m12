@@ -1,9 +1,8 @@
 package api
 
 import (
-	"bytes"
 	"fmt"
-	"io"
+
 	"net/http"
 	"strings"
 
@@ -35,61 +34,55 @@ func (f workFunc) Work(b []byte) (interface{}, error) {
 
 type handlerPipe func(h http.Handler) http.Handler
 
-type handlerPair struct {
-	h http.Handler
-	w worker
-}
-
 var (
-	httpHandlers = map[string]handlerPair{
-		"GET>/":     {use(pipeHead, pipeGzip, pipe(root), pipeResp, pipeTail), nil},
-		"GET>/ping": {use(pipeHead, pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.Ping)},
+	httpHandlers = map[string]http.Handler{
+		"GET>/":     use(pipeHead, pipeGzip, pipe(root), pipeResp, pipeTail),
+		"GET>/ping": use(pipeHead, pipeGzip, pipe(work(workFunc(core.Ping))), pipeResp, pipeTail),
 
-		"POST>/system/get-auth": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetAuth)},
-		"POST>/system/set-auth": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetAuth)},
-		"POST>/system/del-auth": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelAuth)},
+		"POST>/system/get-auth": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.GetAuth))), pipeResp, pipeTail),
+		"POST>/system/set-auth": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.SetAuth))), pipeResp, pipeTail),
+		"POST>/system/del-auth": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.DelAuth))), pipeResp, pipeTail),
 
-		"POST>/system/get-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetAddr)},
-		"POST>/system/set-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetAddr)},
-		"POST>/system/del-addr": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelAddr)},
+		"POST>/system/get-addr": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.GetAddr))), pipeResp, pipeTail),
+		"POST>/system/set-addr": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.SetAddr))), pipeResp, pipeTail),
+		"POST>/system/del-addr": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.DelAddr))), pipeResp, pipeTail),
 
-		"POST>/system/get-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetDrug)},
-		"POST>/system/set-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetDrug)},
-		"POST>/system/del-drug": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelDrug)},
+		"POST>/system/get-drug": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.GetDrug))), pipeResp, pipeTail),
+		"POST>/system/set-drug": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.SetDrug))), pipeResp, pipeTail),
+		"POST>/system/del-drug": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.DelDrug))), pipeResp, pipeTail),
 
-		"POST>/system/get-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetStat)},
-		"POST>/system/set-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.SetStat)},
-		"POST>/system/del-stat": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.DelStat)},
+		"POST>/system/get-stat": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.GetStat))), pipeResp, pipeTail),
+		"POST>/system/set-stat": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.SetStat))), pipeResp, pipeTail),
+		"POST>/system/del-stat": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.DelStat))), pipeResp, pipeTail),
 
-		"POST>/system/get-meta": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetMeta)},
-		"POST>/system/get-zlog": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.GetZlog)},
+		"POST>/system/get-meta": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.GetMeta))), pipeResp, pipeTail),
+		"POST>/system/get-zlog": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(workFunc(core.GetZlog))), pipeResp, pipeTail),
 
 		// Converter from old school style /data/add DEPRECATED
-		"POST>/data/add": {use(pipeConv, pipeHead, pipeAuth(0), pipeMeta, pipe(work), pipeResp, pipeTail), core.Putd},
+		"POST>/data/add": use(pipeConv, pipeHead, pipeAuth(0), pipeMeta, pipe(work(core.Putd)), pipeResp, pipeTail),
 
-		"POST>/stream/put-data": {use(pipeHead, pipeAuth(0), pipeMeta, pipe(work), pipeResp, pipeTail), core.Putd},
-		"POST>/stream/pop-data": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), core.Popd},
-		"POST>/stream/get-data": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), core.Getd},
-		"POST>/stream/del-data": {use(pipeHead, pipeAuth(1), pipeGzip, pipe(work), pipeResp, pipeTail), core.Deld},
+		"POST>/stream/put-data": use(pipeHead, pipeAuth(0), pipeMeta, pipe(work(core.Putd)), pipeResp, pipeTail),
+		"POST>/stream/pop-data": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(core.Popd)), pipeResp, pipeTail),
+		"POST>/stream/get-data": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(core.Getd)), pipeResp, pipeTail),
+		"POST>/stream/del-data": use(pipeHead, pipeAuth(1), pipeGzip, pipe(work(core.Deld)), pipeResp, pipeTail),
 
 		// => Debug mode only, when flag.Debug == true
-		"GET>/debug/info":               {use(pipeHead, pipeGzip, pipe(work), pipeResp, pipeTail), workFunc(core.Info)}, // ?
-		"GET>/debug/vars":               {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // expvar
-		"GET>/debug/pprof/":             {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // net/http/pprof
-		"GET>/debug/pprof/cmdline":      {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // net/http/pprof
-		"GET>/debug/pprof/profile":      {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // net/http/pprof
-		"GET>/debug/pprof/symbol":       {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // net/http/pprof
-		"GET>/debug/pprof/trace":        {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // net/http/pprof
-		"GET>/debug/pprof/goroutine":    {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // runtime/pprof
-		"GET>/debug/pprof/threadcreate": {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // runtime/pprof
-		"GET>/debug/pprof/heap":         {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // runtime/pprof
-		"GET>/debug/pprof/block":        {use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail), nil},                 // runtime/pprof
+		"GET>/debug/info":               use(pipeHead, pipeGzip, pipe(work(workFunc(core.Info))), pipeResp, pipeTail), // ?
+		"GET>/debug/vars":               use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // expvar
+		"GET>/debug/pprof/":             use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // net/http/pprof
+		"GET>/debug/pprof/cmdline":      use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // net/http/pprof
+		"GET>/debug/pprof/profile":      use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // net/http/pprof
+		"GET>/debug/pprof/symbol":       use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // net/http/pprof
+		"GET>/debug/pprof/trace":        use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // net/http/pprof
+		"GET>/debug/pprof/goroutine":    use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // runtime/pprof
+		"GET>/debug/pprof/threadcreate": use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // runtime/pprof
+		"GET>/debug/pprof/heap":         use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // runtime/pprof
+		"GET>/debug/pprof/block":        use(pipeHead, pipeGzip, pipe(stdh), pipeResp, pipeTail),                      // runtime/pprof
 
 		// => Workarounds for 404/405
-		"GET>/error/404": {use(pipeHead, pipe(resp404), pipeResp, pipeTail), nil},
-		"GET>/error/405": {use(pipeHead, pipe(resp405), pipeResp, pipeTail), nil},
+		"GET>/error/404": use(pipeHead, pipe(resp404), pipeResp, pipeTail),
+		"GET>/error/405": use(pipeHead, pipe(resp405), pipeResp, pipeTail),
 	}
-	httpWorkers map[string]worker
 )
 
 func root(w http.ResponseWriter, r *http.Request) {
@@ -98,53 +91,6 @@ func root(w http.ResponseWriter, r *http.Request) {
 			r.Context(),
 			fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo())),
 	)
-}
-
-func work(w http.ResponseWriter, r *http.Request) {
-	defer func() { _ = r.Body.Close() }()
-
-	ctx := r.Context()
-	wrk, ok := httpWorkers[r.URL.Path]
-	if !ok {
-		*r = *r.WithContext(ctxWithFail(ctx, fmt.Errorf("api: core method not found")))
-		return
-	}
-
-	var buf = new(bytes.Buffer)
-	if r.Method == "POST" {
-		n, err := io.Copy(buf, r.Body)
-		if err != nil {
-			*r = *r.WithContext(ctxWithFail(ctx, err))
-			return
-		}
-		ctx = ctxWithClen(ctx, n)
-	}
-
-	if nwr, ok := wrk.(newer); ok {
-		if nwr, ok := nwr.(worker); ok {
-			wrk = nwr
-		}
-	}
-
-	// 1) worker might read params from header
-	if hr, ok := wrk.(headReader); ok {
-		hr.ReadHeader(r.Header)
-	}
-
-	// 2) worker must work
-	out, err := wrk.Work(buf.Bytes())
-	if err != nil {
-		*r = *r.WithContext(ctxWithFail(ctx, err))
-		return
-	}
-
-	// 3) worker might write params to header (after 2)
-	if hw, ok := wrk.(headWriter); ok {
-		hw.WriteHeader(w.Header())
-	}
-
-	ctx = ctxWithData(ctx, out)
-	*r = *r.WithContext(ctx)
 }
 
 func respErr(r *http.Request, code int) {
