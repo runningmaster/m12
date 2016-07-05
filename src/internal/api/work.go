@@ -21,10 +21,9 @@ func work(wrk worker) http.Handler {
 			ctx = ctxWithClen(ctx, n)
 		}
 
+		// new instance to avoid data race
 		if nwr, ok := wrk.(newer); ok {
-			if nwr, ok := nwr.(worker); ok {
-				wrk = nwr
-			}
+			wrk = nwr.New().(worker)
 		}
 
 		// 1) worker might read params from header

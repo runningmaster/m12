@@ -58,11 +58,8 @@ func writeResp(w http.ResponseWriter, uuid string, code int, data interface{}) (
 	w.Header().Set("X-Request-ID", uuid)
 	w.WriteHeader(code)
 
-	n, err := w.Write(out)
-	if err != nil {
-		return 0, err
-	}
+	return w.Write(out)
 
-	_, _ = w.Write([]byte("\n")) // (?)
-	return n + 1, nil
+	//	_, _ = w.Write([]byte("\n")) // (?)
+	//	return n + 1, nil
 }
