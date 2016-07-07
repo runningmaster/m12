@@ -1,4 +1,4 @@
-package core
+package api
 
 import (
 	"encoding/json"
@@ -150,7 +150,7 @@ func convGeoa(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 
 func testDateTimeSpan(s []string) error {
 	if len(s) != 2 {
-		return fmt.Errorf("core: conv: not enough values inside time span")
+		return fmt.Errorf("api: conv: not enough values inside time span")
 	}
 
 	var err error

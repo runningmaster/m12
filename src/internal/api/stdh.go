@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"internal/ctxutil"
 	"internal/pref"
 )
 
@@ -16,10 +17,10 @@ func stdh(w http.ResponseWriter, r *http.Request) {
 		if h, p := http.DefaultServeMux.Handler(r); p != "" {
 			b := &stdhResponseWriter{rw: w}
 			h.ServeHTTP(b, r)
-			ctx = ctxWithSize(ctx, int64(b.n))
+			ctx = ctxutil.WithSize(ctx, int64(b.n))
 		}
 	} else {
-		ctx = ctxWithFail(ctx, fmt.Errorf("api: flag debug not found"))
+		ctx = ctxutil.WithFail(ctx, fmt.Errorf("api: flag debug not found"))
 	}
 	*r = *r.WithContext(ctx)
 }

@@ -1,4 +1,4 @@
-package core
+package api
 
 import (
 	"bytes"
@@ -69,7 +69,7 @@ func checkHTag(t string) error {
 		return nil
 	}
 
-	return fmt.Errorf("core: invalid htag %s", t)
+	return fmt.Errorf("api: invalid htag %s", t)
 }
 
 func proc(data []byte) {

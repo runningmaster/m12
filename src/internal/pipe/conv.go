@@ -1,4 +1,4 @@
-package api
+package pipe
 
 import (
 	"encoding/base64"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func pipeConv(next http.Handler) http.Handler {
+func Conv(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		convHost(r)
 		convAuth(r)

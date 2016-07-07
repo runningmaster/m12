@@ -1,4 +1,4 @@
-package api
+package pipe
 
 import (
 	"fmt"
@@ -7,18 +7,20 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"internal/ctxutil"
+
 	"github.com/rogpeppe/fastuuid"
 )
 
 var genUUID = fastuuid.MustNewGenerator()
 
-func pipeHead(next http.Handler) http.Handler {
+func Head(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = ctxWithUUID(ctx, nextUUID())
-		ctx = ctxWithHost(ctx, mineHost(r))
-		ctx = ctxWithUser(ctx, mineUser(r))
-		ctx = ctxWithTime(ctx, time.Now())
+		ctx = ctxutil.WithUUID(ctx, nextUUID())
+		ctx = ctxutil.WithHost(ctx, mineHost(r))
+		ctx = ctxutil.WithUser(ctx, mineUser(r))
+		ctx = ctxutil.WithTime(ctx, time.Now())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

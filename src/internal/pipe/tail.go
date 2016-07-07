@@ -1,4 +1,4 @@
-package api
+package pipe
 
 import (
 	"fmt"
@@ -6,27 +6,29 @@ import (
 	"net/http"
 	"time"
 
+	"internal/ctxutil"
+
 	"code.cloudfoundry.org/bytefmt"
 )
 
 const magicLen = 8
 
-func pipeTail(next http.Handler) http.Handler {
+func Tail(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		log.Println( // log.New() ?
-			codeFromCtx(ctx),
-			trimPart(uuidFromCtx(ctx)),
-			markEmpty(trimPart(authFromCtx(ctx))),
-			markEmpty(hostFromCtx(ctx)),
+			ctxutil.CodeFrom(ctx),
+			trimPart(ctxutil.UUIDFrom(ctx)),
+			markEmpty(trimPart(ctxutil.AuthFrom(ctx))),
+			markEmpty(ctxutil.HostFrom(ctx)),
 			markEmpty(r.Method),
 			markEmpty(makePath(r.URL.Path)),
-			convSize(clenFromCtx(ctx)),
-			convSize(sizeFromCtx(ctx)),
-			markEmpty(convTime(timeFromCtx(ctx))),
-			markEmpty(fmt.Sprintf("%q", userFromCtx(ctx))),
-			convFail(failFromCtx(ctx)),
+			convSize(ctxutil.ClenFrom(ctx)),
+			convSize(ctxutil.SizeFrom(ctx)),
+			markEmpty(convTime(ctxutil.TimeFrom(ctx))),
+			markEmpty(fmt.Sprintf("%q", ctxutil.UserFrom(ctx))),
+			convFail(ctxutil.FailFrom(ctx)),
 		)
 		//if next != nil {
 		//	next.ServerHTTP(ctx, w, r)

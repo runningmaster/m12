@@ -9,7 +9,7 @@ import (
 	_ "expvar"
 	_ "net/http/pprof"
 
-	//"internal/core"
+	//"internal/api"
 	"internal/pref"
 	"internal/server"
 )
@@ -19,7 +19,7 @@ func main() {
 	initLogger(pref.Verbose)
 
 	err := server.Run(pref.Host)
-	//err := core.TestStreamOut()
+	//err := api.TestStreamOut()
 	if err != nil {
 		log.Fatalf("main: %v", err)
 	}

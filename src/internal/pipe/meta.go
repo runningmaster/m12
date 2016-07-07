@@ -1,4 +1,4 @@
-package api
+package pipe
 
 import (
 	"bytes"
@@ -9,13 +9,14 @@ import (
 	"net/http"
 	"strings"
 
+	"internal/ctxutil"
 	"internal/gzip"
 )
 
-func pipeMeta(next http.Handler) http.Handler {
+func Meta(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		err := failFromCtx(ctx)
+		err := ctxutil.FailFrom(ctx)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
@@ -23,7 +24,7 @@ func pipeMeta(next http.Handler) http.Handler {
 
 		err = injectMeta(ctx, r.Header)
 		if err != nil {
-			ctx = ctxWithFail(ctx, err)
+			ctx = ctxutil.WithFail(ctx, err)
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -52,12 +53,12 @@ func injectMeta(ctx context.Context, h http.Header) error {
 		Unix int64  `json:"unix,omitempty"`
 	}{}
 
-	v.UUID = uuidFromCtx(ctx)
-	v.Auth.ID = authFromCtx(ctx)
-	v.Host = hostFromCtx(ctx)
-	v.User = userFromCtx(ctx)
-	v.Time = timeFromCtx(ctx).String()
-	v.Unix = timeFromCtx(ctx).Unix()
+	v.UUID = ctxutil.UUIDFrom(ctx)
+	v.Auth.ID = ctxutil.AuthFrom(ctx)
+	v.Host = ctxutil.HostFrom(ctx)
+	v.User = ctxutil.UserFrom(ctx)
+	v.Time = ctxutil.TimeFrom(ctx).String()
+	v.Unix = ctxutil.TimeFrom(ctx).Unix()
 
 	m, err := json.Marshal(v)
 	if err != nil {

@@ -1,32 +1,32 @@
-package api
+package pipe
 
 import (
 	"fmt"
 	"net/http"
 	"strings"
 
-	"internal/core"
+	"internal/ctxutil"
 	"internal/pref"
 )
 
-func pipeAuth(master int) handlerPipe {
+func Auth(master int) handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
 			key, err := getKey(r)
 			if err != nil {
-				next.ServeHTTP(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
+				next.ServeHTTP(w, r.WithContext(ctxutil.WithFail(ctx, err, http.StatusForbidden)))
 				return
 			}
 
 			err = auth(key, master)
 			if err != nil {
-				next.ServeHTTP(w, r.WithContext(ctxWithFail(ctx, err, http.StatusForbidden)))
+				next.ServeHTTP(w, r.WithContext(ctxutil.WithFail(ctx, err, http.StatusForbidden)))
 				return
 			}
 
-			ctx = ctxWithAuth(ctx, key)
+			ctx = ctxutil.WithAuth(ctx, key)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -49,7 +49,7 @@ func auth(key string, master int) error {
 		return fmt.Errorf("api: must be master key: forbidden")
 	}
 
-	ok, err := core.AuthOK(key)
+	ok, err := false, fmt.Errorf("FIXME") //api.AuthOK(key)
 	if err != nil {
 		return err
 	}

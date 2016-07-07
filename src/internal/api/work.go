@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+
+	"internal/ctxutil"
 )
 
 func work(wrk worker) http.Handler {
@@ -15,10 +17,10 @@ func work(wrk worker) http.Handler {
 		if r.Method == "POST" {
 			n, err := io.Copy(buf, r.Body)
 			if err != nil {
-				*r = *r.WithContext(ctxWithFail(ctx, err))
+				*r = *r.WithContext(ctxutil.WithFail(ctx, err))
 				return
 			}
-			ctx = ctxWithClen(ctx, n)
+			ctx = ctxutil.WithClen(ctx, n)
 		}
 
 		// new instance to avoid data race
@@ -34,7 +36,7 @@ func work(wrk worker) http.Handler {
 		// 2) worker must work
 		out, err := wrk.Work(buf.Bytes())
 		if err != nil {
-			*r = *r.WithContext(ctxWithFail(ctx, err))
+			*r = *r.WithContext(ctxutil.WithFail(ctx, err))
 			return
 		}
 
@@ -43,7 +45,7 @@ func work(wrk worker) http.Handler {
 			hw.WriteHeader(w.Header())
 		}
 
-		ctx = ctxWithData(ctx, out)
+		ctx = ctxutil.WithData(ctx, out)
 		*r = *r.WithContext(ctx)
 	})
 }

@@ -1,4 +1,4 @@
-package core
+package api
 
 var Deld = &deld{}
 

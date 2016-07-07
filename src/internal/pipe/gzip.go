@@ -1,15 +1,16 @@
-package api
+package pipe
 
 import (
 	"net/http"
 
+	"internal/ctxutil"
 	"internal/gzip"
 )
 
-func pipeGzip(next http.Handler) http.Handler {
+func Gzip(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		err := failFromCtx(ctx)
+		err := ctxutil.FailFrom(ctx)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
@@ -18,12 +19,12 @@ func pipeGzip(next http.Handler) http.Handler {
 		if gzip.InString(r.Header.Get("Content-Encoding")) {
 			z, err := gzip.GetReader()
 			if err != nil {
-				ctx = ctxWithFail(ctx, err)
+				ctx = ctxutil.WithFail(ctx, err)
 			}
 			defer func() { _ = gzip.PutReader(z) }()
 			err = z.Reset(r.Body)
 			if err != nil {
-				ctx = ctxWithFail(ctx, err)
+				ctx = ctxutil.WithFail(ctx, err)
 			}
 			r.Body = z
 		}
@@ -31,7 +32,7 @@ func pipeGzip(next http.Handler) http.Handler {
 		if gzip.InString(r.Header.Get("Accept-Encoding")) {
 			z, err := gzip.GetWriter()
 			if err != nil {
-				ctx = ctxWithFail(ctx, err)
+				ctx = ctxutil.WithFail(ctx, err)
 			}
 			defer func() { _ = gzip.PutWriter(z) }()
 			z.Reset(w)

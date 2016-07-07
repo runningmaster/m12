@@ -1,4 +1,4 @@
-package api
+package pipe
 
 import (
 	"encoding/json"
@@ -6,29 +6,30 @@ import (
 	"net/http"
 	"runtime"
 
+	"internal/ctxutil"
 	"internal/pref"
 )
 
-func pipeResp(next http.Handler) http.Handler {
+func Resp(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		data, err := dataFromCtx(ctx), failFromCtx(ctx)
+		data, err := ctxutil.DataFrom(ctx), ctxutil.FailFrom(ctx)
 		if err != nil {
 			data = err.Error()
 		}
 
 		// workaround for stdh
-		if sizeFromCtx(ctx) != 0 {
+		if ctxutil.SizeFrom(ctx) != 0 {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		n, err := writeResp(w, uuidFromCtx(ctx), codeFromCtx(ctx), data)
+		n, err := writeResp(w, ctxutil.UUIDFrom(ctx), ctxutil.CodeFrom(ctx), data)
 		if err != nil {
-			ctx = ctxWithFail(ctx, err)
+			ctx = ctxutil.WithFail(ctx, err)
 		}
 
-		ctx = ctxWithSize(ctx, int64(n))
+		ctx = ctxutil.WithSize(ctx, int64(n))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
