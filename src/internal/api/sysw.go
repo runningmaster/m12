@@ -18,7 +18,7 @@ var (
 	fldsDrug = []interface{}{"l", "d", "b", "c", "s"}
 )
 
-func AuthOK(key string) (bool, error) {
+func authOK(key string) (bool, error) {
 	c := redisConn()
 	defer closeConn(c)
 

@@ -8,16 +8,14 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-// Ping calls Redis PING
-func Ping(_ []byte) (interface{}, error) {
+func ping() (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
 	return c.Do("PING")
 }
 
-// Info calls Redis INFO
-func Info(_ []byte) (interface{}, error) {
+func info() (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 

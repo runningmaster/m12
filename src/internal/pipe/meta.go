@@ -94,28 +94,28 @@ func checkHeader(h http.Header) error {
 
 func mustHeaderGzip(h http.Header) error {
 	if !gzip.InString(h.Get("Content-Encoding")) {
-		return fmt.Errorf("api: content-encoding must contain gzip")
+		return fmt.Errorf("pipe: content-encoding must contain gzip")
 	}
 	return nil
 }
 
 func mustHeaderJSON(h http.Header) error {
 	if !strings.Contains(h.Get("Content-Type"), "application/json") {
-		return fmt.Errorf("api: content-type must contain application/json")
+		return fmt.Errorf("pipe: content-type must contain application/json")
 	}
 	return nil
 }
 
 func mustHeaderUTF8(h http.Header) error {
 	if !strings.Contains(h.Get("Content-Type"), "charset=utf-8") {
-		return fmt.Errorf("api: content-type must contain charset=utf-8")
+		return fmt.Errorf("pipe: content-type must contain charset=utf-8")
 	}
 	return nil
 }
 
 func mustHeaderMETA(h http.Header) error {
 	if len(h.Get("Content-Meta")) == 0 {
-		return fmt.Errorf("api: content-meta must contain value")
+		return fmt.Errorf("pipe: content-meta must contain value")
 	}
 	return nil
 }
