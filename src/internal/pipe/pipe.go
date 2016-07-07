@@ -15,7 +15,7 @@ func Use(pipes ...handler) http.Handler {
 	return h
 }
 
-func Pipe(v interface{}) handler {
+func Work(v interface{}) handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err := ctxutil.FailFrom(r.Context())

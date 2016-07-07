@@ -34,52 +34,52 @@ func (f workFunc) Work(b []byte) (interface{}, error) {
 
 var (
 	httpHandlers = map[string]http.Handler{
-		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(root), pipe.Resp, pipe.Tail),
-		"GET>/ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(work(workFunc(Ping))), pipe.Resp, pipe.Tail),
+		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(root), pipe.Resp, pipe.Tail),
+		"GET>/ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(work(workFunc(Ping))), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-auth": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(GetAuth))), pipe.Resp, pipe.Tail),
-		"POST>/system/set-auth": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(SetAuth))), pipe.Resp, pipe.Tail),
-		"POST>/system/del-auth": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(DelAuth))), pipe.Resp, pipe.Tail),
+		"POST>/system/get-auth": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(GetAuth))), pipe.Resp, pipe.Tail),
+		"POST>/system/set-auth": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(SetAuth))), pipe.Resp, pipe.Tail),
+		"POST>/system/del-auth": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(DelAuth))), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-addr": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(GetAddr))), pipe.Resp, pipe.Tail),
-		"POST>/system/set-addr": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(SetAddr))), pipe.Resp, pipe.Tail),
-		"POST>/system/del-addr": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(DelAddr))), pipe.Resp, pipe.Tail),
+		"POST>/system/get-addr": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(GetAddr))), pipe.Resp, pipe.Tail),
+		"POST>/system/set-addr": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(SetAddr))), pipe.Resp, pipe.Tail),
+		"POST>/system/del-addr": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(DelAddr))), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-drug": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(GetDrug))), pipe.Resp, pipe.Tail),
-		"POST>/system/set-drug": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(SetDrug))), pipe.Resp, pipe.Tail),
-		"POST>/system/del-drug": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(DelDrug))), pipe.Resp, pipe.Tail),
+		"POST>/system/get-drug": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(GetDrug))), pipe.Resp, pipe.Tail),
+		"POST>/system/set-drug": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(SetDrug))), pipe.Resp, pipe.Tail),
+		"POST>/system/del-drug": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(DelDrug))), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-stat": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(GetStat))), pipe.Resp, pipe.Tail),
-		"POST>/system/set-stat": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(SetStat))), pipe.Resp, pipe.Tail),
-		"POST>/system/del-stat": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(DelStat))), pipe.Resp, pipe.Tail),
+		"POST>/system/get-stat": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(GetStat))), pipe.Resp, pipe.Tail),
+		"POST>/system/set-stat": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(SetStat))), pipe.Resp, pipe.Tail),
+		"POST>/system/del-stat": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(DelStat))), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-meta": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(GetMeta))), pipe.Resp, pipe.Tail),
-		"POST>/system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(workFunc(GetZlog))), pipe.Resp, pipe.Tail),
+		"POST>/system/get-meta": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(GetMeta))), pipe.Resp, pipe.Tail),
+		"POST>/system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(workFunc(GetZlog))), pipe.Resp, pipe.Tail),
 
 		// Converter from old school style /data/add DEPRECATED
-		"POST>/data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(0), pipe.Meta, pipe.Pipe(work(Putd)), pipe.Resp, pipe.Tail),
+		"POST>/data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(0), pipe.Meta, pipe.Work(work(Putd)), pipe.Resp, pipe.Tail),
 
-		"POST>/stream/put-data": pipe.Use(pipe.Head, pipe.Auth(0), pipe.Meta, pipe.Pipe(work(Putd)), pipe.Resp, pipe.Tail),
-		"POST>/stream/pop-data": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(Popd)), pipe.Resp, pipe.Tail),
-		"POST>/stream/get-data": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(Getd)), pipe.Resp, pipe.Tail),
-		"POST>/stream/del-data": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Pipe(work(Deld)), pipe.Resp, pipe.Tail),
+		"POST>/stream/put-data": pipe.Use(pipe.Head, pipe.Auth(0), pipe.Meta, pipe.Work(work(Putd)), pipe.Resp, pipe.Tail),
+		"POST>/stream/pop-data": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(Popd)), pipe.Resp, pipe.Tail),
+		"POST>/stream/get-data": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(Getd)), pipe.Resp, pipe.Tail),
+		"POST>/stream/del-data": pipe.Use(pipe.Head, pipe.Auth(1), pipe.Gzip, pipe.Work(work(Deld)), pipe.Resp, pipe.Tail),
 
 		// => Debug mode only, when flag.Debug == true
-		"GET>/debug/info":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(work(workFunc(Info))), pipe.Resp, pipe.Tail), // ?
-		"GET>/debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // expvar
-		"GET>/debug/pprof/":             pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
-		"GET>/debug/pprof/cmdline":      pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
-		"GET>/debug/pprof/profile":      pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
-		"GET>/debug/pprof/symbol":       pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
-		"GET>/debug/pprof/trace":        pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
-		"GET>/debug/pprof/goroutine":    pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
-		"GET>/debug/pprof/threadcreate": pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
-		"GET>/debug/pprof/heap":         pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
-		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.Pipe(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
+		"GET>/debug/info":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(work(workFunc(Info))), pipe.Resp, pipe.Tail), // ?
+		"GET>/debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // expvar
+		"GET>/debug/pprof/":             pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
+		"GET>/debug/pprof/cmdline":      pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
+		"GET>/debug/pprof/profile":      pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
+		"GET>/debug/pprof/symbol":       pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
+		"GET>/debug/pprof/trace":        pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // net/http/pprof
+		"GET>/debug/pprof/goroutine":    pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
+		"GET>/debug/pprof/threadcreate": pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
+		"GET>/debug/pprof/heap":         pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
+		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.Work(stdh), pipe.Resp, pipe.Tail),                 // runtime/pprof
 
 		// => Workarounds for 404/405
-		"GET>/error/404": pipe.Use(pipe.Head, pipe.Pipe(resp404), pipe.Resp, pipe.Tail),
-		"GET>/error/405": pipe.Use(pipe.Head, pipe.Pipe(resp405), pipe.Resp, pipe.Tail),
+		"GET>/error/404": pipe.Use(pipe.Head, pipe.Work(resp404), pipe.Resp, pipe.Tail),
+		"GET>/error/405": pipe.Use(pipe.Head, pipe.Work(resp405), pipe.Resp, pipe.Tail),
 	}
 )
 
