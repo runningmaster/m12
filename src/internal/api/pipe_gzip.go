@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"internal/gzpool"
+	"internal/gzip"
 )
 
 func pipeGzip(next http.Handler) http.Handler {
@@ -15,12 +15,12 @@ func pipeGzip(next http.Handler) http.Handler {
 			return
 		}
 
-		if gzpool.IsGzipInString(r.Header.Get("Content-Encoding")) {
-			z, err := gzpool.GetReader()
+		if gzip.InString(r.Header.Get("Content-Encoding")) {
+			z, err := gzip.GetReader()
 			if err != nil {
 				ctx = ctxWithFail(ctx, err)
 			}
-			defer func() { _ = gzpool.PutReader(z) }()
+			defer func() { _ = gzip.PutReader(z) }()
 			err = z.Reset(r.Body)
 			if err != nil {
 				ctx = ctxWithFail(ctx, err)
@@ -28,14 +28,14 @@ func pipeGzip(next http.Handler) http.Handler {
 			r.Body = z
 		}
 
-		if gzpool.IsGzipInString(r.Header.Get("Accept-Encoding")) {
-			z, err := gzpool.GetWriter()
+		if gzip.InString(r.Header.Get("Accept-Encoding")) {
+			z, err := gzip.GetWriter()
 			if err != nil {
 				ctx = ctxWithFail(ctx, err)
 			}
-			defer func() { _ = gzpool.PutWriter(z) }()
+			defer func() { _ = gzip.PutWriter(z) }()
 			z.Reset(w)
-			w = gzpool.ResponseWriter{Writer: z, ResponseWriter: w}
+			w = gzip.ResponseWriter{Writer: z, ResponseWriter: w}
 			w.Header().Add("Vary", "Accept-Encoding")
 			w.Header().Set("Content-Encoding", "gzip")
 		}

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/gzpool"
+	"internal/gzip"
 )
 
 func pipeMeta(next http.Handler) http.Handler {
@@ -92,7 +92,7 @@ func checkHeader(h http.Header) error {
 }
 
 func mustHeaderGzip(h http.Header) error {
-	if !gzpool.IsGzipInString(h.Get("Content-Encoding")) {
+	if !gzip.InString(h.Get("Content-Encoding")) {
 		return fmt.Errorf("api: content-encoding must contain gzip")
 	}
 	return nil

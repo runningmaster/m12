@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"internal/gzpool"
+	"internal/gzip"
 
 	"github.com/garyburd/redigo/redis"
 	minio "github.com/minio/minio-go"
@@ -175,7 +175,7 @@ func procTest(pair []byte) {
 		return
 	}
 
-	d, err := gzpool.Gunzip(data.Bytes())
+	d, err := gzip.Uncompress(data.Bytes())
 	if err != nil {
 		log.Print(fmt.Errorf("DEBUG 7: %v", err))
 		return

@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"internal/gzpool"
+	"internal/gzip"
 )
 
 const (
@@ -37,7 +37,7 @@ func gztarMetaData(m, d []byte) (io.Reader, error) {
 }
 
 func writeGzTar(name string, data []byte, w *tar.Writer) error {
-	d, err := gzpool.MustGzip(data)
+	d, err := gzip.MustCompress(data)
 	if err != nil {
 		return err
 	}
@@ -92,5 +92,5 @@ func copyMetaData(dst io.Writer, src io.Reader, gz bool) error {
 		return err
 
 	}
-	return gzpool.Copy(dst, src)
+	return gzip.Copy(dst, src)
 }

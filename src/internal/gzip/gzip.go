@@ -1,4 +1,4 @@
-package gzpool
+package gzip
 
 import (
 	"bufio"
@@ -92,8 +92,8 @@ func PutWriter(c io.Closer) error {
 	return nil
 }
 
-// Gzip encodes bytes to gzip-bytes.
-func Gzip(data []byte) ([]byte, error) {
+// Compress compresses bytes.
+func Compress(data []byte) ([]byte, error) {
 	w, err := GetWriter()
 	if err != nil {
 		return nil, err
@@ -116,17 +116,17 @@ func Gzip(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// MustGzip encodes bytes to gzip-bytes if not.
-func MustGzip(data []byte) ([]byte, error) {
-	if IsGzipInString(http.DetectContentType(data)) {
+// MustGzip encodes bytes if not.
+func MustCompress(data []byte) ([]byte, error) {
+	if InString(http.DetectContentType(data)) {
 		return data, nil
 	}
 
-	return Gzip(data)
+	return Compress(data)
 }
 
-// Gunzip decodes bytes from gzip-bytes.
-func Gunzip(data []byte) ([]byte, error) {
+// Uncompress decompresses bytes.
+func Uncompress(data []byte) ([]byte, error) {
 	r, err := GetReader()
 	if err != nil {
 		return nil, err
@@ -164,8 +164,8 @@ func Copy(dst io.Writer, src io.Reader) error {
 	return err
 }
 
-// IsGzipInString returns true if gzip is mentioned in string
-func IsGzipInString(s string) bool {
+// InString returns true if gzip is mentioned in string
+func InString(s string) bool {
 	return strings.Contains(s, "gzip")
 }
 

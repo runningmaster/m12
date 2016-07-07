@@ -2,7 +2,7 @@ package core
 
 import (
 	"encoding/json"
-	"internal/gzpool"
+	"internal/gzip"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -15,7 +15,7 @@ func zlog(m jsonMeta) error {
 	c := redisConn()
 	defer closeConn(c)
 
-	z, err := gzpool.Gzip(m.marshal())
+	z, err := gzip.Compress(m.marshal())
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func GetZlog(data []byte) (interface{}, error) {
 			return nil, err
 		}
 
-		r, err = gzpool.Gunzip(z)
+		r, err = gzip.Uncompress(z)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func GetMeta(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	r, err := gzpool.Gunzip(z)
+	r, err := gzip.Uncompress(z)
 	if err != nil {
 		return nil, err
 	}
