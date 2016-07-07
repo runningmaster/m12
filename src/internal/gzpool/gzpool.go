@@ -1,10 +1,12 @@
 package gzpool
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -165,4 +167,30 @@ func Copy(dst io.Writer, src io.Reader) error {
 // IsGzipInString returns true if gzip is mentioned in string
 func IsGzipInString(s string) bool {
 	return strings.Contains(s, "gzip")
+}
+
+// ResponseWriter is gzip-wrapper for http.ResponseWriter
+type ResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w ResponseWriter) Write(b []byte) (int, error) {
+	if w.Header().Get("Content-Type") == "" {
+		w.Header().Set("Content-Type", http.DetectContentType(b))
+	}
+
+	return w.Writer.Write(b)
+}
+
+func (w ResponseWriter) Flush() error {
+	return w.Writer.(*gzip.Writer).Flush()
+}
+
+func (w ResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return w.ResponseWriter.(http.Hijacker).Hijack()
+}
+
+func (w *ResponseWriter) CloseNotify() <-chan bool {
+	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }
