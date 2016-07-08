@@ -6,22 +6,10 @@ import (
 	"net/http"
 )
 
-var Putd = &putd{}
+func putd(data []byte, r, _ http.Header) (interface{}, error) {
+	meta := []byte(r.Get("Content-Meta"))
 
-type putd struct {
-	meta []byte
-}
-
-func (w *putd) New() interface{} {
-	return &putd{}
-}
-
-func (w *putd) ReadHeader(h http.Header) {
-	w.meta = []byte(h.Get("Content-Meta"))
-}
-
-func (w *putd) Work(data []byte) (interface{}, error) {
-	m, err := unmarshalMeta(w.meta)
+	m, err := unmarshalMeta(meta)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +20,7 @@ func (w *putd) Work(data []byte) (interface{}, error) {
 	}
 
 	go func() { // ?
-		t, err := gztarMetaData(w.meta, data)
+		t, err := gztarMetaData(meta, data)
 		if err != nil {
 			log.Println("putd: err: gztr:", err)
 			return

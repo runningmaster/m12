@@ -20,8 +20,10 @@ func stdh(w http.ResponseWriter, r *http.Request) {
 			ctx = ctxutil.WithSize(ctx, int64(b.n))
 		}
 	} else {
-		ctx = ctxutil.WithFail(ctx, fmt.Errorf("api: flag debug not found"))
+		err := fmt.Errorf("api: flag debug not found")
+		ctx = ctxutil.WithFail(ctx, err)
 	}
+
 	*r = *r.WithContext(ctx)
 }
 

@@ -3,6 +3,9 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+
+	"internal/pref"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -18,52 +21,50 @@ var (
 	fldsDrug = []interface{}{"l", "d", "b", "c", "s"}
 )
 
-func authOK(key string) (bool, error) {
+func pass(key string) bool {
+	if strings.EqualFold(pref.MasterKey, key) {
+		return true
+	}
+
 	c := redisConn()
 	defer closeConn(c)
 
-	v, err := redis.Int(c.Do("HEXISTS", keyAuth, key))
-	if err != nil {
-		return false, err
-	}
+	v, _ := redis.Int(c.Do("HEXISTS", keyAuth, key))
 
-	return v == 1, nil
+	return v == 1
 }
 
-// GetAuth returns
-func GetAuth(data []byte) (interface{}, error) {
+func getAuth(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return getAuth(v)
+	return getAuthREDIS(v)
 }
 
-// SetAuth returns
-func SetAuth(data []byte) (interface{}, error) {
+func setAuth(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []linkAuth
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return setAuth(v)
+	return setAuthREDIS(v)
 }
 
-// DelAuth returns
-func DelAuth(data []byte) (interface{}, error) {
+func delAuth(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return delAuth(v)
+	return delAuthREDIS(v)
 }
 
-func getAuth(v []string) ([]linkAuth, error) {
+func getAuthREDIS(v []string) ([]linkAuth, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -94,7 +95,7 @@ func getAuth(v []string) ([]linkAuth, error) {
 	return out, nil
 }
 
-func setAuth(v []linkAuth) (interface{}, error) {
+func setAuthREDIS(v []linkAuth) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -109,7 +110,7 @@ func setAuth(v []linkAuth) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func delAuth(v []string) (interface{}, error) {
+func delAuthREDIS(v []string) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -124,40 +125,37 @@ func delAuth(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-// GetAddr returns
-func GetAddr(data []byte) (interface{}, error) {
+func getAddr(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return getAddr(v)
+	return getAddrREDIS(v)
 }
 
-// SetAddr returns
-func SetAddr(data []byte) (interface{}, error) {
+func setAddr(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []linkAddr
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return setAddr(v)
+	return setAddrREDIS(v)
 }
 
-// DelAddr returns
-func DelAddr(data []byte) (interface{}, error) {
+func delAddr(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return delAddr(v)
+	return delAddrREDIS(v)
 }
 
-func getAddr(v []string) ([]linkAddr, error) {
+func getAddrREDIS(v []string) ([]linkAddr, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -199,7 +197,7 @@ func getAddr(v []string) ([]linkAddr, error) {
 	return out, nil
 }
 
-func setAddr(v []linkAddr) (interface{}, error) {
+func setAddrREDIS(v []linkAddr) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -236,7 +234,7 @@ func setAddr(v []linkAddr) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func delAddr(v []string) (interface{}, error) {
+func delAddrREDIS(v []string) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -251,40 +249,37 @@ func delAddr(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-// GetDrug returns
-func GetDrug(data []byte) (interface{}, error) {
+func getDrug(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return getDrug(v)
+	return getDrugREDIS(v)
 }
 
-// SetDrug returns
-func SetDrug(data []byte) (interface{}, error) {
+func setDrug(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []linkDrug
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return setDrug(v)
+	return setDrugREDIS(v)
 }
 
-// DelDrug returns
-func DelDrug(data []byte) (interface{}, error) {
+func delDrug(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return delDrug(v)
+	return delDrugREDIS(v)
 }
 
-func getDrug(v []string) ([]linkDrug, error) {
+func getDrugREDIS(v []string) ([]linkDrug, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -328,7 +323,7 @@ func getDrug(v []string) ([]linkDrug, error) {
 
 }
 
-func setDrug(v []linkDrug) (interface{}, error) {
+func setDrugREDIS(v []linkDrug) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -368,7 +363,7 @@ func setDrug(v []linkDrug) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func delDrug(v []string) (interface{}, error) {
+func delDrugREDIS(v []string) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -383,40 +378,37 @@ func delDrug(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-// GetStat returns
-func GetStat(data []byte) (interface{}, error) {
+func getStat(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []int64
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return getStat(v)
+	return getStatREDIS(v)
 }
 
-// SetStat returns
-func SetStat(data []byte) (interface{}, error) {
+func setStat(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []linkStat
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return setStat(v)
+	return setStatREDIS(v)
 }
 
-// DelStat returns
-func DelStat(data []byte) (interface{}, error) {
+func delStat(data []byte, _, _ http.Header) (interface{}, error) {
 	var v []int64
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return delStat(v)
+	return delStatREDIS(v)
 }
 
-func getStat(v []int64) ([]linkStat, error) {
+func getStatREDIS(v []int64) ([]linkStat, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -447,7 +439,7 @@ func getStat(v []int64) ([]linkStat, error) {
 	return out, nil
 }
 
-func setStat(v []linkStat) (interface{}, error) {
+func setStatREDIS(v []linkStat) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -462,7 +454,7 @@ func setStat(v []linkStat) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func delStat(v []int64) (interface{}, error) {
+func delStatREDIS(v []int64) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 

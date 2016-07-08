@@ -3,19 +3,27 @@ package api
 import (
 	"bufio"
 	"bytes"
+	"fmt"
+	"net/http"
 	"strings"
+
+	"internal/version"
 
 	"github.com/garyburd/redigo/redis"
 )
 
-func ping() (interface{}, error) {
+func root(_ []byte, _, _ http.Header) (interface{}, error) {
+	return fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()), nil
+}
+
+func ping(_ []byte, _, _ http.Header) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
 	return c.Do("PING")
 }
 
-func info() (interface{}, error) {
+func info(_ []byte, _, _ http.Header) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 

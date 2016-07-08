@@ -222,13 +222,13 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	t := m.HTag
 	s := time.Now()
 
-	a, err := getAuth([]string{m.Auth.ID})
+	a, err := getAuthREDIS([]string{m.Auth.ID})
 	if err != nil {
 		return nil, err
 	}
 	m.Auth = a[0]
 
-	l, err := getAddr([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
+	l, err := getAddrREDIS([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func mineDrugs(v druger, t string) (int, error) {
 		keys[i] = strToSHA1(name)
 	}
 
-	lds, err := getDrug(keys)
+	lds, err := getDrugREDIS(keys)
 	if err != nil {
 		return 0, err
 	}
@@ -309,7 +309,7 @@ func mineAddrs(v addrer) (int, error) {
 		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
 	}
 
-	lds, err := getAddr(keys)
+	lds, err := getAddrREDIS(keys)
 	if err != nil {
 		return 0, err
 	}

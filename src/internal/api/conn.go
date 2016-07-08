@@ -136,7 +136,8 @@ func procTest(pair []byte) {
 		log.Print(fmt.Errorf("DEBUG 2: %v", err))
 		return
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
+	finish := time.Since(start).String()
 
 	var meta []byte
 	meta, err = base64.StdEncoding.DecodeString(res.Header.Get("Content-Meta"))
@@ -188,5 +189,5 @@ func procTest(pair []byte) {
 		return
 	}
 
-	log.Printf("%s %s %t: %d %s %s", s[0], m.UUID, strings.Contains(m.UUID, s[0]), len(v), m.Proc, time.Since(start).String())
+	log.Printf("%s %s %t: %d %s %s", s[0], m.UUID, strings.Contains(m.UUID, s[0]), len(v), m.Proc, finish)
 }

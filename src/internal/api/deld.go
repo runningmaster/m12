@@ -1,15 +1,10 @@
 package api
 
-var Deld = &deld{}
+import (
+	"net/http"
+)
 
-type deld struct {
-}
-
-func (w *deld) New() interface{} {
-	return &deld{}
-}
-
-func (w *deld) Work(data []byte) (interface{}, error) {
+func deld(data []byte, _, _ http.Header) (interface{}, error) {
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err

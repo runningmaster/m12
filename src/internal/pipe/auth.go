@@ -7,30 +7,26 @@ import (
 	"internal/ctxutil"
 )
 
-func Auth(authFunc ...func(string) (bool, error)) handler {
+func Auth(fn func(string) bool) handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			key, err := getKey(r)
-			if err != nil {
-				next.ServeHTTP(w, r.WithContext(ctxutil.WithFail(ctx, err, http.StatusForbidden)))
-				return
-			}
-
 			var ok bool
-			for i := range authFunc {
-				ok, err = authFunc[i](key)
-				if err != nil {
-					next.ServeHTTP(w, r.WithContext(ctxutil.WithFail(ctx, err, http.StatusForbidden)))
-					return
-				}
-				if ok {
-					break
-				}
+			key, err := getKey(r)
+			if key != "" {
+				ok = fn(key)
 			}
 
-			ctx = ctxutil.WithAuth(ctx, key)
+			if ok {
+				ctx = ctxutil.WithAuth(ctx, key)
+			} else {
+				if err == nil {
+					err = fmt.Errorf("pipe: invalid key: %s: forbidden", key)
+				}
+				ctx = ctxutil.WithFail(ctx, err, http.StatusForbidden)
+			}
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -38,7 +34,7 @@ func Auth(authFunc ...func(string) (bool, error)) handler {
 
 // V3 api:key-3ax6xnjp29jd6fds4gc373sgvjxteol0 (?)
 func getKey(r *http.Request) (string, error) {
-	if _, pass, ok := r.BasicAuth(); ok {
+	if _, pass, ok := r.BasicAuth(); ok && len(pass) > 4 {
 		return pass[4:], nil
 	}
 	return "", fmt.Errorf("pipe: key not found")
