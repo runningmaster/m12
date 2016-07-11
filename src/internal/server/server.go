@@ -30,7 +30,7 @@ func Run(addr string) error {
 
 func makeServer(addr string, h http.Handler) *graceful.Server {
 	if _, p, _ := net.SplitHostPort(addr); p != "" {
-		log.Printf("server: must be on port :%s", p)
+		log.Printf("server: is now ready to accept connections on port %s", p)
 	}
 
 	return &graceful.Server{

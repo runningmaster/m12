@@ -7,6 +7,7 @@ import (
 
 	"internal/ctxutil"
 	"internal/pipe"
+	"internal/version"
 )
 
 var (
@@ -59,6 +60,10 @@ var (
 		"GET>/error/405": pipe.Use(pipe.Head, pipe.Wrap(e405), pipe.Resp, pipe.Tail),
 	}
 )
+
+func root() (interface{}, error) {
+	return fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()), nil
+}
 
 func e404(w http.ResponseWriter, r *http.Request) {
 	respErr(r, http.StatusNotFound)

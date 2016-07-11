@@ -21,33 +21,37 @@ func Wrap(v interface{}) handler {
 			}
 
 			var res interface{}
+			var buf = new(bytes.Buffer)
+			var n int64
+			if r.Method == "POST" {
+				n, err = io.Copy(buf, r.Body)
+				if err != nil {
+					goto exit
+				}
+			}
+			ctx = ctxutil.WithClen(ctx, n)
+
 			switch h := v.(type) {
-			case http.Handler:
-				h.ServeHTTP(w, r)
-				ctx = r.Context()
 			case func(http.ResponseWriter, *http.Request):
-				h(w, r)
+				h(w, r) // stdh
 				ctx = r.Context()
 			case func([]byte, http.Header, http.Header) (interface{}, error):
-				var buf = new(bytes.Buffer)
-				n, err := io.Copy(buf, r.Body)
-				if err != nil {
-					ctx = ctxutil.WithFail(ctx, err)
-				} else {
-					res, err = h(buf.Bytes(), r.Header, w.Header())
-					if err != nil {
-						ctx = ctxutil.WithFail(ctx, err)
-					}
-				}
-				ctx = ctxutil.WithClen(ctx, n)
+				res, err = h(buf.Bytes(), r.Header, w.Header())
+			case func([]byte) (interface{}, error):
+				res, err = h(buf.Bytes())
+			case func() (interface{}, error):
+				res, err = h()
 			default:
 				panic("pipe: unknown handler")
 			}
 
+		exit:
+			if err != nil {
+				ctx = ctxutil.WithFail(ctx, err)
+			}
 			if res != nil {
 				ctx = ctxutil.WithData(ctx, res)
 			}
-
 			*r = *r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})

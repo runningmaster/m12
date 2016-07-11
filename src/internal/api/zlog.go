@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
+
 	"internal/gzip"
-	"net/http"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -34,7 +34,7 @@ func zlog(m jsonMeta) error {
 	return c.Flush()
 }
 
-func getZlog(data []byte, _, _ http.Header) (interface{}, error) {
+func getZlog(data []byte) (interface{}, error) {
 	c := redisConn()
 	defer closeConn(c)
 
@@ -79,7 +79,7 @@ func getZlog(data []byte, _, _ http.Header) (interface{}, error) {
 	return out, nil
 }
 
-func getMeta(data []byte, _, _ http.Header) (interface{}, error) {
+func getMeta(data []byte) (interface{}, error) {
 	var v string
 	err := json.Unmarshal(data, &v)
 	if err != nil {

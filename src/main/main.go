@@ -4,12 +4,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	//"runtime"
 
 	_ "expvar"
 	_ "net/http/pprof"
 
-	//"internal/api"
 	"internal/pref"
 	"internal/server"
 )
@@ -19,11 +17,9 @@ func main() {
 	initLogger(pref.Verbose)
 
 	err := server.Run(pref.Host)
-	//err := api.TestStreamOut()
 	if err != nil {
 		log.Fatalf("main: %v", err)
 	}
-	//runtime.Goexit()
 }
 
 func initLogger(v bool) {

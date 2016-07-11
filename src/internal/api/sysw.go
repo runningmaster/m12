@@ -34,7 +34,7 @@ func pass(key string) bool {
 	return v == 1
 }
 
-func getAuth(data []byte, _, _ http.Header) (interface{}, error) {
+func getAuth(data []byte) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -44,7 +44,7 @@ func getAuth(data []byte, _, _ http.Header) (interface{}, error) {
 	return getAuthREDIS(v)
 }
 
-func setAuth(data []byte, _, _ http.Header) (interface{}, error) {
+func setAuth(data []byte) (interface{}, error) {
 	var v []linkAuth
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -54,7 +54,7 @@ func setAuth(data []byte, _, _ http.Header) (interface{}, error) {
 	return setAuthREDIS(v)
 }
 
-func delAuth(data []byte, _, _ http.Header) (interface{}, error) {
+func delAuth(data []byte) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -125,7 +125,7 @@ func delAuthREDIS(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func getAddr(data []byte, _, _ http.Header) (interface{}, error) {
+func getAddr(data []byte) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -135,7 +135,7 @@ func getAddr(data []byte, _, _ http.Header) (interface{}, error) {
 	return getAddrREDIS(v)
 }
 
-func setAddr(data []byte, _, _ http.Header) (interface{}, error) {
+func setAddr(data []byte) (interface{}, error) {
 	var v []linkAddr
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -145,7 +145,7 @@ func setAddr(data []byte, _, _ http.Header) (interface{}, error) {
 	return setAddrREDIS(v)
 }
 
-func delAddr(data []byte, _, _ http.Header) (interface{}, error) {
+func delAddr(data []byte) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -249,7 +249,7 @@ func delAddrREDIS(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func getDrug(data []byte, _, _ http.Header) (interface{}, error) {
+func getDrug(data []byte) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -259,7 +259,7 @@ func getDrug(data []byte, _, _ http.Header) (interface{}, error) {
 	return getDrugREDIS(v)
 }
 
-func setDrug(data []byte, _, _ http.Header) (interface{}, error) {
+func setDrug(data []byte) (interface{}, error) {
 	var v []linkDrug
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -269,7 +269,7 @@ func setDrug(data []byte, _, _ http.Header) (interface{}, error) {
 	return setDrugREDIS(v)
 }
 
-func delDrug(data []byte, _, _ http.Header) (interface{}, error) {
+func delDrug(data []byte) (interface{}, error) {
 	var v []string
 	err := json.Unmarshal(data, &v)
 	if err != nil {

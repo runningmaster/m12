@@ -1,19 +1,10 @@
 package api
 
 import (
-	"bytes"
 	"crypto/tls"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"io"
-	"log"
-	"net/http"
 	"net/url"
-	"strings"
 	"time"
-
-	"internal/gzip"
 
 	"github.com/garyburd/redigo/redis"
 	minio "github.com/minio/minio-go"
@@ -93,101 +84,4 @@ func closeConn(c io.Closer) {
 	if c != nil {
 		_ = c.Close()
 	}
-}
-
-func TestStreamOut() error {
-	var err error
-
-	cNATS, err = openNATS("nats://Morion:0258790@195.128.18.66:4222")
-	if err != nil {
-		return err
-	}
-
-	_, err = cNATS.Subscribe(subjectSteamOut, func(m *nats.Msg) {
-		go procTest(m.Data)
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func procTest(pair []byte) {
-	start := time.Now()
-	req, err := http.NewRequest("POST", "https://195.128.18.66/stream/get-data", bytes.NewReader(pair))
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 1: %v", err))
-		return
-	}
-	req.SetBasicAuth("api", "key-sysdba")
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-
-	cli := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-
-	res, err := cli.Do(req)
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 2: %v", err))
-		return
-	}
-	defer func() { _ = res.Body.Close() }()
-	finish := time.Since(start).String()
-
-	var meta []byte
-	meta, err = base64.StdEncoding.DecodeString(res.Header.Get("Content-Meta"))
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 3: %v", err))
-		return
-	}
-
-	data := new(bytes.Buffer)
-	_, err = io.Copy(data, res.Body)
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 4: %v", err))
-		return
-	}
-
-	if res.StatusCode >= 300 {
-		log.Print(fmt.Errorf("POST failed with code %d: %v", res.StatusCode, data.String()))
-		return
-	}
-
-	_, object, err := unmarshaPairExt(pair)
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 5: %v", err))
-		return
-	}
-
-	s := strings.Split(object, "_")
-	if len(s) == 0 {
-		log.Print(fmt.Errorf("Invalid object %v", object))
-		return
-	}
-
-	m, err := unmarshalMeta(meta)
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 6: %v", err))
-		return
-	}
-
-	d, err := gzip.Uncompress(data.Bytes())
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 7: %v", err))
-		return
-	}
-
-	var v []struct{}
-	err = json.Unmarshal(d, &v)
-	if err != nil {
-		log.Print(fmt.Errorf("DEBUG 8: %v", err))
-		return
-	}
-
-	log.Printf("%s %s %t: %d %s %s", s[0], m.UUID, strings.Contains(m.UUID, s[0]), len(v), m.Proc, finish)
 }

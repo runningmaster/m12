@@ -1,10 +1,6 @@
 package api
 
-import (
-	"net/http"
-)
-
-func deld(data []byte, _, _ http.Header) (interface{}, error) {
+func deld(data []byte) (interface{}, error) {
 	bucket, object, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
