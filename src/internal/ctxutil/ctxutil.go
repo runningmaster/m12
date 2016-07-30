@@ -19,6 +19,7 @@ const (
 	ctxSize
 	ctxCode
 	ctxTime
+	ctxStdh
 )
 
 func WithUUID(ctx context.Context, v string) context.Context {
@@ -121,6 +122,14 @@ func DataFrom(ctx context.Context) interface{} {
 	return ctx.Value(ctxData)
 }
 
+func WithStdh(ctx context.Context, v interface{}) context.Context {
+	return context.WithValue(ctx, ctxStdh, v)
+}
+
+func StdhFrom(ctx context.Context) interface{} {
+	return boolFromContext(ctx, ctxStdh)
+}
+
 //
 func WithURLp(ctx context.Context, k, v string) context.Context {
 	return context.WithValue(ctx, k, v)
@@ -144,5 +153,10 @@ func intFromContext(ctx context.Context, key interface{}) int {
 
 func int64FromContext(ctx context.Context, key interface{}) int64 {
 	v, _ := ctx.Value(key).(int64)
+	return v
+}
+
+func boolFromContext(ctx context.Context, key interface{}) bool {
+	v, _ := ctx.Value(key).(bool)
 	return v
 }

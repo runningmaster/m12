@@ -19,7 +19,7 @@ func Resp(next http.Handler) http.Handler {
 		}
 
 		// workaround for stdh
-		if ctxutil.SizeFrom(ctx) != 0 {
+		if ctxutil.StdhFrom(ctx) {
 			next.ServeHTTP(w, r)
 			return
 		}
