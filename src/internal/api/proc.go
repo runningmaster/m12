@@ -179,43 +179,39 @@ func unmarshalData(data []byte, m *jsonMeta) (interface{}, error) {
 		return unmarshalDataOLD(d, m)
 	}
 
-	return unmarshalDataNEW(d, m.HTag)
+	return unmarshalDataNEW(d, m)
 }
 
 func unmarshalDataOLD(data []byte, m *jsonMeta) (interface{}, error) {
 	t := m.HTag
 
-	var v interface{}
-	var err error
 	switch {
 	case isGeo(t):
-		v, err = convGeoa(data, m)
+		return convGeoa(data, m)
 	case isSaleBY(t):
-		v, err = convSaleBy(data, m)
+		return convSaleBy(data, m)
 	default:
-		v, err = convSale(data, m)
+		return convSale(data, m)
 	}
-
-	return v, err
 }
 
-func unmarshalDataNEW(data []byte, t string) (interface{}, error) {
-	var v interface{}
+func unmarshalDataNEW(data []byte, m *jsonMeta) (interface{}, error) {
+	t := m.HTag
+
 	switch {
 	case isGeo(t):
-		v = jsonV3Geoa{}
+		v := jsonV3Geoa{}
+		err := json.Unmarshal(data, &v)
+		return v, err
 	case isSaleBY(t):
-		v = jsonV3SaleBy{}
+		v := jsonV3SaleBy{}
+		err := json.Unmarshal(data, &v)
+		return v, err
 	default:
-		v = jsonV3Sale{}
+		v := jsonV3Sale{}
+		err := json.Unmarshal(data, &v)
+		return v, err
 	}
-
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return nil, err
-	}
-
-	return v, err
 }
 
 func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
