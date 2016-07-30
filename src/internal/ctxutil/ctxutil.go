@@ -126,7 +126,7 @@ func WithStdh(ctx context.Context, v interface{}) context.Context {
 	return context.WithValue(ctx, ctxStdh, v)
 }
 
-func StdhFrom(ctx context.Context) interface{} {
+func StdhFrom(ctx context.Context) bool {
 	return boolFromContext(ctx, ctxStdh)
 }
 
