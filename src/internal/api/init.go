@@ -118,11 +118,13 @@ func initMINIO(addr string) error {
 }
 
 func makeBuckets(list ...string) error {
-	var err error
 	for i := range list {
 		b := list[i]
-		err = cMINIO.BucketExists(b)
+		ok, err := cMINIO.BucketExists(b)
 		if err != nil {
+			return err
+		}
+		if !ok {
 			err = cMINIO.MakeBucket(b, "")
 			if err != nil {
 				return err
