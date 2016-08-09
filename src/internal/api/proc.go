@@ -108,7 +108,7 @@ func proc(data []byte) {
 			log.Println("proc: err: copy:", object, err)
 		}
 	} else {
-		f = makeFileName(m.UUID, m.Auth.ID, m.HTag)
+		f = makeFileName(m.Auth.ID, m.UUID, m.HTag)
 		_, err = cMINIO.PutObject(bucketStreamOut, f, d, "")
 		if err != nil {
 			log.Println("proc: err: save:", f, err)

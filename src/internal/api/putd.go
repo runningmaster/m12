@@ -26,7 +26,7 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 			return
 		}
 
-		f := makeFileName(m.UUID, m.Auth.ID, convHTag[m.HTag])
+		f := makeFileName(m.Auth.ID, m.UUID, convHTag[m.HTag])
 		_, err = cMINIO.PutObject(bucketStreamIn, f, t, "")
 		if err != nil {
 			log.Println("putd: err: save:", err)
@@ -45,6 +45,6 @@ func trimPart(s string) string {
 	return s
 }
 
-func makeFileName(uuid, auth, htag string) string {
-	return fmt.Sprintf("%s_%s_%s.tar", trimPart(uuid), trimPart(auth), htag)
+func makeFileName(auth, uuid, htag string) string {
+	return fmt.Sprintf("%s_%s_%s.tar", trimPart(auth), trimPart(uuid), htag)
 }
