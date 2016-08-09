@@ -244,3 +244,72 @@ func (c Client) putBucketPolicy(bucketName string, policy BucketAccessPolicy) er
 	}
 	return nil
 }
+
+// Removes all policies on a bucket.
+func (c Client) removeBucketPolicy(bucketName string) error {
+	// Input validation.
+	if err := isValidBucketName(bucketName); err != nil {
+		return err
+	}
+	// Get resources properly escaped and lined up before
+	// using them in http request.
+	urlValues := make(url.Values)
+	urlValues.Set("policy", "")
+
+	// Execute DELETE on objectName.
+	resp, err := c.executeMethod("DELETE", requestMetadata{
+		bucketName:  bucketName,
+		queryValues: urlValues,
+	})
+	defer closeResponse(resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetBucketNotification saves a new bucket notification.
+func (c Client) SetBucketNotification(bucketName string, bucketNotification BucketNotification) error {
+	// Input validation.
+	if err := isValidBucketName(bucketName); err != nil {
+		return err
+	}
+
+	// Get resources properly escaped and lined up before
+	// using them in http request.
+	urlValues := make(url.Values)
+	urlValues.Set("notification", "")
+
+	notifBytes, err := xml.Marshal(bucketNotification)
+	if err != nil {
+		return err
+	}
+
+	notifBuffer := bytes.NewReader(notifBytes)
+	reqMetadata := requestMetadata{
+		bucketName:         bucketName,
+		queryValues:        urlValues,
+		contentBody:        notifBuffer,
+		contentLength:      int64(len(notifBytes)),
+		contentMD5Bytes:    sumMD5(notifBytes),
+		contentSHA256Bytes: sum256(notifBytes),
+	}
+
+	// Execute PUT to upload a new bucket notification.
+	resp, err := c.executeMethod("PUT", reqMetadata)
+	defer closeResponse(resp)
+	if err != nil {
+		return err
+	}
+	if resp != nil {
+		if resp.StatusCode != http.StatusOK {
+			return httpRespToErrorResponse(resp, bucketName, "")
+		}
+	}
+	return nil
+}
+
+// RemoveAllBucketNotification - Remove bucket notification clears all previously specified config
+func (c Client) RemoveAllBucketNotification(bucketName string) error {
+	return c.SetBucketNotification(bucketName, BucketNotification{})
+}

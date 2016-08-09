@@ -33,21 +33,27 @@ func main() {
 
 	// New returns an Amazon S3 compatible client object. API compatibility (v2 or v4) is automatically
 	// determined based on the Endpoint value.
-	s3Client, err := minio.New("s3.amazonaws.com", "YOUR-ACCESSKEYID", "YOUR-SECRETACCESSKEY", true)
+	minioClient, err := minio.New("play.minio.io:9000", "YOUR-ACCESSKEYID", "YOUR-SECRETACCESSKEY", true)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// s3Client.TraceOn(os.Stderr)
 
-	// Description of policy input.
-	// minio.BucketPolicyNone - Remove any previously applied bucket policy at a prefix.
-	// minio.BucketPolicyReadOnly - Set read-only operations at a prefix.
-	// minio.BucketPolicyWriteOnly - Set write-only operations at a prefix.
-	// minio.BucketPolicyReadWrite - Set read-write operations at a prefix.
-	err = s3Client.SetBucketPolicy("my-bucketname", "my-objectprefix", minio.BucketPolicyReadWrite)
-	if err != nil {
-		log.Fatalln(err)
+	// Create a done channel to control 'ListenBucketNotification' go routine.
+	doneCh := make(chan struct{})
+
+	// Indicate to our routine to exit cleanly upon return.
+	defer close(doneCh)
+
+	// Account ARN.
+	accountARN := minio.NewArn("minio", "lambda", "us-east-1", "1", "lambda")
+
+	// Listen for bucket notifications on "mybucket" filtered by account ARN "arn:minio:sqs:us-east-1:1:minio".
+	for notificationInfo := range minioClient.ListenBucketNotification("YOUR-BUCKETNAME", accountARN, doneCh) {
+		if notificationInfo.Err != nil {
+			log.Fatalln(notificationInfo.Err)
+		}
+		log.Println(notificationInfo)
 	}
-	log.Println("Success")
 }

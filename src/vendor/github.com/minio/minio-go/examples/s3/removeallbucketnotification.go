@@ -38,9 +38,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	err = s3Client.RemoveBucketPolicy("my-bucketname", "my-objectprefix")
+	// s3Client.TraceOn(os.Stderr)
+
+	err = s3Client.RemoveAllBucketNotification("my-bucketname")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println("Success")
+
+	log.Println("Bucket notification are successfully removed.")
 }
