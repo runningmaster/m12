@@ -49,3 +49,11 @@ curl -v -k -X 'POST' \
 -H 'User-Agent: [skynet] some agent' \
 -T 'data.json.gz' \
 http://localhost:8080/data/add
+
+
+curl -v -k -X 'POST' \
+-u 'api:key-masterkey' \
+-H 'Content-Encoding: gzip' \
+-H 'Content-Type: application/json; charset=utf-8' \
+-H 'User-Agent: test' \
+http://localhost:8080//stream/pop-data
