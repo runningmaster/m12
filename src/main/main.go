@@ -18,6 +18,7 @@ func main() {
 
 	err := server.Run(pref.Host)
 	if err != nil {
+		pref.Usage()
 		log.Fatalf("main: %v", err)
 	}
 }
