@@ -60,8 +60,8 @@ func main() {
 |[`ListBuckets`](#ListBuckets)   |[`PutObject`](#PutObject)   |[`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)  |
 |[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject)   |[`PresignedPostPolicy`](#PresignedPostPolicy)   | [`SetBucketNotification`](#SetBucketNotification)   |
 | [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)  |
-|[`ListObjects`](#ListObjects)   |[`RemoveObject`](#RemoveObject)   |   |   [`DeleteBucketNotification`](#DeleteBucketNotification)  |
-|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload)  |   |   |
+|[`ListObjects`](#ListObjects)   |[`RemoveObject`](#RemoveObject)   |   |   [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
+|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload)  |   | [`ListenBucketNotification`](#ListenBucketNotification)  |
 |[`ListIncompleteUploads`](#ListIncompleteUploads) |[`FPutObject`](#FPutObject)   |   |   |
 |   | [`FGetObject`](#FGetObject)  |   |   |
 
@@ -911,7 +911,7 @@ __Example__
 
 
 ```go
-topicArn := NewArn("aws", "s3", "us-east-1", "804605494417", "PhotoUpdate")
+topicArn := NewArn("aws", "sns", "us-east-1", "804605494417", "PhotoUpdate")
 
 topicConfig := NewNotificationConfig(topicArn)
 topicConfig.AddEvents(minio.ObjectCreatedAll, minio.ObjectRemovedAll)
