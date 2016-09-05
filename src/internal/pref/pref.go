@@ -1,5 +1,7 @@
 package pref
 
+import "flag"
+
 const envFormat = "M12_%s"
 
 type pref struct {
@@ -9,17 +11,17 @@ type pref struct {
 }
 
 var (
-	// Host is host server address.
-	Host = "http://127.0.0.1:8080"
-
 	// NATS is NATS server address.
 	NATS = "nats://127.0.0.1:4222"
 
-	// Minio is Minio server address.
-	Minio = "http://akey:skey@127.0.0.1:9000"
+	// MINIO is Minio server address.
+	MINIO = "http://akey:skey@127.0.0.1:9000"
 
-	// Redis is Redis server address.
-	Redis = "redis://127.0.0.1:6379"
+	// REDIS is Redis server address.
+	REDIS = "redis://127.0.0.1:6379"
+
+	// SERVER is host server address.
+	SERVER = "http://127.0.0.1:8080"
 
 	// MasterKey is default secret key for sysdba.
 	MasterKey = "masterkey"
@@ -32,11 +34,6 @@ var (
 
 	prefs = []pref{
 		pref{
-			"host",
-			"Host server address",
-			&Host,
-		},
-		pref{
 			"nats",
 			"NATS server address",
 			&NATS,
@@ -44,12 +41,17 @@ var (
 		pref{
 			"minio",
 			"Minio S3 object storage address",
-			&Minio,
+			&MINIO,
 		},
 		pref{
 			"redis",
 			"Redis server address",
-			&Redis,
+			&REDIS,
+		},
+		pref{
+			"host",
+			"Host server address",
+			&SERVER,
 		},
 		pref{
 			"masterkey",
@@ -68,3 +70,20 @@ var (
 		},
 	}
 )
+
+// Init is public init func, must be called from main()
+// NOTE about priority levels:
+// 5.explicit set > 4.flag > 3.environment > 2.config > 1.key/value store > 0.default
+func Init() {
+	init0(prefs...) // 0 default
+	init1(prefs...) // 1 key/value store
+	init2(prefs...) // 2 config
+	init3(prefs...) // 3 environment
+	init4(prefs...) // 4 flag
+	init5("debug")  // 5 explicit set TEST ONLY, FIXME
+}
+
+// Usage wraps flag.Usage
+func Usage() {
+	flag.Usage()
+}

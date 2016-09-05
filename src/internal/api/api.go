@@ -2,15 +2,37 @@ package api
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"internal/ctxutil"
 	"internal/pipe"
 	"internal/version"
+
+	"github.com/garyburd/redigo/redis"
+	"github.com/julienschmidt/httprouter"
+	minio "github.com/minio/minio-go"
+	"github.com/nats-io/nats"
+)
+
+const (
+	bucketStreamIn  = "stream-in"
+	bucketStreamOut = "stream-out"
+	bucketStreamErr = "stream-err"
+
+	subjectSteamIn  = "m12." + bucketStreamIn
+	subjectSteamOut = "m12." + bucketStreamOut
+
+	listN = 100
+	tickD = 10 * time.Second
 )
 
 var (
+	cNATS        *nats.Conn
+	cMINIO       *minio.Client
+	pREDIS       *redis.Pool
 	httpHandlers = map[string]http.Handler{
 		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
 		"GET>/ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(ping), pipe.Resp, pipe.Tail),
@@ -78,4 +100,51 @@ func respErr(r *http.Request, code int) {
 	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
 	ctx = ctxutil.WithFail(ctx, err, code)
 	*r = *r.WithContext(ctx)
+}
+
+// Init returns HTTP Handler
+func Init(n *nats.Conn, m *minio.Client, r *redis.Pool) (http.Handler, error) {
+	cNATS = n
+	cMINIO = m
+	pREDIS = r
+	return makeRouter(), nil
+}
+
+func makeRouter() http.Handler {
+	r := httprouter.New()
+
+	for k, v := range httpHandlers {
+		s := strings.Split(k, ">") // [m,p]
+
+		switch s[1] {
+		case "/error/404":
+			r.NotFound = v
+		case "/error/405":
+			r.MethodNotAllowed = v
+		default:
+			func(m, p string, h http.Handler) {
+				r.Handle(m, p,
+					func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+						ctx := r.Context()
+						for i := range p {
+							ctx = ctxutil.WithURLp(ctx, p[i].Key, p[i].Value)
+						}
+						r = r.WithContext(ctx)
+						h.ServeHTTP(w, r)
+					})
+			}(s[0], s[1], v)
+		}
+	}
+
+	return r
+}
+
+func redisConn() redis.Conn {
+	return pREDIS.Get()
+}
+
+func closeConn(c io.Closer) {
+	if c != nil {
+		_ = c.Close()
+	}
 }

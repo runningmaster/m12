@@ -11,23 +11,6 @@ import (
 	"github.com/sasbury/mini"
 )
 
-// Usage wraps flag.Usage
-func Usage() {
-	flag.Usage()
-}
-
-// Init is public init func, must be called from main()
-// NOTE about priority levels:
-// 5.explicit set > 4.flag > 3.environment > 2.config > 1.key/value store > 0.default
-func Init() {
-	init0(prefs...) // 0 default
-	init1(prefs...) // 1 key/value store
-	init2(prefs...) // 2 config
-	init3(prefs...) // 3 environment
-	init4(prefs...) // 4 flag
-	init5("debug")  // 5 explicit set TEST ONLY, FIXME
-}
-
 func init0(p ...pref) {
 	// see above
 }
