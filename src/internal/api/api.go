@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"internal/ctxutil"
+	"internal/minio"
 	"internal/pipe"
 	"internal/version"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/julienschmidt/httprouter"
-	minio "github.com/minio/minio-go"
 	"github.com/nats-io/nats"
 )
 
@@ -31,7 +31,7 @@ const (
 
 var (
 	cNATS        *nats.Conn
-	cMINIO       *minio.Client
+	cMINIO       minio.Helper
 	pREDIS       *redis.Pool
 	httpHandlers = map[string]http.Handler{
 		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
@@ -103,7 +103,7 @@ func respErr(r *http.Request, code int) {
 }
 
 // Init returns HTTP Handler
-func Init(n *nats.Conn, m *minio.Client, r *redis.Pool) (http.Handler, error) {
+func Init(n *nats.Conn, m minio.Helper, r *redis.Pool) (http.Handler, error) {
 	cNATS = n
 	cMINIO = m
 	pREDIS = r

@@ -2,28 +2,22 @@ package api
 
 import (
 	"encoding/base64"
-	"io"
 	"net/http"
 )
 
 func getd(data []byte, _, w http.Header) (interface{}, error) {
-	bucket, object, err := unmarshaPairExt(data)
+	b, o, err := unmarshaPairExt(data)
 	if err != nil {
 		return nil, err
 	}
 
-	o, err := cMINIO.GetObject(bucket, object)
+	r, err := minio.Get(b, o)
 	if err != nil {
 		return nil, err
 	}
+	defer minio.Free(r)
 
-	defer func(c io.Closer) {
-		if c != nil {
-			_ = c.Close()
-		}
-	}(o)
-
-	meta, data, err := ungztarMetaData(o, false, true)
+	meta, data, err := ungztarMetaData(r, false, true)
 	if err != nil {
 		return nil, err
 	}

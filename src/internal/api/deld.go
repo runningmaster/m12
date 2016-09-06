@@ -1,12 +1,12 @@
 package api
 
 func deld(data []byte) (interface{}, error) {
-	bucket, object, err := unmarshaPairExt(data)
+	b, o, err := minio.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	err = cMINIO.RemoveObject(bucket, object)
+	err = minio.Del(b, o)
 	if err != nil {
 		return nil, err
 	}

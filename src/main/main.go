@@ -18,7 +18,7 @@ import (
 
 func main() {
 	pref.Init()
-	initLogger(pref.Verbose)
+	initStdLog(pref.Verbose)
 
 	err := initAndRun(
 		pref.NATS,
@@ -32,7 +32,7 @@ func main() {
 	}
 }
 
-func initLogger(v bool) {
+func initStdLog(v bool) {
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
 	if v {

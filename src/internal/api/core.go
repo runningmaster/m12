@@ -45,30 +45,6 @@ func (m *jsonMeta) marshalIndent() []byte {
 	return b
 }
 
-type pair struct {
-	Bucket string `json:"bucket,omitempty"`
-	Object string `json:"object,omitempty"`
-}
-
-func (p pair) marshal() []byte {
-	b, _ := json.Marshal(p)
-	return b
-}
-
-func unmarshaPair(data []byte) (pair, error) {
-	p := pair{}
-	err := json.Unmarshal(data, &p)
-	return p, err
-}
-
-func unmarshaPairExt(data []byte) (string, string, error) {
-	p, err := unmarshaPair(data)
-	if err != nil {
-		return "", "", err
-	}
-	return p.Bucket, p.Object, nil
-}
-
 // Redis scheme:
 // HASH => key="stat"
 // HMSET key i->n [i->n...]

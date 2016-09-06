@@ -1,15 +1,37 @@
 package minio
 
 import (
+	"encoding/json"
+	"io"
 	"net/url"
+	"path/filepath"
 
 	minio "github.com/minio/minio-go"
 )
 
-// Init return active connection to MINIO Server
-func Init(addr string) (*minio.Client, error) {
-	return makeConn(addr)
-	// return makeBuckets(bucketStreamIn, bucketStreamOut, bucketStreamErr)
+type Helper interface {
+	Put(string, string, io.Reader) error
+	Get(string, string) (io.ReadCloser, error)
+	Del(string, string) error
+	Copy(string, string, string, string) error
+	List(string, int) ([]string, error)
+	Free(io.Closer)
+	Marshal(string, string) ([]byte, error)
+	Unmarshal([]byte) (string, string, error)
+}
+
+type client struct {
+	cli *minio.Client
+}
+
+// Init inits client for MINIO Server
+func NewHelper(addr string) (Helper, error) {
+	c, err := makeConn(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{c}, nil
 }
 
 func makeConn(addr string) (*minio.Client, error) {
@@ -32,30 +54,53 @@ func makeConn(addr string) (*minio.Client, error) {
 	return c, nil
 }
 
-func makeBuckets(c *minio.Client, list ...string) error {
-	for i := range list {
-		b := list[i]
-		ok, err := c.BucketExists(b)
-		if err != nil {
-			return err
-		}
-		if !ok {
-			err = c.MakeBucket(b, "")
-			if err != nil {
-				return err
-			}
-		}
+func (c *client) mustBucket(b string) error {
+	ok, err := c.cli.BucketExists(b)
+	if err != nil {
+		return err
 	}
+
+	if !ok {
+		return c.cli.MakeBucket(b, "")
+	}
+
 	return nil
 }
 
-func listObjectsN(c *minio.Client, bucket string, n int) ([]string, error) {
+func (c *client) Put(b string, o string, r io.Reader) error {
+	err := c.mustBucket(b)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.cli.PutObject(b, o, r, "")
+	return err
+}
+
+func (c *client) Get(b string, o string) (io.ReadCloser, error) {
+	return c.cli.GetObject(b, o)
+}
+
+func (c *client) Del(b string, o string) error {
+	return c.cli.RemoveObject(b, o)
+}
+
+func (c *client) Copy(bDst string, oDst string, bSrc string, oSrc string) error {
+	err := c.mustBucket(bDst)
+	if err != nil {
+		return err
+	}
+
+	return c.cli.CopyObject(bSrc, oSrc, filepath.Join(bDst, oDst), minio.NewCopyConditions())
+}
+
+func (c *client) List(b string, n int) ([]string, error) {
 	doneCh := make(chan struct{}, 1)
 	defer func() { close(doneCh) }()
 
 	i := 0
 	out := make([]string, 0, n)
-	for o := range c.ListObjects(bucket, "", false, doneCh) {
+	for o := range c.cli.ListObjects(b, "", false, doneCh) {
 		if o.Err != nil {
 			return nil, o.Err
 		}
@@ -69,4 +114,26 @@ func listObjectsN(c *minio.Client, bucket string, n int) ([]string, error) {
 	}
 
 	return out, nil
+}
+
+func (c *client) Free(o io.Closer) {
+	if o != nil {
+		_ = o.Close()
+	}
+}
+
+type pair struct {
+	Bucket string `json:"bucket,omitempty"`
+	Object string `json:"object,omitempty"`
+}
+
+func (c *client) Marshal(b string, o string) ([]byte, error) {
+	p := pair{b, o}
+	return json.Marshal(p)
+}
+
+func (c *client) Unmarshal(data []byte) (string, string, error) {
+	p := pair{}
+	err := json.Unmarshal(data, &p)
+	return p.Bucket, p.Object, err
 }
