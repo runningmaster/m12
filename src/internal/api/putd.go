@@ -27,7 +27,7 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 		}
 
 		f := makeFileName(m.Auth.ID, m.UUID, convHTag[m.HTag])
-		_, err = cMINIO.PutObject(bucketStreamIn, f, t, "")
+		err = cMINIO.Put(bucketStreamIn, f, t)
 		if err != nil {
 			log.Println("putd: err: save:", err)
 		}

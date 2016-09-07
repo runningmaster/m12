@@ -40,14 +40,14 @@ func initStdLog(v bool) {
 	}
 }
 
-// Fail Fast
+// Fail fast and explicit dependencies
 func initAndRun(addrNATS, addrMINIO, addrREDIS, addrSERVER string) error {
 	n, err := nats.Init(addrNATS)
 	if err != nil {
 		return err
 	}
 
-	m, err := minio.Init(addrMINIO)
+	m, err := minio.NewClient(addrMINIO)
 	if err != nil {
 		return err
 	}

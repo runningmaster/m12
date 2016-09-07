@@ -1,12 +1,12 @@
 package api
 
 func deld(data []byte) (interface{}, error) {
-	b, o, err := minio.Unmarshal(data)
+	b, o, err := cMINIO.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	err = minio.Del(b, o)
+	err = cMINIO.Del(b, o)
 	if err != nil {
 		return nil, err
 	}

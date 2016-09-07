@@ -9,7 +9,7 @@ import (
 	minio "github.com/minio/minio-go"
 )
 
-type Helper interface {
+type Clienter interface {
 	Put(string, string, io.Reader) error
 	Get(string, string) (io.ReadCloser, error)
 	Del(string, string) error
@@ -25,7 +25,7 @@ type client struct {
 }
 
 // Init inits client for MINIO Server
-func NewHelper(addr string) (Helper, error) {
+func NewClient(addr string) (Clienter, error) {
 	c, err := makeConn(addr)
 	if err != nil {
 		return nil, err

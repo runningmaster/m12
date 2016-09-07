@@ -31,7 +31,7 @@ const (
 
 var (
 	cNATS        *nats.Conn
-	cMINIO       minio.Helper
+	cMINIO       minio.Clienter
 	pREDIS       *redis.Pool
 	httpHandlers = map[string]http.Handler{
 		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
@@ -103,7 +103,7 @@ func respErr(r *http.Request, code int) {
 }
 
 // Init returns HTTP Handler
-func Init(n *nats.Conn, m minio.Helper, r *redis.Pool) (http.Handler, error) {
+func Init(n *nats.Conn, m minio.Clienter, r *redis.Pool) (http.Handler, error) {
 	cNATS = n
 	cMINIO = m
 	pREDIS = r

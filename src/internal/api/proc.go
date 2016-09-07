@@ -15,7 +15,6 @@ import (
 
 	"internal/strutil"
 
-	minio "github.com/minio/minio-go"
 	"github.com/spkg/bom"
 )
 
@@ -74,42 +73,38 @@ func checkHTag(t string) error {
 
 func proc(data []byte) {
 	s := time.Now()
-	bucket, object, err := unmarshaPairExt(data)
+	b, o, err := cMINIO.Unmarshal(data)
 	if err != nil {
 		log.Println("proc: err: pair:", err)
 		return
 	}
 
-	o, err := cMINIO.GetObject(bucket, object)
+	f1, err := cMINIO.Get(b, o)
 	if err != nil {
-		log.Println("proc: err: load:", object, err)
+		log.Println("proc: err: load:", o, err)
 		return
 	}
-	defer func(c io.Closer) {
-		if c != nil {
-			_ = c.Close()
-		}
-	}(o)
+	defer cMINIO.Free(f1)
 
 	var f string
-	m, d, err := procObject(o)
+	m, d, err := procObject(f1)
 	if err != nil {
-		log.Println("proc: err:", object, err)
+		log.Println("proc: err:", o, err)
 		m.Fail = err.Error()
 
-		f = object + ".txt"
-		_, err = cMINIO.PutObject(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()), "")
+		f = o + ".txt"
+		err = cMINIO.Put(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()))
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
 
-		err = cMINIO.CopyObject(bucketStreamErr, object, bucket+"/"+object, minio.NewCopyConditions())
+		err = cMINIO.Copy(bucketStreamErr, o, b, o)
 		if err != nil {
-			log.Println("proc: err: copy:", object, err)
+			log.Println("proc: err: copy:", o, err)
 		}
 	} else {
 		f = makeFileName(m.Auth.ID, m.UUID, m.HTag)
-		_, err = cMINIO.PutObject(bucketStreamOut, f, d, "")
+		err = cMINIO.Put(bucketStreamOut, f, d)
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
@@ -117,14 +112,14 @@ func proc(data []byte) {
 		log.Println("proc:", f, m.Proc, time.Since(s).String())
 	}
 
-	err = cMINIO.RemoveObject(bucket, object)
+	err = cMINIO.Del(b, o)
 	if err != nil {
-		log.Println("proc: err: kill:", object, err)
+		log.Println("proc: err: kill:", o, err)
 	}
 
 	err = zlog(m)
 	if err != nil {
-		log.Println("proc: err: zlog:", object, err)
+		log.Println("proc: err: zlog:", o, err)
 	}
 }
 
