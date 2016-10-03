@@ -61,8 +61,9 @@ func main() {
 |[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject)   |[`PresignedPostPolicy`](#PresignedPostPolicy)   |  [`ListBucketPolicies`](#ListBucketPolicies)  |
 | [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject)   |   |  [`SetBucketNotification`](#SetBucketNotification)  |
 |[`ListObjects`](#ListObjects)   |[`RemoveObject`](#RemoveObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)   |
-|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload)  |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
-|[`ListIncompleteUploads`](#ListIncompleteUploads) |[`FPutObject`](#FPutObject)   |   |  [`ListenBucketNotification`](#ListenBucketNotification)  |
+|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveObjects`](#RemoveObjects) |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
+|[`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |   |  [`ListenBucketNotification`](#ListenBucketNotification)  |
+|   | [`FPutObject`](#FPutObject)  |   |   |
 |   | [`FGetObject`](#FGetObject)  |   |   |
 
 ## 1. Constructor
@@ -153,7 +154,7 @@ for _, bucket := range buckets {
  ```
 
 <a name="BucketExists"></a>
-### BucketExists(bucketName string) error
+### BucketExists(bucketName string) (found bool, err error)
 
 Checks if a bucket exists.
 
@@ -165,15 +166,26 @@ __Parameters__
 |`bucketName`  | _string_  |name of the bucket.   |
 
 
+__Return Values__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`found`  | _bool_ | indicates whether bucket exists or not  |
+|`err` | _error_  | standard error  |
+
+
 __Example__
 
 
 ```go
 
-err := minioClient.BucketExists("mybucket")
+found, err := minioClient.BucketExists("mybucket")
 if err != nil {
     fmt.Println(err)
     return
+}
+if found {
+    fmt.Println("Bucket found")
 }
 
 ```
@@ -624,6 +636,42 @@ if err != nil {
 }
 
 ```
+<a name="RemoveObjects"></a>
+### RemoveObjects(bucketName string, objectsCh chan string) (errorCh chan minio.RemoveObjectError, err error)
+
+Removes a list of objects obtained from an input channel. The call internally buffers up `1000` at
+a time and initiates a delete request to the server. Upon any error is sent through the error channel.
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`bucketName`  | _string_  |name of the bucket.   |
+|`objectsCh` | _chan string_  | write prefixes of objects to be removed   |
+
+
+__Return Values__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`errorCh` | _chan minio.RemoveObjectError  | read objects deletion errors  |
+|`err` | _error_  | standard error   |
+
+
+
+```go
+
+errorCh, err := minioClient.RemoveObjects("mybucket", objectsCh)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+for e := range errorCh {
+    fmt.Println("Error detected during deletion: " + e.Err.Error())
+}
+
+```
+
 
 
 <a name="RemoveIncompleteUpload"></a>
@@ -779,9 +827,11 @@ fmt.Printf("%s\n", url)
 ## 5. Bucket policy/notification operations
 
 <a name="SetBucketPolicy"></a>
-### SetBucketPolicy(bucketname string, objectPrefix string, policy BucketPolicy) error
+### SetBucketPolicy(bucketname string, objectPrefix string, policy policy.BucketPolicy) error
 
 Set access permissions on bucket or an object prefix.
+
+Importing `github.com/minio/minio-go/pkg/policy` package is needed.
 
 __Parameters__
 
@@ -790,11 +840,11 @@ __Parameters__
 |:---|:---| :---|
 |`bucketName` | _string_  |name of the bucket.|
 |`objectPrefix` | _string_  |name of the object prefix.|
-|`policy` | _BucketPolicy_  |policy can be:|
-||  |BucketPolicyNone|
-| |  |BucketPolicyReadOnly|
-||   |BucketPolicyReadWrite|
-| | |BucketPolicyWriteOnly|
+|`policy` | _policy.BucketPolicy_  |policy can be:|
+||  |policy.BucketPolicyNone|
+| |  |policy.BucketPolicyReadOnly|
+||   |policy.BucketPolicyReadWrite|
+| | |policy.BucketPolicyWriteOnly|
 
 
 __Return Values__
@@ -810,7 +860,7 @@ __Example__
 
 ```go
 
-err := minioClient.SetBucketPolicy("mybucket", "myprefix", BucketPolicyReadWrite)
+err := minioClient.SetBucketPolicy("mybucket", "myprefix", policy.BucketPolicyReadWrite)
 if err != nil {
     fmt.Println(err)
     return
@@ -819,9 +869,11 @@ if err != nil {
 ```
 
 <a name="GetBucketPolicy"></a>
-### GetBucketPolicy(bucketName string, objectPrefix string) (BucketPolicy, error)
+### GetBucketPolicy(bucketName string, objectPrefix string) (policy.BucketPolicy, error)
 
 Get access permissions on a bucket or a prefix.
+
+Importing `github.com/minio/minio-go/pkg/policy` package is needed.
 
 __Parameters__
 
@@ -836,7 +888,7 @@ __Return Values__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
-|`bucketPolicy`  | _BucketPolicy_ |string that contains: `none`, `readonly`, `readwrite`, or `writeonly`   |
+|`bucketPolicy`  | _policy.BucketPolicy_ |string that contains: `none`, `readonly`, `readwrite`, or `writeonly`   |
 |`err` | _error_  |standard error  |
 
 __Example__
@@ -993,7 +1045,7 @@ if err != nil {
 ```
 
 <a name="ListenBucketNotification"></a>
-### ListenBucketNotification(bucketName string, accountArn Arn, doneCh chan<- struct{}) <-chan NotificationInfo
+### ListenBucketNotification(bucketName, prefix, suffix string, events []string, doneCh <-chan struct{}) <-chan NotificationInfo
 
 ListenBucketNotification API receives bucket notification events through the
 notification channel. The returned notification channel has two fields
@@ -1010,11 +1062,12 @@ __Parameters__
 |Param   |Type   |Description   |
 |:---|:---| :---|
 |`bucketName`  | _string_  | Bucket to listen notifications from.   |
-|`accountArn`  | _Arn_ | Unique account ID to listen notifications for.  |
+|`prefix`  | _string_ | Object key prefix to filter notifications for.  |
+|`suffix`  | _string_ | Object key suffix to filter notifications for.  |
+|`events`  | _[]string_| Enables notifications for specific event types. |
 |`doneCh`  | _chan struct{}_ | A message on this channel ends the ListenBucketNotification loop.  |
 
 __Return Values__
-
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
@@ -1035,35 +1088,15 @@ doneCh := make(chan struct{})
 // Indicate a background go-routine to exit cleanly upon return.
 defer close(doneCh)
 
-// Fetch the bucket location.
-location, err := minioClient.GetBucketLocation("YOUR-BUCKET")
-if err != nil {
-	log.Fatalln(err)
-}
-
-// Construct a new account Arn.
-accountArn := minio.NewArn("minio", "sns", location, "your-account-id", "listen")
-topicConfig := minio.NewNotificationConfig(accountArn)
-topicConfig.AddEvents(minio.ObjectCreatedAll, minio.ObjectRemovedAll)
-topicConfig.AddFilterPrefix("photos/")
-topicConfig.AddFilterSuffix(".jpg")
-
-// Now, set all previously created notification configs
-bucketNotification := minio.BucketNotification{}
-bucketNotification.AddTopic(topicConfig)
-err = s3Client.SetBucketNotification("YOUR-BUCKET", bucketNotification)
-if err != nil {
-	log.Fatalln("Error: " + err.Error())
-}
-log.Println("Success")
-
-// Listen for bucket notifications on "mybucket" filtered by accountArn "arn:minio:sns:<location>:<your-account-id>:listen".
-for notificationInfo := range s3Client.ListenBucketNotification("mybucket", accountArn, doneCh) {
-       if notificationInfo.Err != nil {
-               fmt.Println(notificationInfo.Err)
-                return
-       }
-       fmt.Println(notificationInfo)
+// Listen for bucket notifications on "mybucket" filtered by prefix, suffix and events.
+for notificationInfo := range minioClient.ListenBucketNotification("YOUR-BUCKET", "PREFIX", "SUFFIX", []string{
+	"s3:ObjectCreated:*",
+	"s3:ObjectRemoved:*",
+}, doneCh) {
+	if notificationInfo.Err != nil {
+		log.Fatalln(notificationInfo.Err)
+	}
+	log.Println(notificationInfo)
 }
 ```
 
