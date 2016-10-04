@@ -39,24 +39,25 @@ func Join(a ...string) string {
 
 // First returns n first characters.
 // Based on https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4.
-func First(s string, n int) string {
-	if s == "" || n <= 0 {
-		return ""
+func TrimRightN(s string, n int) string {
+	if s == "" || n == 0 {
+		return s
 	}
-	rns := []rune(s)
-	if len(rns) < n {
-		n = len(rns)
-	}
-	res := make([]rune, n)
-	for i := 0; i < n; i++ {
-		res[i] = rns[i]
 
+	if n < 0 {
+		n = -n
 	}
-	return string(res)
+
+	r := []rune(s)
+	if len(r) > n {
+		return string(r[0:n])
+	}
+
+	return string(r)
 }
 
 /*
 s      := []rune("世界世界世界")
-first3 := string(s[0:3])
+first3 :=
 last3  := string(s[len(s)-3:])
 */

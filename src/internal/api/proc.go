@@ -321,38 +321,36 @@ func mineAddrs(v addrer) (int, error) {
 }
 
 const (
+	magicLength   = 1024
 	magicSuffixBY = "{\"COUNTRY_ID\":\"1010\"}"
 	magicSuffixKZ = "{\"COUNTRY_ID\":\"106\"}"
 	magicSuffixRU = "{\"COUNTRY_ID\":\"1027\"}"
 	magicSuffixUA = ""
-
-	magicAddrLength = 1024
-	magicDrugLength = 512
 )
 
 func makeMagicHead(name, head, addr string) string {
 	return strings.TrimSpace(
-		strutil.First(
+		strutil.TrimRightN(
 			fmt.Sprintf("%s/%s: %s", name, head, addr),
-			magicAddrLength,
+			magicLength,
 		),
 	)
 }
 
 func makeMagicAddr(name string) string {
 	return strings.TrimSpace(
-		strutil.First(
+		strutil.TrimRightN(
 			name,
-			magicAddrLength,
+			magicLength,
 		),
 	)
 }
 
 func makeMagicDrug(name string) string {
 	return strings.TrimSpace(
-		strutil.First(
+		strutil.TrimRightN(
 			name,
-			magicDrugLength,
+			magicLength,
 		),
 	)
 }
