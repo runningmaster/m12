@@ -55,9 +55,3 @@ func TrimRightN(s string, n int) string {
 
 	return string(r)
 }
-
-/*
-s      := []rune("世界世界世界")
-first3 :=
-last3  := string(s[len(s)-3:])
-*/
