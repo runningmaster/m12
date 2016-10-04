@@ -44,11 +44,11 @@ var (
 
 // GetReader gets reader from pool.
 func GetReader() (*gzip.Reader, error) {
-	switch r := readerPool.Get().(type) {
+	switch v := readerPool.Get().(type) {
 	case *gzip.Reader:
-		return r, nil
+		return v, nil
 	case error:
-		return nil, r
+		return nil, v
 	}
 	return nil, fmt.Errorf("gzip: unreachable")
 }
@@ -63,17 +63,18 @@ func PutReader(c io.Closer) error {
 	if err != nil {
 		return err
 	}
+
 	readerPool.Put(c)
 	return nil
 }
 
 // GetWriter gets writer from pool.
 func GetWriter() (*gzip.Writer, error) {
-	switch w := writerPool.Get().(type) {
+	switch v := writerPool.Get().(type) {
 	case *gzip.Writer:
-		return w, nil
+		return v, nil
 	case error:
-		return nil, w
+		return nil, v
 	}
 	return nil, fmt.Errorf("gzip: unreachable")
 }
@@ -88,6 +89,7 @@ func PutWriter(c io.Closer) error {
 	if err != nil {
 		return err
 	}
+
 	writerPool.Put(c)
 	return nil
 }
