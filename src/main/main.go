@@ -8,12 +8,12 @@ import (
 	_ "expvar"
 	_ "net/http/pprof"
 
-	"internal/api"
-	"internal/conns/minio"
-	"internal/conns/nats"
-	"internal/conns/redis"
-	"internal/pref"
-	"internal/server"
+	"internal/core/api"
+	"internal/core/pref"
+	"internal/database/minio"
+	"internal/database/redis"
+	"internal/net/http/server"
+	"internal/net/nats"
 )
 
 func main() {

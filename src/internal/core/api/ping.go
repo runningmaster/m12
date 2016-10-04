@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"strings"
 
-	"internal/conns/redis"
+	"internal/database/redis"
 )
 
 func ping() (interface{}, error) {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"internal/conns/minio"
+	"internal/database/minio"
 )
 
 func putd(data []byte, r, _ http.Header) (interface{}, error) {

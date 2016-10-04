@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"internal/ctxutil"
+	"internal/context/ctxutil"
 )
 
 func Auth(fn func(string) bool) handler {

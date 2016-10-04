@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/pref"
-
-	"internal/conns/redis"
+	"internal/core/pref"
+	"internal/database/redis"
 )
 
 const (

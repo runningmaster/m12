@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"runtime"
 
-	"internal/ctxutil"
-	"internal/pref"
+	"internal/context/ctxutil"
+	"internal/core/pref"
 )
 
 func Resp(next http.Handler) http.Handler {

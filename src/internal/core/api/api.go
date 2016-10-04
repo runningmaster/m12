@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"internal/ctxutil"
-	"internal/pipe"
+	"internal/context/ctxutil"
+	"internal/core/pipe"
 	"internal/version"
 
 	"github.com/julienschmidt/httprouter"

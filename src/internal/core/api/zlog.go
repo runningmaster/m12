@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 
-	"internal/conns/redis"
-	"internal/gzip"
+	"internal/compress/gziputil"
+	"internal/database/redis"
 )
 
 const (
@@ -15,7 +15,7 @@ func zlog(m jsonMeta) error {
 	c := redis.Conn()
 	defer redis.Free(c)
 
-	z, err := gzip.Compress(m.marshal())
+	z, err := gziputil.Compress(m.marshal())
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func getZlog(data []byte) (interface{}, error) {
 			return nil, err
 		}
 
-		r, err = gzip.Uncompress(z)
+		r, err = gziputil.Uncompress(z)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func getMeta(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	r, err := gzip.Uncompress(z)
+	r, err := gziputil.Uncompress(z)
 	if err != nil {
 		return nil, err
 	}

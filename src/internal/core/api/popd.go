@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"internal/conns/minio"
+	"internal/database/minio"
 )
 
 func popd(data []byte, _, w http.Header) (interface{}, error) {

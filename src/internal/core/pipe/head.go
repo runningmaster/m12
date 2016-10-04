@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"internal/ctxutil"
+	"internal/context/ctxutil"
 
 	"github.com/rogpeppe/fastuuid"
 )

@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"internal/ctxutil"
+	"internal/context/ctxutil"
 )
 
 func Wrap(v interface{}) handler {

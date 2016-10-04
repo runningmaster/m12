@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"internal/conns/minio"
+	"internal/database/minio"
 )
 
 func getd(data []byte, _, w http.Header) (interface{}, error) {

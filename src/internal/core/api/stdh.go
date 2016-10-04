@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"internal/ctxutil"
-	"internal/pref"
+	"internal/context/ctxutil"
+	"internal/core/pref"
 )
 
 func stdh(w http.ResponseWriter, r *http.Request) {

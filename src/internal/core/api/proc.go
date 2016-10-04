@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"internal/conns/minio"
-	"internal/strutil"
+	"internal/database/minio"
+	"internal/strings/strutil"
 
 	"github.com/spkg/bom"
 )

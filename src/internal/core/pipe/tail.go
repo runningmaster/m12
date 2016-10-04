@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"internal/ctxutil"
+	"internal/context/ctxutil"
 
 	"code.cloudfoundry.org/bytefmt"
 )

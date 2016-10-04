@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/ctxutil"
-	"internal/gzip"
+	"internal/compress/gziputil"
+	"internal/context/ctxutil"
 )
 
 func Meta(next http.Handler) http.Handler {
@@ -93,7 +93,7 @@ func checkHeader(h http.Header) error {
 }
 
 func mustHeaderGzip(h http.Header) error {
-	if !gzip.InString(h.Get("Content-Encoding")) {
+	if !gziputil.InString(h.Get("Content-Encoding")) {
 		return fmt.Errorf("pipe: content-encoding must contain gzip")
 	}
 	return nil

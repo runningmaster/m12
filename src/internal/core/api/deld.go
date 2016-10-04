@@ -1,7 +1,7 @@
 package api
 
 import (
-	"internal/conns/minio"
+	"internal/database/minio"
 )
 
 func deld(data []byte) (interface{}, error) {

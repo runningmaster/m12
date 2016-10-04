@@ -1,4 +1,4 @@
-package gzip
+package gziputil
 
 import (
 	"bufio"
