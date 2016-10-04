@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"internal/conns/minio"
 )
 
 func putd(data []byte, r, _ http.Header) (interface{}, error) {
@@ -27,7 +29,7 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 		}
 
 		f := makeFileName(m.Auth.ID, m.UUID, convHTag[m.HTag])
-		err = cMINIO.Put(bucketStreamIn, f, t)
+		err = minio.Put(bucketStreamIn, f, t)
 		if err != nil {
 			log.Println("putd: err: save:", err)
 		}

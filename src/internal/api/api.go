@@ -2,19 +2,15 @@ package api
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"internal/ctxutil"
-	"internal/minio"
 	"internal/pipe"
 	"internal/version"
 
-	"github.com/garyburd/redigo/redis"
 	"github.com/julienschmidt/httprouter"
-	"github.com/nats-io/nats"
 )
 
 const (
@@ -30,9 +26,6 @@ const (
 )
 
 var (
-	cNATS        *nats.Conn
-	cMINIO       minio.Clienter
-	pREDIS       *redis.Pool
 	httpHandlers = map[string]http.Handler{
 		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
 		"GET>/ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(ping), pipe.Resp, pipe.Tail),
@@ -102,15 +95,8 @@ func respErr(r *http.Request, code int) {
 	*r = *r.WithContext(ctx)
 }
 
-// Init returns HTTP Handler
-func Init(n *nats.Conn, m minio.Clienter, r *redis.Pool) (http.Handler, error) {
-	cNATS = n
-	cMINIO = m
-	pREDIS = r
-	return makeRouter(), nil
-}
-
-func makeRouter() http.Handler {
+// MakeRouter returns http.Handler
+func MakeRouter() http.Handler {
 	r := httprouter.New()
 
 	for k, v := range httpHandlers {
@@ -137,14 +123,4 @@ func makeRouter() http.Handler {
 	}
 
 	return r
-}
-
-func redisConn() redis.Conn {
-	return pREDIS.Get()
-}
-
-func closeConn(c io.Closer) {
-	if c != nil {
-		_ = c.Close()
-	}
 }

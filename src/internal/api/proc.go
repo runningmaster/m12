@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"internal/conns/minio"
 	"internal/strutil"
 
 	"github.com/spkg/bom"
@@ -73,18 +74,18 @@ func checkHTag(t string) error {
 
 func proc(data []byte) {
 	s := time.Now()
-	b, o, err := cMINIO.Unmarshal(data)
+	b, o, err := minio.Unmarshal(data)
 	if err != nil {
 		log.Println("proc: err: pair:", err)
 		return
 	}
 
-	f1, err := cMINIO.Get(b, o)
+	f1, err := minio.Get(b, o)
 	if err != nil {
 		log.Println("proc: err: load:", o, err)
 		return
 	}
-	defer cMINIO.Free(f1)
+	defer minio.Free(f1)
 
 	var f string
 	m, d, err := procObject(f1)
@@ -93,18 +94,18 @@ func proc(data []byte) {
 		m.Fail = err.Error()
 
 		f = o + ".txt"
-		err = cMINIO.Put(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()))
+		err = minio.Put(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()))
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
 
-		err = cMINIO.Copy(bucketStreamErr, o, b, o)
+		err = minio.Copy(bucketStreamErr, o, b, o)
 		if err != nil {
 			log.Println("proc: err: copy:", o, err)
 		}
 	} else {
 		f = makeFileName(m.Auth.ID, m.UUID, m.HTag)
-		err = cMINIO.Put(bucketStreamOut, f, d)
+		err = minio.Put(bucketStreamOut, f, d)
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
@@ -112,7 +113,7 @@ func proc(data []byte) {
 		log.Println("proc:", f, m.Proc, time.Since(s).String())
 	}
 
-	err = cMINIO.Del(b, o)
+	err = minio.Del(b, o)
 	if err != nil {
 		log.Println("proc: err: kill:", o, err)
 	}

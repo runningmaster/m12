@@ -7,9 +7,16 @@ import (
 	"github.com/nats-io/nats"
 )
 
-// Init return active connection to NATS Server
-func Init(addr string) (*nats.Conn, error) {
-	return makeConn(addr)
+var cli *nats.Conn
+
+// Init inits client for NATS Server
+func Init(addr string) error {
+	c, err := makeConn(addr)
+	if err != nil {
+		return err
+	}
+	cli = c
+	return nil
 }
 
 func makeConn(addr string) (*nats.Conn, error) {

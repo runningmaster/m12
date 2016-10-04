@@ -1,12 +1,16 @@
 package api
 
+import (
+	"internal/conns/minio"
+)
+
 func deld(data []byte) (interface{}, error) {
-	b, o, err := cMINIO.Unmarshal(data)
+	b, o, err := minio.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	err = cMINIO.Del(b, o)
+	err = minio.Del(b, o)
 	if err != nil {
 		return nil, err
 	}

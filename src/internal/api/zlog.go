@@ -3,9 +3,8 @@ package api
 import (
 	"encoding/json"
 
+	"internal/conns/redis"
 	"internal/gzip"
-
-	"github.com/garyburd/redigo/redis"
 )
 
 const (
@@ -13,8 +12,8 @@ const (
 )
 
 func zlog(m jsonMeta) error {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	z, err := gzip.Compress(m.marshal())
 	if err != nil {
@@ -35,10 +34,10 @@ func zlog(m jsonMeta) error {
 }
 
 func getZlog(data []byte) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
-	res, err := redis.Strings(c.Do("ZRANGEBYSCORE", keyZlog, "-inf", "+inf"))
+	res, err := redis.Conv.ToStrings(c.Do("ZRANGEBYSCORE", keyZlog, "-inf", "+inf"))
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +58,8 @@ func getZlog(data []byte) (interface{}, error) {
 	var z []byte
 	var m jsonMeta
 	for range res {
-		z, err = redis.Bytes(c.Receive())
-		if err != nil && err != redis.ErrNil {
+		z, err = redis.Conv.ToBytes(c.Receive())
+		if err != nil && redis.Conv.NotErrNil(err) {
 			return nil, err
 		}
 
@@ -86,10 +85,10 @@ func getMeta(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
-	z, err := redis.Bytes(c.Do("GET", v))
+	z, err := redis.Conv.ToBytes(c.Do("GET", v))
 	if err != nil /*&& err != redis.ErrNil*/ {
 		return nil, err
 	}

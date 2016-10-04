@@ -3,19 +3,21 @@ package api
 import (
 	"encoding/base64"
 	"net/http"
+
+	"internal/conns/minio"
 )
 
 func getd(data []byte, _, w http.Header) (interface{}, error) {
-	b, o, err := cMINIO.Unmarshal(data)
+	b, o, err := minio.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	f, err := cMINIO.Get(b, o)
+	f, err := minio.Get(b, o)
 	if err != nil {
 		return nil, err
 	}
-	defer cMINIO.Free(f)
+	defer minio.Free(f)
 
 	m, d, err := ungztarMetaData(f, false, true)
 	if err != nil {

@@ -9,10 +9,10 @@ import (
 	_ "net/http/pprof"
 
 	"internal/api"
-	"internal/minio"
-	"internal/nats"
+	"internal/conns/minio"
+	"internal/conns/nats"
+	"internal/conns/redis"
 	"internal/pref"
-	"internal/redis"
 	"internal/server"
 )
 
@@ -42,25 +42,20 @@ func initLogger(v bool) {
 
 // Fail fast and explicit dependencies
 func initAndRun(addrNATS, addrMINIO, addrREDIS, addrSERVER string) error {
-	n, err := nats.Init(addrNATS)
+	err := nats.Init(addrNATS)
 	if err != nil {
 		return err
 	}
 
-	m, err := minio.NewClient(addrMINIO)
+	err = minio.Init(addrMINIO)
 	if err != nil {
 		return err
 	}
 
-	r, err := redis.Init(addrREDIS)
+	err = redis.Init(addrREDIS)
 	if err != nil {
 		return err
 	}
 
-	h, err := api.Init(n, m, r)
-	if err != nil {
-		return err
-	}
-
-	return server.Run(addrSERVER, h)
+	return server.Run(addrSERVER, api.MakeRouter())
 }

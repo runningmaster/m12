@@ -4,22 +4,24 @@ import (
 	"encoding/base64"
 	"log"
 	"net/http"
+
+	"internal/conns/minio"
 )
 
 func popd(data []byte, _, w http.Header) (interface{}, error) {
-	b, o, err := cMINIO.Unmarshal(data)
+	b, o, err := minio.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	f, err := cMINIO.Get(b, o)
+	f, err := minio.Get(b, o)
 	if err != nil {
 		return nil, err
 	}
-	defer cMINIO.Free(f)
+	defer minio.Free(f)
 
 	defer func() {
-		err = cMINIO.Del(b, o)
+		err = minio.Del(b, o)
 		if err != nil {
 			log.Println("minio:", o, err)
 		}

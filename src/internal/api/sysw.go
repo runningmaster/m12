@@ -7,7 +7,7 @@ import (
 
 	"internal/pref"
 
-	"github.com/garyburd/redigo/redis"
+	"internal/conns/redis"
 )
 
 const (
@@ -26,10 +26,10 @@ func pass(key string) bool {
 		return true
 	}
 
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
-	v, _ := redis.Int(c.Do("HEXISTS", keyAuth, key))
+	v, _ := redis.Conv.ToInt64(c.Do("HEXISTS", keyAuth, key))
 
 	return v == 1
 }
@@ -65,8 +65,8 @@ func delAuth(data []byte) (interface{}, error) {
 }
 
 func getAuthREDIS(v []string) ([]linkAuth, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -85,8 +85,8 @@ func getAuthREDIS(v []string) ([]linkAuth, error) {
 	var r string
 	for i := range v {
 		out[i].ID = v[i]
-		r, err = redis.String(c.Receive())
-		if err != nil && err != redis.ErrNil {
+		r, err = redis.Conv.ToString(c.Receive())
+		if err != nil && redis.Conv.NotErrNil(err) {
 			return nil, err
 		}
 		out[i].Name = r
@@ -96,8 +96,8 @@ func getAuthREDIS(v []string) ([]linkAuth, error) {
 }
 
 func setAuthREDIS(v []linkAuth) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -111,8 +111,8 @@ func setAuthREDIS(v []linkAuth) (interface{}, error) {
 }
 
 func delAuthREDIS(v []string) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -156,8 +156,8 @@ func delAddr(data []byte) (interface{}, error) {
 }
 
 func getAddrREDIS(v []string) ([]linkAddr, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	vls := make([]interface{}, 0, len(fldsAddr)+1)
 	var err error
@@ -182,15 +182,15 @@ func getAddrREDIS(v []string) ([]linkAddr, error) {
 	var r []interface{}
 	for i := range v {
 		out[i].ID = v[i] // key
-		r, err = redis.Values(c.Receive())
-		if err != nil && err != redis.ErrNil {
+		r, err = redis.Conv.ToIntfs(c.Receive())
+		if err != nil && redis.Conv.NotErrNil(err) {
 			return nil, err
 		}
 		if len(r) == len(fldsAddr) {
-			out[i].IDLink, _ = redis.Int64(r[0], nil)  // fld "l"
-			out[i].IDAddr, _ = redis.Int64(r[1], nil)  // fld "a"
-			out[i].IDStat, _ = redis.Int64(r[2], nil)  // fld "s"
-			out[i].EGRPOU, _ = redis.String(r[3], nil) // fld "e"
+			out[i].IDLink, _ = redis.Conv.ToInt64(r[0], nil)  // fld "l"
+			out[i].IDAddr, _ = redis.Conv.ToInt64(r[1], nil)  // fld "a"
+			out[i].IDStat, _ = redis.Conv.ToInt64(r[2], nil)  // fld "s"
+			out[i].EGRPOU, _ = redis.Conv.ToString(r[3], nil) // fld "e"
 		}
 	}
 
@@ -198,8 +198,8 @@ func getAddrREDIS(v []string) ([]linkAddr, error) {
 }
 
 func setAddrREDIS(v []linkAddr) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	vls := make([]interface{}, 0, len(fldsAddr)*2+1)
 	var err error
@@ -235,8 +235,8 @@ func setAddrREDIS(v []linkAddr) (interface{}, error) {
 }
 
 func delAddrREDIS(v []string) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -280,8 +280,8 @@ func delDrug(data []byte) (interface{}, error) {
 }
 
 func getDrugREDIS(v []string) ([]linkDrug, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	vls := make([]interface{}, 0, len(fldsDrug)+1)
 	var err error
@@ -306,16 +306,16 @@ func getDrugREDIS(v []string) ([]linkDrug, error) {
 	var r []interface{}
 	for i := range v {
 		out[i].ID = v[i] // key
-		r, err = redis.Values(c.Receive())
-		if err != nil && err != redis.ErrNil {
+		r, err = redis.Conv.ToIntfs(c.Receive())
+		if err != nil && redis.Conv.NotErrNil(err) {
 			return nil, err
 		}
 		if len(r) == len(fldsDrug) {
-			out[i].IDLink, _ = redis.Int64(r[0], nil) // fld "l"
-			out[i].IDDrug, _ = redis.Int64(r[1], nil) // fld "d"
-			out[i].IDBrnd, _ = redis.Int64(r[2], nil) // fld "b"
-			out[i].IDCatg, _ = redis.Int64(r[3], nil) // fld "c"
-			out[i].IDStat, _ = redis.Int64(r[4], nil) // fld "s"
+			out[i].IDLink, _ = redis.Conv.ToInt64(r[0], nil) // fld "l"
+			out[i].IDDrug, _ = redis.Conv.ToInt64(r[1], nil) // fld "d"
+			out[i].IDBrnd, _ = redis.Conv.ToInt64(r[2], nil) // fld "b"
+			out[i].IDCatg, _ = redis.Conv.ToInt64(r[3], nil) // fld "c"
+			out[i].IDStat, _ = redis.Conv.ToInt64(r[4], nil) // fld "s"
 		}
 	}
 
@@ -324,8 +324,8 @@ func getDrugREDIS(v []string) ([]linkDrug, error) {
 }
 
 func setDrugREDIS(v []linkDrug) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	vls := make([]interface{}, 0, len(fldsDrug)*2+1)
 	var err error
@@ -364,8 +364,8 @@ func setDrugREDIS(v []linkDrug) (interface{}, error) {
 }
 
 func delDrugREDIS(v []string) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -409,8 +409,8 @@ func delStat(data []byte, _, _ http.Header) (interface{}, error) {
 }
 
 func getStatREDIS(v []int64) ([]linkStat, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -429,8 +429,8 @@ func getStatREDIS(v []int64) ([]linkStat, error) {
 	var r string
 	for i := range v {
 		out[i].ID = v[i]
-		r, err = redis.String(c.Receive())
-		if err != nil && err != redis.ErrNil {
+		r, err = redis.Conv.ToString(c.Receive())
+		if err != nil && redis.Conv.NotErrNil(err) {
 			return nil, err
 		}
 		out[i].Name = r
@@ -440,8 +440,8 @@ func getStatREDIS(v []int64) ([]linkStat, error) {
 }
 
 func setStatREDIS(v []linkStat) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {
@@ -455,8 +455,8 @@ func setStatREDIS(v []linkStat) (interface{}, error) {
 }
 
 func delStatREDIS(v []int64) (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	var err error
 	for i := range v {

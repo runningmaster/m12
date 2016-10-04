@@ -5,21 +5,21 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/garyburd/redigo/redis"
+	"internal/conns/redis"
 )
 
 func ping() (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
 	return c.Do("PING")
 }
 
 func info() (interface{}, error) {
-	c := redisConn()
-	defer closeConn(c)
+	c := redis.Conn()
+	defer redis.Free(c)
 
-	b, err := redis.Bytes(c.Do("INFO"))
+	b, err := redis.Conv.ToBytes(c.Do("INFO"))
 	if err != nil {
 		return nil, err
 	}
