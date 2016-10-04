@@ -40,7 +40,7 @@ func Join(a ...string) string {
 // First returns n first characters.
 // Based on https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4.
 func First(s string, n int) string {
-	if len(s) == 0 || n <= 0 {
+	if s == "" || n <= 0 {
 		return ""
 	}
 	rns := []rune(s)
@@ -54,3 +54,9 @@ func First(s string, n int) string {
 	}
 	return string(res)
 }
+
+/*
+s      := []rune("世界世界世界")
+first3 := string(s[0:3])
+last3  := string(s[len(s)-3:])
+*/

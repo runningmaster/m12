@@ -114,7 +114,7 @@ func mustHeaderUTF8(h http.Header) error {
 }
 
 func mustHeaderMETA(h http.Header) error {
-	if len(h.Get("Content-Meta")) == 0 {
+	if h.Get("Content-Meta") == "" {
 		return fmt.Errorf("pipe: content-meta must contain value")
 	}
 	return nil
