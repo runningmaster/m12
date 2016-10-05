@@ -4,25 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"internal/context/ctxutil"
 	"internal/core/pipe"
 	"internal/version"
 
 	"github.com/julienschmidt/httprouter"
-)
-
-const (
-	bucketStreamIn  = "stream-in"
-	bucketStreamOut = "stream-out"
-	bucketStreamErr = "stream-err"
-
-	subjectSteamIn  = "m12." + bucketStreamIn
-	subjectSteamOut = "m12." + bucketStreamOut
-
-	listN = 100
-	tickD = 10 * time.Second
 )
 
 var (

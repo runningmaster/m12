@@ -38,13 +38,19 @@ func makeConn(addr string) (*nats.Conn, error) {
 	return c, nil
 }
 
-/*
-	_, err = cNATS.Subscribe(subjectSteamIn, func(m *nats.Msg) {
-		go proc(m.Data)
+func Subscribe(s string, f func([]byte)) error {
+	_, err := cli.Subscribe(s, func(m *nats.Msg) {
+		go f(m.Data)
 	})
-	if err != nil {
-		return err
-	}
+	return err
+}
+
+func Publish(s string, data []byte) error {
+	return cli.Publish(s, data)
+}
+
+/*
+
 
 	go publishing(bucketStreamOut, subjectSteamOut, listN, tickD)
 	go publishing(bucketStreamIn, subjectSteamIn, listN, tickD)

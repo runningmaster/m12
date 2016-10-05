@@ -1,10 +1,10 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
+	"internal/core/structs"
 	"internal/database/minio"
 )
 
@@ -28,7 +28,7 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 			return
 		}
 
-		f := makeFileName(m.Auth.ID, m.UUID, convHTag[m.HTag])
+		f := structs.MakeFileName(m.Auth.ID, m.UUID, meta.FindHTag(m.HTag))
 		err = minio.Put(bucketStreamIn, f, t)
 		if err != nil {
 			log.Println("putd: err: save:", err)
@@ -36,17 +36,4 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 	}()
 
 	return m.UUID, nil
-}
-
-const magicLen = 8
-
-func trimPart(s string) string {
-	if len(s) > magicLen {
-		return s[:magicLen]
-	}
-	return s
-}
-
-func makeFileName(auth, uuid, htag string) string {
-	return fmt.Sprintf("%s_%s_%s.tar", trimPart(auth), trimPart(uuid), htag)
 }

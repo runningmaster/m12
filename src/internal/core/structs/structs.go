@@ -1,8 +1,75 @@
-package api
+package structs
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
-type jsonMeta struct {
+var (
+	listHTag = map[string]struct{}{
+		"geoapt.ru":           {},
+		"geoapt.ua":           {},
+		"sale-in.monthly.by":  {},
+		"sale-in.monthly.kz":  {},
+		"sale-in.monthly.ua":  {},
+		"sale-in.weekly.ua":   {},
+		"sale-in.daily.kz":    {},
+		"sale-in.daily.ua":    {},
+		"sale-out.monthly.by": {},
+		"sale-out.monthly.kz": {},
+		"sale-out.monthly.ru": {},
+		"sale-out.monthly.ua": {},
+		"sale-out.weekly.ru":  {},
+		"sale-out.weekly.ua":  {},
+		"sale-out.daily.by":   {},
+		"sale-out.daily.kz":   {},
+		"sale-out.daily.ua":   {},
+	}
+
+	convHTag = map[string]string{
+		// version 1 -> version 3
+		"data.geostore":         "geoapt.ua",
+		"data.sale-inp.monthly": "sale-in.monthly.ua",
+		"data.sale-inp.weekly":  "sale-in.weekly.ua",
+		"data.sale-inp.daily":   "sale-in.daily.ua",
+		"data.sale-out.monthly": "sale-out.monthly.ua",
+		"data.sale-out.weekly":  "sale-out.weekly.ua",
+		"data.sale-out.daily":   "sale-out.daily.ua",
+		// version 2 -> version 3
+		"data.geoapt.ru":           "geoapt.ru",
+		"data.geoapt.ua":           "geoapt.ua",
+		"data.sale-inp.monthly.kz": "sale-out.monthly.kz",
+		"data.sale-inp.monthly.ua": "sale-in.monthly.ua",
+		"data.sale-inp.weekly.ua":  "sale-in.weekly.ua",
+		"data.sale-inp.daily.kz":   "sale-in.daily.kz",
+		"data.sale-inp.daily.ua":   "sale-in.daily.ua",
+		"data.sale-out.monthly.kz": "sale-out.monthly.kz",
+		"data.sale-out.monthly.ua": "sale-out.monthly.ua",
+		"data.sale-out.weekly.ua":  "sale-out.weekly.ua",
+		"data.sale-out.daily.by":   "sale-out.daily.by",
+		"data.sale-out.daily.kz":   "sale-out.daily.kz",
+		"data.sale-out.daily.ua":   "sale-out.daily.ua",
+	}
+)
+
+func FindHTag(t string) string {
+	return convHTag[t]
+}
+
+func CheckHTag(t string) error {
+	t = strings.ToLower(t)
+	_, ok1 := convHTag[t]
+	_, ok2 := listHTag[t]
+
+	if ok1 || ok2 {
+		return nil
+	}
+
+	return fmt.Errorf("meta: invalid htag %s", t)
+}
+
+type Meta struct {
 	UUID string   `json:"uuid,omitempty"`
 	Auth linkAuth `json:"auth,omitempty"`
 	Host string   `json:"host,omitempty"`
@@ -29,18 +96,18 @@ type jsonMeta struct {
 	Test bool   `json:"test,omitempty"`
 }
 
-func unmarshalMeta(b []byte) (jsonMeta, error) {
-	m := jsonMeta{}
+func unmarshalMeta(b []byte) (Meta, error) {
+	m := Meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func (m *jsonMeta) marshal() []byte {
+func (m *Meta) marshal() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m *jsonMeta) marshalIndent() []byte {
+func (m *Meta) marshalIndent() []byte {
 	b, _ := json.MarshalIndent(m, "", "\t")
 	return b
 }
@@ -192,4 +259,17 @@ func (j jsonV3SaleBy) getName(i int) string {
 func (j jsonV3SaleBy) setDrug(i int, l linkDrug) bool {
 	j[i].Link = l
 	return l.IDLink != 0
+}
+
+const magicLen = 8
+
+func trimPart(s string) string {
+	if len(s) > magicLen {
+		return s[:magicLen]
+	}
+	return s
+}
+
+func MakeFileName(auth, uuid, htag string) string {
+	return fmt.Sprintf("%s_%s_%s.tar", trimPart(auth), trimPart(uuid), htag)
 }

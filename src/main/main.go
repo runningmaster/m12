@@ -10,6 +10,7 @@ import (
 
 	"internal/core/api"
 	"internal/core/pref"
+	"internal/core/proc"
 	"internal/database/minio"
 	"internal/database/redis"
 	"internal/net/http/server"
@@ -53,6 +54,11 @@ func initAndRun(addrNATS, addrMINIO, addrREDIS, addrSERVER string) error {
 	}
 
 	err = redis.Init(addrREDIS)
+	if err != nil {
+		return err
+	}
+
+	err = proc.Init()
 	if err != nil {
 		return err
 	}
