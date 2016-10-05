@@ -7,6 +7,8 @@ import (
 
 	"internal/context/ctxutil"
 	"internal/core/pipe"
+	"internal/core/pref"
+	"internal/core/redis"
 	"internal/version"
 
 	"github.com/julienschmidt/httprouter"
@@ -62,6 +64,13 @@ var (
 		"GET>/error/405": pipe.Use(pipe.Head, pipe.Wrap(e405), pipe.Resp, pipe.Tail),
 	}
 )
+
+func pass(key string) bool {
+	if strings.EqualFold(pref.MasterKey, key) {
+		return true
+	}
+	return redis.Pass(key)
+}
 
 func root() (interface{}, error) {
 	return fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()), nil

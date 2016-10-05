@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"internal/core/link"
+	"internal/core/redis"
 	"internal/core/structs"
 	"internal/database/minio"
 	"internal/strings/strutil"
@@ -42,18 +44,18 @@ func proc(data []byte) {
 		m.Fail = err.Error()
 
 		f = o + ".txt"
-		err = minio.Put(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()))
+		err = minio.Put(structs.BucketStreamErr, f, bytes.NewReader(m.MarshalIndent()))
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
 
-		err = minio.Copy(bucketStreamErr, o, b, o)
+		err = minio.Copy(structs.BucketStreamErr, o, b, o)
 		if err != nil {
 			log.Println("proc: err: copy:", o, err)
 		}
 	} else {
 		f = structs.MakeFileName(m.Auth.ID, m.UUID, m.HTag)
-		err = minio.Put(bucketStreamOut, f, d)
+		err = minio.Put(structs.BucketStreamOut, f, d)
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
@@ -66,14 +68,14 @@ func proc(data []byte) {
 		log.Println("proc: err: kill:", o, err)
 	}
 
-	err = zlog(m)
+	err = redis.SetZlog(m)
 	if err != nil {
 		log.Println("proc: err: zlog:", o, err)
 	}
 }
 
-func procObject(r io.Reader) (jsonMeta, io.Reader, error) {
-	m := jsonMeta{}
+func procObject(r io.Reader) (structs.Meta, io.Reader, error) {
+	m := structs.Meta{}
 
 	meta, data, err := ungztarMetaData(r)
 	if err != nil {
@@ -95,7 +97,7 @@ func procObject(r io.Reader) (jsonMeta, io.Reader, error) {
 		return m, nil, err
 	}
 
-	t, err := gztarMetaData(m.marshal(), d)
+	t, err := gztarMetaData(m.Marshal(), d)
 	if err != nil {
 		return m, nil, err
 	}
@@ -110,9 +112,13 @@ func killUTF8BOM(data []byte) []byte {
 	return data
 }
 
+func unmarshalMeta(meta []byte) (structs.Meta, error) {
+	return structs.UnmarshalMeta(meta)
+}
+
 const magicConvString = "conv"
 
-func unmarshalData(data []byte, m *jsonMeta) (interface{}, error) {
+func unmarshalData(data []byte, m *structs.Meta) (interface{}, error) {
 	d := killUTF8BOM(data)
 	m.ETag = btsToMD5(d)
 	m.Size = int64(len(d))
@@ -126,7 +132,7 @@ func unmarshalData(data []byte, m *jsonMeta) (interface{}, error) {
 	return unmarshalDataNEW(d, m)
 }
 
-func unmarshalDataOLD(data []byte, m *jsonMeta) (interface{}, error) {
+func unmarshalDataOLD(data []byte, m *structs.Meta) (interface{}, error) {
 	t := m.HTag
 
 	switch {
@@ -139,51 +145,51 @@ func unmarshalDataOLD(data []byte, m *jsonMeta) (interface{}, error) {
 	}
 }
 
-func unmarshalDataNEW(data []byte, m *jsonMeta) (interface{}, error) {
+func unmarshalDataNEW(data []byte, m *structs.Meta) (interface{}, error) {
 	t := m.HTag
 
 	switch {
 	case isGeo(t):
-		v := jsonV3Geoa{}
+		v := link.DataV3Geoa{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	case isSaleBY(t):
-		v := jsonV3SaleBy{}
+		v := link.DataV3SaleBy{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	default:
-		v := jsonV3Sale{}
+		v := link.DataV3Sale{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	}
 }
 
-func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
+func mineLinks(v interface{}, m *structs.Meta) ([]byte, error) {
 	t := m.HTag
 	s := time.Now()
 
-	a, err := getAuthREDIS([]string{m.Auth.ID})
+	a, err := redis.GetLinkAuth([]string{m.Auth.ID})
 	if err != nil {
 		return nil, err
 	}
 	m.Auth = a[0]
 
-	l, err := getAddrREDIS([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
+	l, err := redis.GetLinkAddr([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
 	if err != nil {
 		return nil, err
 	}
 	m.Link = l[0]
 
 	n := 0
-	if r, ok := v.(ruler); ok {
-		n = r.len()
+	if r, ok := v.(link.Ruler); ok {
+		n = r.Len()
 		m.Proc = fmt.Sprintf("%d", n)
 		if n == 0 {
 			return nil, fmt.Errorf("no data")
 		}
 	}
 
-	if d, ok := v.(druger); ok {
+	if d, ok := v.(link.Druger); ok {
 		n, err = mineDrugs(d, t)
 	}
 	if err != nil {
@@ -192,7 +198,7 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	m.Proc = fmt.Sprintf("%s:%d", m.Proc, n)
 
 	if isSaleIn(t) {
-		if a, ok := v.(addrer); ok {
+		if a, ok := v.(link.Addrer); ok {
 			n, err = mineAddrs(a)
 		}
 		if err != nil {
@@ -205,14 +211,14 @@ func mineLinks(v interface{}, m *jsonMeta) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func mineDrugs(v druger, t string) (int, error) {
+func mineDrugs(v link.Druger, t string) (int, error) {
 	var (
 		ext  = filepath.Ext(t)
-		keys = make([]string, v.len())
+		keys = make([]string, v.Len())
 		name string
 	)
-	for i := 0; i < v.len(); i++ {
-		name = v.getName(i)
+	for i := 0; i < v.Len(); i++ {
+		name = v.GetName(i)
 		switch {
 		case isUA(ext):
 			name = makeMagicDrugUA(name)
@@ -228,14 +234,14 @@ func mineDrugs(v druger, t string) (int, error) {
 		keys[i] = strToSHA1(name)
 	}
 
-	lds, err := getDrugREDIS(keys)
+	lds, err := redis.GetLinkDrug(keys)
 	if err != nil {
 		return 0, err
 	}
 
 	n := 0
-	for i := 0; i < v.len(); i++ {
-		if v.setDrug(i, lds[i]) {
+	for i := 0; i < v.Len(); i++ {
+		if v.SetDrug(i, lds[i]) {
 			n++
 		}
 	}
@@ -243,20 +249,20 @@ func mineDrugs(v druger, t string) (int, error) {
 	return n, nil
 }
 
-func mineAddrs(v addrer) (int, error) {
-	var keys = make([]string, v.len())
-	for i := 0; i < v.len(); i++ {
-		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
+func mineAddrs(v link.Addrer) (int, error) {
+	var keys = make([]string, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		keys[i] = strToSHA1(makeMagicAddr(v.GetSupp(i)))
 	}
 
-	lds, err := getAddrREDIS(keys)
+	lds, err := redis.GetLinkAddr(keys)
 	if err != nil {
 		return 0, err
 	}
 
 	n := 0
-	for i := 0; i < v.len(); i++ {
-		if v.setAddr(i, lds[i]) {
+	for i := 0; i < v.Len(); i++ {
+		if v.SetAddr(i, lds[i]) {
 			n++
 		}
 	}

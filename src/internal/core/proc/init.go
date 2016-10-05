@@ -4,28 +4,16 @@ import (
 	"log"
 	"time"
 
+	"internal/core/structs"
 	"internal/database/minio"
 	"internal/net/nats"
 )
 
-const (
-	bucketStreamIn  = "stream-in"
-	bucketStreamOut = "stream-out"
-	bucketStreamErr = "stream-err"
-
-	subjectSteamIn  = "m12." + bucketStreamIn
-	subjectSteamOut = "m12." + bucketStreamOut
-
-	// should be move to pref
-	listN = 100
-	tickD = 10 * time.Second
-)
-
 // Init inits client for NATS Server
 func Init() error {
-	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
-	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
-	return nats.Subscribe(subjectSteamIn, proc)
+	sendMessage(structs.BucketStreamOut, structs.SubjectSteamOut, structs.TickD, structs.ListN)
+	sendMessage(structs.BucketStreamIn, structs.SubjectSteamIn, structs.TickD, structs.ListN)
+	return nats.Subscribe(structs.SubjectSteamIn, proc)
 }
 
 func sendMessage(b, s string, d time.Duration, n int) {

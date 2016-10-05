@@ -4,6 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
+
+	"internal/core/link"
+)
+
+const (
+	BucketStreamIn  = "stream-in"
+	BucketStreamOut = "stream-out"
+	BucketStreamErr = "stream-err"
+
+	SubjectSteamIn  = "m12." + BucketStreamIn
+	SubjectSteamOut = "m12." + BucketStreamOut
+
+	// should be move to pref
+	ListN = 100
+	TickD = 10 * time.Second
 )
 
 var (
@@ -70,12 +86,12 @@ func CheckHTag(t string) error {
 }
 
 type Meta struct {
-	UUID string   `json:"uuid,omitempty"`
-	Auth linkAuth `json:"auth,omitempty"`
-	Host string   `json:"host,omitempty"`
-	User string   `json:"user,omitempty"`
-	Time string   `json:"time,omitempty"`
-	Unix int64    `json:"unix,omitempty"`
+	UUID string    `json:"uuid,omitempty"`
+	Auth link.Auth `json:"auth,omitempty"`
+	Host string    `json:"host,omitempty"`
+	User string    `json:"user,omitempty"`
+	Time string    `json:"time,omitempty"`
+	Unix int64     `json:"unix,omitempty"`
 
 	HTag string   `json:"htag,omitempty"` // *
 	Span []string `json:"span,omitempty"` // *
@@ -86,7 +102,7 @@ type Meta struct {
 	Addr string `json:"addr,omitempty"` // *
 	Code string `json:"code,omitempty"` // egrpou (okpo)
 
-	Link linkAddr `json:"link,omitempty"`
+	Link link.Addr `json:"link,omitempty"`
 
 	CTag string `json:"ctag,omitempty"`
 	ETag string `json:"etag,omitempty"`
@@ -96,169 +112,20 @@ type Meta struct {
 	Test bool   `json:"test,omitempty"`
 }
 
-func unmarshalMeta(b []byte) (Meta, error) {
+func UnmarshalMeta(b []byte) (Meta, error) {
 	m := Meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func (m *Meta) marshal() []byte {
+func (m *Meta) Marshal() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m *Meta) marshalIndent() []byte {
+func (m *Meta) MarshalIndent() []byte {
 	b, _ := json.MarshalIndent(m, "", "\t")
 	return b
-}
-
-// Redis scheme:
-// HASH => key="stat"
-// HMSET key i->n [i->n...]
-// HMGET key i [i..]
-type linkAuth struct {
-	ID   string `json:"id,omitempty"   redis:"i"`
-	Name string `json:"name,omitempty" redis:"n"`
-}
-
-// Redis scheme:
-// HASH => key=ID (SHA1)
-// HMSET key l/v a/v s/v e/v (if exists in json)
-// HMGET key l a s e
-// JSON array: [{"id":"key1","id_link":1,"id_addr":2,"id_stat":0,"egrpou":"egrpou1"}]
-type linkAddr struct {
-	ID     string `json:"id,omitempty"      redis:"key"`
-	IDLink int64  `json:"id_link,omitempty" redis:"l"`
-	IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
-	IDStat int64  `json:"id_stat,omitempty" redis:"s"`
-	EGRPOU string `json:"egrpou,omitempty"  redis:"e"`
-}
-
-// Redis scheme:
-// HASH => key=ID (SHA1)
-// HMSET key l/v d/v b/v c/v s/v (if exists in json)
-// HMGET key l d b c s
-type linkDrug struct {
-	ID     string `json:"id,omitempty"      redis:"key"`
-	IDLink int64  `json:"id_link,omitempty" redis:"l"`
-	IDDrug int64  `json:"id_drug,omitempty" redis:"d"`
-	IDBrnd int64  `json:"id_brnd,omitempty" redis:"b"`
-	IDCatg int64  `json:"id_catg,omitempty" redis:"c"`
-	IDStat int64  `json:"id_stat,omitempty" redis:"s"`
-}
-
-// Redis scheme:
-// HASH => key="stat"
-// HMSET key i->n [i->n...]
-// HMGET key i [i..]
-type linkStat struct {
-	ID   int64  `json:"id,omitempty"   redis:"i"`
-	Name string `json:"name,omitempty" redis:"n"`
-}
-
-type itemV3Geoa struct {
-	ID    string   `json:"id,omitempty"`
-	Name  string   `json:"name,omitempty"`
-	Home  string   `json:"home,omitempty"` // formerly link
-	Quant float64  `json:"quant,omitempty"`
-	Price float64  `json:"price,omitempty"`
-	Link  linkDrug `json:"link,omitempty"`
-}
-
-type itemV3Sale struct {
-	ID        string   `json:"id,omitempty"`
-	Name      string   `json:"name,omitempty"`
-	QuantIn   float64  `json:"quant_in,omitempty"`
-	PriceIn   float64  `json:"price_in,omitempty"`
-	QuantOut  float64  `json:"quant_out,omitempty"`
-	PriceOut  float64  `json:"price_out,omitempty"`
-	Stock     float64  `json:"stock,omitempty"`
-	Reimburse bool     `json:"reimburse,omitempty"`
-	SuppName  string   `json:"supp_name,omitempty"`
-	SuppCode  string   `json:"supp_code,omitempty"`
-	LinkAddr  linkAddr `json:"link_addr,omitempty"`
-	LinkDrug  linkDrug `json:"link_drug,omitempty"`
-}
-
-type itemV3SaleBy struct {
-	ID       string   `json:"id,omitempty"`
-	Name     string   `json:"name,omitempty"`
-	QuantIn  float64  `json:"quant_in,omitempty"` // formerly QuantInp
-	PriceIn  float64  `json:"price_in,omitempty"` // formerly PriceInp
-	QuantOut float64  `json:"quant_out,omitempty"`
-	PriceOut float64  `json:"price_out,omitempty"`
-	PriceRoc float64  `json:"price_roc,omitempty"`
-	Stock    float64  `json:"stock,omitempty"`     // formerly Balance
-	StockTab float64  `json:"stock_tab,omitempty"` // formerly BalanceT
-	Link     linkDrug `json:"link,omitempty"`
-}
-
-type ruler interface {
-	len() int
-}
-
-type addrer interface {
-	ruler
-	getSupp(int) string
-	setAddr(int, linkAddr) bool
-}
-
-type druger interface {
-	ruler
-	getName(int) string
-	setDrug(int, linkDrug) bool
-}
-
-type jsonV3Geoa []itemV3Geoa
-type jsonV3Sale []itemV3Sale
-type jsonV3SaleBy []itemV3SaleBy
-
-func (j jsonV3Geoa) len() int {
-	return len(j)
-}
-
-func (j jsonV3Geoa) getName(i int) string {
-	return j[i].Name
-}
-
-func (j jsonV3Geoa) setDrug(i int, l linkDrug) bool {
-	j[i].Link = l
-	return l.IDLink != 0
-}
-
-func (j jsonV3Sale) len() int {
-	return len(j)
-}
-
-func (j jsonV3Sale) getName(i int) string {
-	return j[i].Name
-}
-
-func (j jsonV3Sale) setDrug(i int, l linkDrug) bool {
-	j[i].LinkDrug = l
-	return l.IDLink != 0
-}
-
-func (j jsonV3Sale) getSupp(i int) string {
-	return j[i].SuppName
-}
-
-func (j jsonV3Sale) setAddr(i int, l linkAddr) bool {
-	j[i].LinkAddr = l
-	return l.IDLink != 0
-}
-
-func (j jsonV3SaleBy) len() int {
-	return len(j)
-}
-
-func (j jsonV3SaleBy) getName(i int) string {
-	return j[i].Name
-}
-
-func (j jsonV3SaleBy) setDrug(i int, l linkDrug) bool {
-	j[i].Link = l
-	return l.IDLink != 0
 }
 
 const magicLen = 8

@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"internal/core/link"
+	"internal/core/structs"
 )
 
-func unmarshalSale(data []byte) (*jsonV1Sale, error) {
-	v := &jsonV1Sale{}
+func unmarshalSale(data []byte) (*link.DataV1Sale, error) {
+	v := &link.DataV1Sale{}
 
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -17,7 +20,7 @@ func unmarshalSale(data []byte) (*jsonV1Sale, error) {
 	return v, nil
 }
 
-func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
+func convSale(data []byte, m *structs.Meta) (link.DataV3Sale, error) {
 	v, err := unmarshalSale(data)
 	if err != nil {
 		return nil, err
@@ -30,7 +33,7 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return jsonV3Sale{}, nil
+		return link.DataV3Sale{}, nil
 	}
 
 	m.Nick = v.Data[0].Head.Source
@@ -38,7 +41,7 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 		m.Nick = m.Nick + ":" + v.Data[0].Head.MDSLns
 	}
 
-	d := make(jsonV3Sale, len(v.Data[0].Item))
+	d := make(link.DataV3Sale, len(v.Data[0].Item))
 	for i, v := range v.Data[0].Item {
 		d[i].ID = v.Code
 		d[i].Name = v.Drug
@@ -55,8 +58,8 @@ func convSale(data []byte, m *jsonMeta) (jsonV3Sale, error) {
 	return d, nil
 }
 
-func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
-	v := &jsonV1SaleBy{}
+func unmarshalSaleBy(data []byte) (*link.DataV1SaleBy, error) {
+	v := &link.DataV1SaleBy{}
 
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -66,7 +69,7 @@ func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
 	return v, nil
 }
 
-func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
+func convSaleBy(data []byte, m *structs.Meta) (link.DataV3SaleBy, error) {
 	v, err := unmarshalSaleBy(data)
 	if err != nil {
 		return nil, err
@@ -79,12 +82,12 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return jsonV3SaleBy{}, nil
+		return link.DataV3SaleBy{}, nil
 	}
 
 	m.Nick = v.Data[0].Head.Source + ":" + v.Data[0].Head.Drugstore
 
-	d := make(jsonV3SaleBy, len(v.Data[0].Item))
+	d := make(link.DataV3SaleBy, len(v.Data[0].Item))
 	for i, v := range v.Data[0].Item {
 		d[i].ID = v.Code
 		d[i].Name = v.Drug
@@ -101,8 +104,8 @@ func convSaleBy(data []byte, m *jsonMeta) (jsonV3SaleBy, error) {
 	return d, nil
 }
 
-func unmarshalGeoa(data []byte) (*jsonV1Geoa, error) {
-	v := &jsonV1Geoa{}
+func unmarshalGeoa(data []byte) (*link.DataV1Geoa, error) {
+	v := &link.DataV1Geoa{}
 
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -112,7 +115,7 @@ func unmarshalGeoa(data []byte) (*jsonV1Geoa, error) {
 	return v, nil
 }
 
-func convGeoa(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
+func convGeoa(data []byte, m *structs.Meta) (link.DataV3Geoa, error) {
 	v, err := unmarshalGeoa(data)
 	if err != nil {
 		return nil, err
@@ -127,10 +130,10 @@ func convGeoa(data []byte, m *jsonMeta) (jsonV3Geoa, error) {
 	}
 
 	if len(v.Data) == 0 {
-		return jsonV3Geoa{}, nil
+		return link.DataV3Geoa{}, nil
 	}
 
-	d := make(jsonV3Geoa, len(v.Data))
+	d := make(link.DataV3Geoa, len(v.Data))
 	for i, v := range v.Data {
 		d[i].ID = v.ID
 		if v.Code != "" {
@@ -165,73 +168,4 @@ func testDateTimeSpan(s []string) error {
 	}
 
 	return nil
-}
-
-type jsonV1Sale struct {
-	Meta struct {
-		TRangeLower string
-		TRangeUpper string
-	}
-	Data []struct {
-		Head struct {
-			Source string
-			MDSLns string `json:",omitempty"`
-		}
-		Item []struct {
-			Code     string
-			Drug     string
-			Supp     string  `json:",omitempty"`
-			SuppOKPO string  `json:",omitempty"`
-			QuantInp float64 `json:",omitempty"`
-			PriceInp float64 `json:",omitempty"`
-			QuantOut float64 `json:",omitempty"`
-			PriceOut float64 `json:",omitempty"`
-			Balance  float64 `json:",omitempty"`
-			Reimburs int     `json:",omitempty"`
-		}
-	}
-}
-
-type jsonV1SaleBy struct {
-	Meta struct {
-		TRangeLower string
-		TRangeUpper string
-	}
-	Data []struct {
-		Head struct {
-			Source    string
-			Drugstore string
-		}
-		Item []struct {
-			Code     string
-			Drug     string
-			QuantInp float64
-			QuantOut float64
-			PriceInp float64
-			PriceOut float64
-			PriceRoc float64
-			Balance  float64
-			BalanceT float64
-		}
-	}
-}
-
-type jsonV1Geoa struct {
-	Meta struct {
-		Name   string `json:"name,omitempty"`
-		Head   string `json:"head,omitempty"`
-		Addr   string `json:"addr,omitempty"`
-		Code   string `json:"code,omitempty"`
-		EGRPOU string `json:"EGRPOU,omitempty"` // deprecated from 1.0
-	} `json:"meta"`
-	Data []struct {
-		ID    string  `json:"id,omitempty"`
-		Code  string  `json:"Code,omitempty"` // deprecated from 1.0
-		Name  string  `json:"name"`
-		Desc  string  `json:"Desc,omitempty"` // deprecated from 1.0
-		Addr  string  `json:"Addr,omitempty"` // deprecated from 1.0
-		Link  string  `json:"link"`
-		Quant float64 `json:"quant"`
-		Price float64 `json:"price"`
-	} `json:"data"`
 }
