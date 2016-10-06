@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"internal/core/link"
 	"internal/database/minio"
 	"internal/strings/strutil"
 
@@ -144,15 +143,15 @@ func unmarshalDataNEW(data []byte, m *Meta) (interface{}, error) {
 
 	switch {
 	case isGeo(t):
-		v := link.DataV3Geoa{}
+		v := jsonV3Geoa{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	case isSaleBY(t):
-		v := link.DataV3SaleBy{}
+		v := jsonV3SaleBy{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	default:
-		v := link.DataV3Sale{}
+		v := jsonV3Sale{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	}
@@ -175,15 +174,15 @@ func mineLinks(v interface{}, m *Meta) ([]byte, error) {
 	m.Link = l[0]
 
 	n := 0
-	if r, ok := v.(link.Ruler); ok {
-		n = r.Len()
+	if r, ok := v.(ruler); ok {
+		n = r.len()
 		m.Proc = fmt.Sprintf("%d", n)
 		if n == 0 {
 			return nil, fmt.Errorf("no data")
 		}
 	}
 
-	if d, ok := v.(link.Druger); ok {
+	if d, ok := v.(druger); ok {
 		n, err = mineDrugs(d, t)
 	}
 	if err != nil {
@@ -192,7 +191,7 @@ func mineLinks(v interface{}, m *Meta) ([]byte, error) {
 	m.Proc = fmt.Sprintf("%s:%d", m.Proc, n)
 
 	if isSaleIn(t) {
-		if a, ok := v.(link.Addrer); ok {
+		if a, ok := v.(addrer); ok {
 			n, err = mineAddrs(a)
 		}
 		if err != nil {
@@ -205,14 +204,14 @@ func mineLinks(v interface{}, m *Meta) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func mineDrugs(v link.Druger, t string) (int, error) {
+func mineDrugs(v druger, t string) (int, error) {
 	var (
 		ext  = filepath.Ext(t)
-		keys = make([]string, v.Len())
+		keys = make([]string, v.len())
 		name string
 	)
-	for i := 0; i < v.Len(); i++ {
-		name = v.GetName(i)
+	for i := 0; i < v.len(); i++ {
+		name = v.getName(i)
 		switch {
 		case isUA(ext):
 			name = makeMagicDrugUA(name)
@@ -234,8 +233,8 @@ func mineDrugs(v link.Druger, t string) (int, error) {
 	}
 
 	n := 0
-	for i := 0; i < v.Len(); i++ {
-		if v.SetDrug(i, lds[i]) {
+	for i := 0; i < v.len(); i++ {
+		if v.setDrug(i, lds[i]) {
 			n++
 		}
 	}
@@ -243,10 +242,10 @@ func mineDrugs(v link.Druger, t string) (int, error) {
 	return n, nil
 }
 
-func mineAddrs(v link.Addrer) (int, error) {
-	var keys = make([]string, v.Len())
-	for i := 0; i < v.Len(); i++ {
-		keys[i] = strToSHA1(makeMagicAddr(v.GetSupp(i)))
+func mineAddrs(v addrer) (int, error) {
+	var keys = make([]string, v.len())
+	for i := 0; i < v.len(); i++ {
+		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
 	}
 
 	lds, err := GetLinkAddr(keys)
@@ -255,8 +254,8 @@ func mineAddrs(v link.Addrer) (int, error) {
 	}
 
 	n := 0
-	for i := 0; i < v.Len(); i++ {
-		if v.SetAddr(i, lds[i]) {
+	for i := 0; i < v.len(); i++ {
+		if v.setAddr(i, lds[i]) {
 			n++
 		}
 	}

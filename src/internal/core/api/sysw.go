@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"internal/core/link"
-	"internal/core/redis"
+	"internal/core"
 )
 
 func getAuth(data []byte) (interface{}, error) {
@@ -15,17 +14,17 @@ func getAuth(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.GetLinkAuth(v)
+	return core.GetLinkAuth(v)
 }
 
 func setAuth(data []byte) (interface{}, error) {
-	var v []link.Auth
+	var v []core.LinkAuth
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return redis.SetLinkAuth(v)
+	return core.SetLinkAuth(v)
 }
 
 func delAuth(data []byte) (interface{}, error) {
@@ -35,7 +34,7 @@ func delAuth(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.DelLinkAuth(v)
+	return core.DelLinkAuth(v)
 }
 
 func getAddr(data []byte) (interface{}, error) {
@@ -45,17 +44,17 @@ func getAddr(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.GetLinkAddr(v)
+	return core.GetLinkAddr(v)
 }
 
 func setAddr(data []byte) (interface{}, error) {
-	var v []link.Addr
+	var v []core.LinkAddr
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return redis.SetLinkAddr(v)
+	return core.SetLinkAddr(v)
 }
 
 func delAddr(data []byte) (interface{}, error) {
@@ -65,7 +64,7 @@ func delAddr(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.DelLinkAddr(v)
+	return core.DelLinkAddr(v)
 }
 
 func getDrug(data []byte) (interface{}, error) {
@@ -75,17 +74,17 @@ func getDrug(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.GetLinkDrug(v)
+	return core.GetLinkDrug(v)
 }
 
 func setDrug(data []byte) (interface{}, error) {
-	var v []link.Drug
+	var v []core.LinkDrug
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return redis.SetLinkDrug(v)
+	return core.SetLinkDrug(v)
 }
 
 func delDrug(data []byte) (interface{}, error) {
@@ -95,7 +94,7 @@ func delDrug(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.DelLinkDrug(v)
+	return core.DelLinkDrug(v)
 }
 
 func getStat(data []byte, _, _ http.Header) (interface{}, error) {
@@ -105,17 +104,17 @@ func getStat(data []byte, _, _ http.Header) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.GetLinkStat(v)
+	return core.GetLinkStat(v)
 }
 
 func setStat(data []byte, _, _ http.Header) (interface{}, error) {
-	var v []link.Stat
+	var v []core.LinkStat
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
 
-	return redis.SetLinkStat(v)
+	return core.SetLinkStat(v)
 }
 
 func delStat(data []byte, _, _ http.Header) (interface{}, error) {
@@ -125,5 +124,5 @@ func delStat(data []byte, _, _ http.Header) (interface{}, error) {
 		return nil, err
 	}
 
-	return redis.DelLinkStat(v)
+	return core.DelLinkStat(v)
 }

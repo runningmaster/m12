@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"internal/context/ctxutil"
+	"internal/core"
 	"internal/core/pipe"
 	"internal/core/pref"
-	"internal/core/redis"
 	"internal/version"
 
 	"github.com/julienschmidt/httprouter"
@@ -69,7 +69,7 @@ func pass(key string) bool {
 	if strings.EqualFold(pref.MasterKey, key) {
 		return true
 	}
-	return redis.Pass(key)
+	return core.Pass(key)
 }
 
 func root() (interface{}, error) {

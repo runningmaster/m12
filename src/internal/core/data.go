@@ -44,7 +44,7 @@ type LinkStat struct {
 	Name string `json:"name,omitempty" redis:"n"`
 }
 
-type ItemV3Geoa struct {
+type itemV3Geoa struct {
 	ID    string   `json:"id,omitempty"`
 	Name  string   `json:"name,omitempty"`
 	Home  string   `json:"home,omitempty"` // formerly link
@@ -86,15 +86,15 @@ type ruler interface {
 }
 
 type addrer interface {
-	Ruler
+	ruler
 	getSupp(int) string
-	setAddr(int, Addr) bool
+	setAddr(int, LinkAddr) bool
 }
 
 type druger interface {
-	Ruler
+	ruler
 	getName(int) string
-	setDrug(int, Drug) bool
+	setDrug(int, LinkDrug) bool
 }
 
 type jsonV3Geoa []itemV3Geoa
