@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"internal/core"
 	"internal/database/minio"
 )
 
@@ -27,7 +28,7 @@ func popd(data []byte, _, w http.Header) (interface{}, error) {
 		}
 	}()
 
-	m, d, err := ungztarMetaData(f, false, true)
+	m, d, err := core.UnpackMetaData(f, false, true)
 	if err != nil {
 		return nil, err
 	}

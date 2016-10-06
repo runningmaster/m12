@@ -1,13 +1,13 @@
 package api
 
 import (
-	"internal/core/redis"
+	"internal/core"
 )
 
 func getZlog(data []byte) (interface{}, error) {
-	return redis.GetZlog(data)
+	return core.GetZlog(data)
 }
 
 func getMeta(data []byte) (interface{}, error) {
-	return redis.GetMeta(data)
+	return core.GetMeta(data)
 }

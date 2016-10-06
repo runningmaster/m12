@@ -1,10 +1,10 @@
-package link
+package core
 
 // Redis scheme:
 // HASH => key="stat"
 // HMSET key i->n [i->n...]
 // HMGET key i [i..]
-type Auth struct {
+type LinkAuth struct {
 	ID   string `json:"id,omitempty"   redis:"i"`
 	Name string `json:"name,omitempty" redis:"n"`
 }
@@ -14,7 +14,7 @@ type Auth struct {
 // HMSET key l/v a/v s/v e/v (if exists in json)
 // HMGET key l a s e
 // JSON array: [{"id":"key1","id_link":1,"id_addr":2,"id_stat":0,"egrpou":"egrpou1"}]
-type Addr struct {
+type LinkAddr struct {
 	ID     string `json:"id,omitempty"      redis:"key"`
 	IDLink int64  `json:"id_link,omitempty" redis:"l"`
 	IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
@@ -26,7 +26,7 @@ type Addr struct {
 // HASH => key=ID (SHA1)
 // HMSET key l/v d/v b/v c/v s/v (if exists in json)
 // HMGET key l d b c s
-type Drug struct {
+type LinkDrug struct {
 	ID     string `json:"id,omitempty"      redis:"key"`
 	IDLink int64  `json:"id_link,omitempty" redis:"l"`
 	IDDrug int64  `json:"id_drug,omitempty" redis:"d"`
@@ -39,117 +39,117 @@ type Drug struct {
 // HASH => key="stat"
 // HMSET key i->n [i->n...]
 // HMGET key i [i..]
-type Stat struct {
+type LinkStat struct {
 	ID   int64  `json:"id,omitempty"   redis:"i"`
 	Name string `json:"name,omitempty" redis:"n"`
 }
 
 type ItemV3Geoa struct {
-	ID    string  `json:"id,omitempty"`
-	Name  string  `json:"name,omitempty"`
-	Home  string  `json:"home,omitempty"` // formerly link
-	Quant float64 `json:"quant,omitempty"`
-	Price float64 `json:"price,omitempty"`
-	Link  Drug    `json:"link,omitempty"`
+	ID    string   `json:"id,omitempty"`
+	Name  string   `json:"name,omitempty"`
+	Home  string   `json:"home,omitempty"` // formerly link
+	Quant float64  `json:"quant,omitempty"`
+	Price float64  `json:"price,omitempty"`
+	Link  LinkDrug `json:"link,omitempty"`
 }
 
-type ItemV3Sale struct {
-	ID        string  `json:"id,omitempty"`
-	Name      string  `json:"name,omitempty"`
-	QuantIn   float64 `json:"quant_in,omitempty"`
-	PriceIn   float64 `json:"price_in,omitempty"`
-	QuantOut  float64 `json:"quant_out,omitempty"`
-	PriceOut  float64 `json:"price_out,omitempty"`
-	Stock     float64 `json:"stock,omitempty"`
-	Reimburse bool    `json:"reimburse,omitempty"`
-	SuppName  string  `json:"supp_name,omitempty"`
-	SuppCode  string  `json:"supp_code,omitempty"`
-	LinkAddr  Addr    `json:"link_addr,omitempty"`
-	LinkDrug  Drug    `json:"link_drug,omitempty"`
+type itemV3Sale struct {
+	ID        string   `json:"id,omitempty"`
+	Name      string   `json:"name,omitempty"`
+	QuantIn   float64  `json:"quant_in,omitempty"`
+	PriceIn   float64  `json:"price_in,omitempty"`
+	QuantOut  float64  `json:"quant_out,omitempty"`
+	PriceOut  float64  `json:"price_out,omitempty"`
+	Stock     float64  `json:"stock,omitempty"`
+	Reimburse bool     `json:"reimburse,omitempty"`
+	SuppName  string   `json:"supp_name,omitempty"`
+	SuppCode  string   `json:"supp_code,omitempty"`
+	LinkAddr  LinkAddr `json:"link_addr,omitempty"`
+	LinkDrug  LinkDrug `json:"link_drug,omitempty"`
 }
 
-type ItemV3SaleBy struct {
-	ID       string  `json:"id,omitempty"`
-	Name     string  `json:"name,omitempty"`
-	QuantIn  float64 `json:"quant_in,omitempty"` // formerly QuantInp
-	PriceIn  float64 `json:"price_in,omitempty"` // formerly PriceInp
-	QuantOut float64 `json:"quant_out,omitempty"`
-	PriceOut float64 `json:"price_out,omitempty"`
-	PriceRoc float64 `json:"price_roc,omitempty"`
-	Stock    float64 `json:"stock,omitempty"`     // formerly Balance
-	StockTab float64 `json:"stock_tab,omitempty"` // formerly BalanceT
-	Link     Drug    `json:"link,omitempty"`
+type itemV3SaleBy struct {
+	ID       string   `json:"id,omitempty"`
+	Name     string   `json:"name,omitempty"`
+	QuantIn  float64  `json:"quant_in,omitempty"` // formerly QuantInp
+	PriceIn  float64  `json:"price_in,omitempty"` // formerly PriceInp
+	QuantOut float64  `json:"quant_out,omitempty"`
+	PriceOut float64  `json:"price_out,omitempty"`
+	PriceRoc float64  `json:"price_roc,omitempty"`
+	Stock    float64  `json:"stock,omitempty"`     // formerly Balance
+	StockTab float64  `json:"stock_tab,omitempty"` // formerly BalanceT
+	Link     LinkDrug `json:"link,omitempty"`
 }
 
-type Ruler interface {
-	Len() int
+type ruler interface {
+	len() int
 }
 
-type Addrer interface {
+type addrer interface {
 	Ruler
-	GetSupp(int) string
-	SetAddr(int, Addr) bool
+	getSupp(int) string
+	setAddr(int, Addr) bool
 }
 
-type Druger interface {
+type druger interface {
 	Ruler
-	GetName(int) string
-	SetDrug(int, Drug) bool
+	getName(int) string
+	setDrug(int, Drug) bool
 }
 
-type DataV3Geoa []ItemV3Geoa
-type DataV3Sale []ItemV3Sale
-type DataV3SaleBy []ItemV3SaleBy
+type jsonV3Geoa []itemV3Geoa
+type jsonV3Sale []itemV3Sale
+type jsonV3SaleBy []itemV3SaleBy
 
-func (d DataV3Geoa) Len() int {
-	return len(d)
+func (j jsonV3Geoa) len() int {
+	return len(j)
 }
 
-func (d DataV3Geoa) GetName(i int) string {
-	return d[i].Name
+func (j jsonV3Geoa) getName(i int) string {
+	return j[i].Name
 }
 
-func (d DataV3Geoa) SetDrug(i int, l Drug) bool {
-	d[i].Link = l
+func (j jsonV3Geoa) setDrug(i int, l LinkDrug) bool {
+	j[i].Link = l
 	return l.IDLink != 0
 }
 
-func (d DataV3Sale) len() int {
-	return len(d)
+func (j jsonV3Sale) len() int {
+	return len(j)
 }
 
-func (d DataV3Sale) GetName(i int) string {
-	return d[i].Name
+func (j jsonV3Sale) getName(i int) string {
+	return j[i].Name
 }
 
-func (d DataV3Sale) SetDrug(i int, l Drug) bool {
-	d[i].LinkDrug = l
+func (j jsonV3Sale) setDrug(i int, l LinkDrug) bool {
+	j[i].LinkDrug = l
 	return l.IDLink != 0
 }
 
-func (d DataV3Sale) GetSupp(i int) string {
-	return d[i].SuppName
+func (j jsonV3Sale) getSupp(i int) string {
+	return j[i].SuppName
 }
 
-func (d DataV3Sale) SetAddr(i int, l Addr) bool {
-	d[i].LinkAddr = l
+func (j jsonV3Sale) setAddr(i int, l LinkAddr) bool {
+	j[i].LinkAddr = l
 	return l.IDLink != 0
 }
 
-func (d DataV3SaleBy) Len() int {
-	return len(d)
+func (j jsonV3SaleBy) len() int {
+	return len(j)
 }
 
-func (d DataV3SaleBy) GetName(i int) string {
-	return d[i].Name
+func (j jsonV3SaleBy) getName(i int) string {
+	return j[i].Name
 }
 
-func (d DataV3SaleBy) SetDrug(i int, l Drug) bool {
-	d[i].Link = l
+func (j jsonV3SaleBy) setDrug(i int, l LinkDrug) bool {
+	j[i].Link = l
 	return l.IDLink != 0
 }
 
-type DataV1Sale struct {
+type jsonV1Sale struct {
 	Meta struct {
 		TRangeLower string
 		TRangeUpper string
@@ -174,7 +174,7 @@ type DataV1Sale struct {
 	}
 }
 
-type DataV1SaleBy struct {
+type jsonV1SaleBy struct {
 	Meta struct {
 		TRangeLower string
 		TRangeUpper string
@@ -198,7 +198,7 @@ type DataV1SaleBy struct {
 	}
 }
 
-type DataV1Geoa struct {
+type jsonV1Geoa struct {
 	Meta struct {
 		Name   string `json:"name,omitempty"`
 		Head   string `json:"head,omitempty"`

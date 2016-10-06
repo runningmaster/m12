@@ -8,9 +8,9 @@ import (
 	_ "expvar"
 	_ "net/http/pprof"
 
+	"internal/core"
 	"internal/core/api"
 	"internal/core/pref"
-	"internal/core/proc"
 	"internal/database/minio"
 	"internal/database/redis"
 	"internal/net/http/server"
@@ -58,7 +58,7 @@ func initAndRun(addrNATS, addrMINIO, addrREDIS, addrSERVER string) error {
 		return err
 	}
 
-	err = proc.Init()
+	err = core.Init()
 	if err != nil {
 		return err
 	}

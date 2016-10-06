@@ -1,12 +1,9 @@
-package redis
+package core
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"internal/compress/gziputil"
-	"internal/core/link"
-	"internal/core/structs"
 	"internal/database/redis"
 )
 
@@ -31,7 +28,7 @@ func Pass(key string) bool {
 	return v == 1
 }
 
-func GetLinkAuth(v []string) ([]link.Auth, error) {
+func GetLinkAuth(v []string) ([]linkAuth, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -48,7 +45,7 @@ func GetLinkAuth(v []string) ([]link.Auth, error) {
 		return nil, err
 	}
 
-	out := make([]link.Auth, len(v))
+	out := make([]linkAuth, len(v))
 	var r string
 	for i := range v {
 		out[i].ID = v[i]
@@ -62,7 +59,7 @@ func GetLinkAuth(v []string) ([]link.Auth, error) {
 	return out, nil
 }
 
-func SetLinkAuth(v []link.Auth) (interface{}, error) {
+func SetLinkAuth(v []linkAuth) (interface{}, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -92,7 +89,7 @@ func DelLinkAuth(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func GetLinkAddr(v []string) ([]link.Addr, error) {
+func GetLinkAddr(v []string) ([]linkAddr, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -115,7 +112,7 @@ func GetLinkAddr(v []string) ([]link.Addr, error) {
 		return nil, err
 	}
 
-	out := make([]link.Addr, len(v))
+	out := make([]linkAddr, len(v))
 	var r []interface{}
 	for i := range v {
 		out[i].ID = v[i] // key
@@ -134,7 +131,7 @@ func GetLinkAddr(v []string) ([]link.Addr, error) {
 	return out, nil
 }
 
-func SetLinkAddr(v []link.Addr) (interface{}, error) {
+func SetLinkAddr(v []linkAddr) (interface{}, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -186,7 +183,7 @@ func DelLinkAddr(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func GetLinkDrug(v []string) ([]link.Drug, error) {
+func GetLinkDrug(v []string) ([]linkDrug, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -209,7 +206,7 @@ func GetLinkDrug(v []string) ([]link.Drug, error) {
 		return nil, err
 	}
 
-	out := make([]link.Drug, len(v))
+	out := make([]linkDrug, len(v))
 	var r []interface{}
 	for i := range v {
 		out[i].ID = v[i] // key
@@ -230,7 +227,7 @@ func GetLinkDrug(v []string) ([]link.Drug, error) {
 
 }
 
-func SetLinkDrug(v []link.Drug) (interface{}, error) {
+func SetLinkDrug(v []linkDrug) (interface{}, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -285,7 +282,7 @@ func DelLinkDrug(v []string) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func GetLinkStat(v []int64) ([]link.Stat, error) {
+func GetLinkStat(v []int64) ([]linkStat, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -302,7 +299,7 @@ func GetLinkStat(v []int64) ([]link.Stat, error) {
 		return nil, err
 	}
 
-	out := make([]link.Stat, len(v))
+	out := make([]linkStat, len(v))
 	var r string
 	for i := range v {
 		out[i].ID = v[i]
@@ -316,7 +313,7 @@ func GetLinkStat(v []int64) ([]link.Stat, error) {
 	return out, nil
 }
 
-func SetLinkStat(v []link.Stat) (interface{}, error) {
+func SetLinkStat(v []linkStat) (interface{}, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -346,7 +343,7 @@ func DelLinkStat(v []int64) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func SetZlog(m structs.Meta) error {
+func SetZlog(m Meta) error {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -388,10 +385,10 @@ func GetZlog(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	out := make([]structs.Meta, 0, len(res))
+	out := make([]Meta, 0, len(res))
 	var r []byte
 	var z []byte
-	var m structs.Meta
+	var m Meta
 	for range res {
 		z, err = redis.Conv.ToBytes(c.Receive())
 		if err != nil && redis.Conv.NotErrNil(err) {
@@ -403,7 +400,7 @@ func GetZlog(data []byte) (interface{}, error) {
 			return nil, err
 		}
 
-		m, err = structs.UnmarshalMeta(r)
+		m, err = UnmarshalMeta(r)
 		if err != nil {
 			return nil, err
 		}
@@ -433,7 +430,7 @@ func GetMeta(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	m, err := structs.UnmarshalMeta(r)
+	m, err := UnmarshalMeta(r)
 	if err != nil {
 		return nil, err
 	}

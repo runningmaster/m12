@@ -80,26 +80,26 @@ func Free(c io.Closer) {
 
 type conv struct{}
 
-func (c conv) ToInt64(v interface{}, err error) (int64, error) {
+func (conv) ToInt64(v interface{}, err error) (int64, error) {
 	return redis.Int64(v, err)
 }
 
-func (c conv) ToString(v interface{}, err error) (string, error) {
+func (conv) ToString(v interface{}, err error) (string, error) {
 	return redis.String(v, err)
 }
 
-func (c conv) ToStrings(v interface{}, err error) ([]string, error) {
+func (conv) ToStrings(v interface{}, err error) ([]string, error) {
 	return redis.Strings(v, err)
 }
 
-func (c conv) ToIntfs(v interface{}, err error) ([]interface{}, error) {
+func (conv) ToIntfs(v interface{}, err error) ([]interface{}, error) {
 	return redis.Values(v, err)
 }
 
-func (c conv) ToBytes(v interface{}, err error) ([]byte, error) {
+func (conv) ToBytes(v interface{}, err error) ([]byte, error) {
 	return redis.Bytes(v, err)
 }
 
-func (c conv) NotErrNil(err error) bool {
+func (conv) NotErrNil(err error) bool {
 	return err != redis.ErrNil
 }

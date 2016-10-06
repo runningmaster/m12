@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 
+	"internal/core"
 	"internal/database/minio"
 )
 
@@ -19,7 +20,7 @@ func getd(data []byte, _, w http.Header) (interface{}, error) {
 	}
 	defer minio.Free(f)
 
-	m, d, err := ungztarMetaData(f, false, true)
+	m, d, err := core.UnpackMetaData(f, false, true)
 	if err != nil {
 		return nil, err
 	}

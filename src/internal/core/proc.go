@@ -1,4 +1,4 @@
-package proc
+package core
 
 import (
 	"bytes"
@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"internal/core/link"
-	"internal/core/redis"
-	"internal/core/structs"
 	"internal/database/minio"
 	"internal/strings/strutil"
 
@@ -44,18 +42,18 @@ func proc(data []byte) {
 		m.Fail = err.Error()
 
 		f = o + ".txt"
-		err = minio.Put(structs.BucketStreamErr, f, bytes.NewReader(m.MarshalIndent()))
+		err = minio.Put(BucketStreamErr, f, bytes.NewReader(m.MarshalIndent()))
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
 
-		err = minio.Copy(structs.BucketStreamErr, o, b, o)
+		err = minio.Copy(BucketStreamErr, o, b, o)
 		if err != nil {
 			log.Println("proc: err: copy:", o, err)
 		}
 	} else {
-		f = structs.MakeFileName(m.Auth.ID, m.UUID, m.HTag)
-		err = minio.Put(structs.BucketStreamOut, f, d)
+		f = MakeFileName(m.Auth.ID, m.UUID, m.HTag)
+		err = minio.Put(BucketStreamOut, f, d)
 		if err != nil {
 			log.Println("proc: err: save:", f, err)
 		}
@@ -68,21 +66,21 @@ func proc(data []byte) {
 		log.Println("proc: err: kill:", o, err)
 	}
 
-	err = redis.SetZlog(m)
+	err = SetZlog(m)
 	if err != nil {
 		log.Println("proc: err: zlog:", o, err)
 	}
 }
 
-func procObject(r io.Reader) (structs.Meta, io.Reader, error) {
-	m := structs.Meta{}
+func procObject(r io.Reader) (Meta, io.Reader, error) {
+	m := Meta{}
 
-	meta, data, err := ungztarMetaData(r)
+	meta, data, err := UnpackMetaData(r)
 	if err != nil {
 		return m, nil, err
 	}
 
-	m, err = unmarshalMeta(meta)
+	m, err = UnmarshalMeta(meta)
 	if err != nil {
 		return m, nil, err
 	}
@@ -97,7 +95,7 @@ func procObject(r io.Reader) (structs.Meta, io.Reader, error) {
 		return m, nil, err
 	}
 
-	t, err := gztarMetaData(m.Marshal(), d)
+	t, err := PackMetaData(m.Marshal(), d)
 	if err != nil {
 		return m, nil, err
 	}
@@ -112,27 +110,23 @@ func killUTF8BOM(data []byte) []byte {
 	return data
 }
 
-func unmarshalMeta(meta []byte) (structs.Meta, error) {
-	return structs.UnmarshalMeta(meta)
-}
-
 const magicConvString = "conv"
 
-func unmarshalData(data []byte, m *structs.Meta) (interface{}, error) {
+func unmarshalData(data []byte, m *Meta) (interface{}, error) {
 	d := killUTF8BOM(data)
 	m.ETag = btsToMD5(d)
 	m.Size = int64(len(d))
 
 	if strings.HasPrefix(m.CTag, magicConvString) {
 		m.CTag = fmt.Sprintf("converted from %s format", m.HTag)
-		m.HTag = convHTag[m.HTag]
+		m.HTag = ConvHTag(m.HTag)
 		return unmarshalDataOLD(d, m)
 	}
 
 	return unmarshalDataNEW(d, m)
 }
 
-func unmarshalDataOLD(data []byte, m *structs.Meta) (interface{}, error) {
+func unmarshalDataOLD(data []byte, m *Meta) (interface{}, error) {
 	t := m.HTag
 
 	switch {
@@ -145,7 +139,7 @@ func unmarshalDataOLD(data []byte, m *structs.Meta) (interface{}, error) {
 	}
 }
 
-func unmarshalDataNEW(data []byte, m *structs.Meta) (interface{}, error) {
+func unmarshalDataNEW(data []byte, m *Meta) (interface{}, error) {
 	t := m.HTag
 
 	switch {
@@ -164,17 +158,17 @@ func unmarshalDataNEW(data []byte, m *structs.Meta) (interface{}, error) {
 	}
 }
 
-func mineLinks(v interface{}, m *structs.Meta) ([]byte, error) {
+func mineLinks(v interface{}, m *Meta) ([]byte, error) {
 	t := m.HTag
 	s := time.Now()
 
-	a, err := redis.GetLinkAuth([]string{m.Auth.ID})
+	a, err := GetLinkAuth([]string{m.Auth.ID})
 	if err != nil {
 		return nil, err
 	}
 	m.Auth = a[0]
 
-	l, err := redis.GetLinkAddr([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
+	l, err := GetLinkAddr([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +228,7 @@ func mineDrugs(v link.Druger, t string) (int, error) {
 		keys[i] = strToSHA1(name)
 	}
 
-	lds, err := redis.GetLinkDrug(keys)
+	lds, err := GetLinkDrug(keys)
 	if err != nil {
 		return 0, err
 	}
@@ -255,7 +249,7 @@ func mineAddrs(v link.Addrer) (int, error) {
 		keys[i] = strToSHA1(makeMagicAddr(v.GetSupp(i)))
 	}
 
-	lds, err := redis.GetLinkAddr(keys)
+	lds, err := GetLinkAddr(keys)
 	if err != nil {
 		return 0, err
 	}

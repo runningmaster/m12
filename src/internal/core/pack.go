@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"archive/tar"
@@ -14,7 +14,7 @@ const (
 	tarData = "data.json.gz"
 )
 
-func gztarMetaData(m, d []byte) (io.Reader, error) {
+func PackMetaData(m, d []byte) (io.Reader, error) {
 	b := new(bytes.Buffer)
 	t := tar.NewWriter(b)
 
@@ -58,7 +58,7 @@ func writeGzTar(name string, data []byte, w *tar.Writer) error {
 	return err
 }
 
-func ungztarMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
+func UnpackMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
 	tr := tar.NewReader(r)
 	var (
 		m = new(bytes.Buffer)

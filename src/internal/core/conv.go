@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"internal/core/link"
-	"internal/core/structs"
 )
 
 func unmarshalSale(data []byte) (*link.DataV1Sale, error) {
@@ -20,7 +19,7 @@ func unmarshalSale(data []byte) (*link.DataV1Sale, error) {
 	return v, nil
 }
 
-func convSale(data []byte, m *structs.Meta) (link.DataV3Sale, error) {
+func convSale(data []byte, m *Meta) (link.DataV3Sale, error) {
 	v, err := unmarshalSale(data)
 	if err != nil {
 		return nil, err
@@ -69,7 +68,7 @@ func unmarshalSaleBy(data []byte) (*link.DataV1SaleBy, error) {
 	return v, nil
 }
 
-func convSaleBy(data []byte, m *structs.Meta) (link.DataV3SaleBy, error) {
+func convSaleBy(data []byte, m *Meta) (link.DataV3SaleBy, error) {
 	v, err := unmarshalSaleBy(data)
 	if err != nil {
 		return nil, err
@@ -115,7 +114,7 @@ func unmarshalGeoa(data []byte) (*link.DataV1Geoa, error) {
 	return v, nil
 }
 
-func convGeoa(data []byte, m *structs.Meta) (link.DataV3Geoa, error) {
+func convGeoa(data []byte, m *Meta) (link.DataV3Geoa, error) {
 	v, err := unmarshalGeoa(data)
 	if err != nil {
 		return nil, err
