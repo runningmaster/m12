@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"internal/core/ctxt"
-
 	"code.cloudfoundry.org/bytefmt"
 )
 
@@ -18,17 +16,17 @@ func Tail(next http.Handler) http.Handler {
 		ctx := r.Context()
 
 		log.Println( // log.New() ?
-			ctxt.CodeFrom(ctx),
-			trimPart(ctxt.UUIDFrom(ctx)),
-			markEmpty(trimPart(ctxt.AuthFrom(ctx))),
-			markEmpty(ctxt.HostFrom(ctx)),
+			codeFrom(ctx),
+			trimPart(uuidFrom(ctx)),
+			markEmpty(trimPart(authFrom(ctx))),
+			markEmpty(hostFrom(ctx)),
 			markEmpty(r.Method),
 			markEmpty(makePath(r.URL.Path)),
-			convSize(ctxt.ClenFrom(ctx)),
-			convSize(ctxt.SizeFrom(ctx)),
-			markEmpty(convTime(ctxt.TimeFrom(ctx))),
-			markEmpty(fmt.Sprintf("%q", ctxt.UserFrom(ctx))),
-			convFail(ctxt.FailFrom(ctx)),
+			convSize(clenFrom(ctx)),
+			convSize(sizeFrom(ctx)),
+			markEmpty(convTime(timeFrom(ctx))),
+			markEmpty(fmt.Sprintf("%q", userFrom(ctx))),
+			convFail(failFrom(ctx)),
 		)
 		//if next != nil {
 		//	next.ServerHTTP(ctx, w, r)

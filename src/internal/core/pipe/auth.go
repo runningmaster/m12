@@ -3,8 +3,6 @@ package pipe
 import (
 	"fmt"
 	"net/http"
-
-	"internal/core/ctxt"
 )
 
 func Auth(fn func(string) bool) handler {
@@ -19,12 +17,12 @@ func Auth(fn func(string) bool) handler {
 			}
 
 			if ok {
-				ctx = ctxt.WithAuth(ctx, key)
+				ctx = withAuth(ctx, key)
 			} else {
 				if err == nil {
 					err = fmt.Errorf("pipe: invalid key: %s: forbidden", key)
 				}
-				ctx = ctxt.WithFail(ctx, err, http.StatusForbidden)
+				ctx = withFail(ctx, err, http.StatusForbidden)
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))

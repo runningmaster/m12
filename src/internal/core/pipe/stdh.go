@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"internal/core/ctxt"
 	"internal/core/pref"
 )
 
@@ -18,12 +17,12 @@ func StdH(next http.Handler) http.Handler {
 			if h, p := http.DefaultServeMux.Handler(r); p != "" {
 				b := &stdhResponseWriter{rw: w}
 				h.ServeHTTP(b, r)
-				ctx = ctxt.WithSize(ctx, int64(b.n))
-				ctx = ctxt.WithStdh(ctx, true)
+				ctx = withSize(ctx, int64(b.n))
+				ctx = withStdh(ctx, true)
 			}
 		} else {
 			err := fmt.Errorf("pipe: flag debug not found")
-			ctx = ctxt.WithFail(ctx, err)
+			ctx = withFail(ctx, err)
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))

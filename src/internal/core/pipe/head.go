@@ -7,8 +7,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"internal/core/ctxt"
-
 	"github.com/rogpeppe/fastuuid"
 )
 
@@ -17,10 +15,10 @@ var genUUID = fastuuid.MustNewGenerator()
 func Head(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = ctxt.WithUUID(ctx, nextUUID())
-		ctx = ctxt.WithHost(ctx, mineHost(r))
-		ctx = ctxt.WithUser(ctx, mineUser(r))
-		ctx = ctxt.WithTime(ctx, time.Now())
+		ctx = withUUID(ctx, nextUUID())
+		ctx = withHost(ctx, mineHost(r))
+		ctx = withUser(ctx, mineUser(r))
+		ctx = withTime(ctx, time.Now())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

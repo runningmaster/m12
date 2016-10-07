@@ -10,13 +10,12 @@ import (
 	"strings"
 
 	"internal/compress/gziputil"
-	"internal/core/ctxt"
 )
 
 func Meta(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		err := ctxt.FailFrom(ctx)
+		err := failFrom(ctx)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
@@ -24,7 +23,7 @@ func Meta(next http.Handler) http.Handler {
 
 		err = injectMeta(ctx, r.Header)
 		if err != nil {
-			ctx = ctxt.WithFail(ctx, err)
+			ctx = withFail(ctx, err)
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -53,12 +52,12 @@ func injectMeta(ctx context.Context, h http.Header) error {
 		Unix int64  `json:"unix,omitempty"`
 	}{}
 
-	v.UUID = ctxt.UUIDFrom(ctx)
-	v.Auth.ID = ctxt.AuthFrom(ctx)
-	v.Host = ctxt.HostFrom(ctx)
-	v.User = ctxt.UserFrom(ctx)
-	v.Time = ctxt.TimeFrom(ctx).String()
-	v.Unix = ctxt.TimeFrom(ctx).Unix()
+	v.UUID = uuidFrom(ctx)
+	v.Auth.ID = authFrom(ctx)
+	v.Host = hostFrom(ctx)
+	v.User = userFrom(ctx)
+	v.Time = timeFrom(ctx).String()
+	v.Unix = timeFrom(ctx).Unix()
 
 	m, err := json.Marshal(v)
 	if err != nil {

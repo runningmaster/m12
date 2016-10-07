@@ -6,30 +6,29 @@ import (
 	"net/http"
 	"runtime"
 
-	"internal/core/ctxt"
 	"internal/core/pref"
 )
 
 func Resp(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		data, err := ctxt.DataFrom(ctx), ctxt.FailFrom(ctx)
+		data, err := dataFrom(ctx), failFrom(ctx)
 		if err != nil {
 			data = err.Error()
 		}
 
 		// workaround for stdh
-		if ctxt.StdhFrom(ctx) {
+		if stdhFrom(ctx) {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		n, err := writeResp(w, ctxt.UUIDFrom(ctx), ctxt.CodeFrom(ctx), data)
+		n, err := writeResp(w, uuidFrom(ctx), codeFrom(ctx), data)
 		if err != nil {
-			ctx = ctxt.WithFail(ctx, err)
+			ctx = withFail(ctx, err)
 		}
 
-		ctx = ctxt.WithSize(ctx, int64(n))
+		ctx = withSize(ctx, int64(n))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

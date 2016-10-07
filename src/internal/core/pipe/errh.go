@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"internal/core/ctxt"
 )
 
 func ErrH(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		code, text := codeWithText(r.URL.Path)
-		ctx = ctxt.WithFail(ctx, fmt.Errorf("api: %s", text), code)
+		ctx = withFail(ctx, fmt.Errorf("api: %s", text), code)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
