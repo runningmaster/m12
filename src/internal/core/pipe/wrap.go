@@ -42,7 +42,7 @@ func Wrap(v interface{}) handler {
 			case func() (interface{}, error):
 				res, err = h()
 			default:
-				panic("pipe: unknown handler")
+				panic("pipe: wrap: unknown handler")
 			}
 
 		exit:

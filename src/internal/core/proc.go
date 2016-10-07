@@ -21,7 +21,7 @@ import (
 
 func proc(data []byte) {
 	s := time.Now()
-	b, o, err := minio.Unmarshal(data)
+	b, o, err := DecodePath(data)
 	if err != nil {
 		log.Println("proc: err: pair:", err)
 		return

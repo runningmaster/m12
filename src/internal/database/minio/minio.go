@@ -1,7 +1,6 @@
 package minio
 
 import (
-	"encoding/json"
 	"io"
 	"net/url"
 	"path/filepath"
@@ -107,20 +106,4 @@ func Free(o io.Closer) {
 	if o != nil {
 		_ = o.Close()
 	}
-}
-
-type pair struct {
-	Bucket string `json:"bucket,omitempty"`
-	Object string `json:"object,omitempty"`
-}
-
-func Pair(b string, o string) ([]byte, error) {
-	p := pair{b, o}
-	return json.Marshal(p)
-}
-
-func Unmarshal(data []byte) (string, string, error) {
-	p := pair{}
-	err := json.Unmarshal(data, &p)
-	return p.Bucket, p.Object, err
 }

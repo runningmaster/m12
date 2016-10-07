@@ -10,7 +10,7 @@ import (
 )
 
 func popd(data []byte, _, w http.Header) (interface{}, error) {
-	b, o, err := minio.Unmarshal(data)
+	b, o, err := core.DecodePath(data)
 	if err != nil {
 		return nil, err
 	}

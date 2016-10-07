@@ -1,11 +1,12 @@
 package api
 
 import (
+	"internal/core"
 	"internal/database/minio"
 )
 
 func deld(data []byte) (interface{}, error) {
-	b, o, err := minio.Unmarshal(data)
+	b, o, err := core.DecodePath(data)
 	if err != nil {
 		return nil, err
 	}

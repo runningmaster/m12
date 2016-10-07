@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 
@@ -21,6 +22,11 @@ const (
 	tickD = 10 * time.Second
 )
 
+type path struct {
+	Bucket string `json:"bucket,omitempty"`
+	Object string `json:"object,omitempty"`
+}
+
 // Init inits client for NATS Server
 func Init() error {
 	sendMessage(BucketStreamOut, SubjectSteamOut, tickD, listN)
@@ -35,7 +41,7 @@ func sendMessage(b, s string, d time.Duration, n int) {
 			log.Println(err)
 		} else {
 			for i := range l {
-				p, err := minio.Pair(b, l[i])
+				p, err := EncodePath(b, l[i])
 				if err != nil {
 					log.Println(err)
 				}
@@ -47,4 +53,15 @@ func sendMessage(b, s string, d time.Duration, n int) {
 		}
 		sendMessage(b, s, d, n)
 	})
+}
+
+func EncodePath(b string, o string) ([]byte, error) {
+	p := path{b, o}
+	return json.Marshal(p)
+}
+
+func DecodePath(data []byte) (string, string, error) {
+	p := path{}
+	err := json.Unmarshal(data, &p)
+	return p.Bucket, p.Object, err
 }
