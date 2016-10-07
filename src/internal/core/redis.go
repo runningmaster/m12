@@ -1,8 +1,11 @@
 package core
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"internal/compress/gziputil"
 	"internal/database/redis"
@@ -24,7 +27,7 @@ func Pass(key string) bool {
 	c := redis.Conn()
 	defer redis.Free(c)
 
-	v, _ := redis.Conv.ToInt64(c.Do("HEXISTS", keyAuth, key))
+	v, _ := redis.Int64(c.Do("HEXISTS", keyAuth, key))
 
 	return v == 1
 }
@@ -50,8 +53,8 @@ func GetLinkAuth(v []string) ([]LinkAuth, error) {
 	var r string
 	for i := range v {
 		out[i].ID = v[i]
-		r, err = redis.Conv.ToString(c.Receive())
-		if err != nil && redis.Conv.NotErrNil(err) {
+		r, err = redis.String(c.Receive())
+		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
 		out[i].Name = r
@@ -117,15 +120,15 @@ func GetLinkAddr(v []string) ([]LinkAddr, error) {
 	var r []interface{}
 	for i := range v {
 		out[i].ID = v[i] // key
-		r, err = redis.Conv.ToIntfs(c.Receive())
-		if err != nil && redis.Conv.NotErrNil(err) {
+		r, err = redis.Intfs(c.Receive())
+		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
 		if len(r) == len(fldsAddr) {
-			out[i].IDLink, _ = redis.Conv.ToInt64(r[0], nil)  // fld "l"
-			out[i].IDAddr, _ = redis.Conv.ToInt64(r[1], nil)  // fld "a"
-			out[i].IDStat, _ = redis.Conv.ToInt64(r[2], nil)  // fld "s"
-			out[i].EGRPOU, _ = redis.Conv.ToString(r[3], nil) // fld "e"
+			out[i].IDLink, _ = redis.Int64(r[0], nil)  // fld "l"
+			out[i].IDAddr, _ = redis.Int64(r[1], nil)  // fld "a"
+			out[i].IDStat, _ = redis.Int64(r[2], nil)  // fld "s"
+			out[i].EGRPOU, _ = redis.String(r[3], nil) // fld "e"
 		}
 	}
 
@@ -211,16 +214,16 @@ func GetLinkDrug(v []string) ([]LinkDrug, error) {
 	var r []interface{}
 	for i := range v {
 		out[i].ID = v[i] // key
-		r, err = redis.Conv.ToIntfs(c.Receive())
-		if err != nil && redis.Conv.NotErrNil(err) {
+		r, err = redis.Intfs(c.Receive())
+		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
 		if len(r) == len(fldsDrug) {
-			out[i].IDLink, _ = redis.Conv.ToInt64(r[0], nil) // fld "l"
-			out[i].IDDrug, _ = redis.Conv.ToInt64(r[1], nil) // fld "d"
-			out[i].IDBrnd, _ = redis.Conv.ToInt64(r[2], nil) // fld "b"
-			out[i].IDCatg, _ = redis.Conv.ToInt64(r[3], nil) // fld "c"
-			out[i].IDStat, _ = redis.Conv.ToInt64(r[4], nil) // fld "s"
+			out[i].IDLink, _ = redis.Int64(r[0], nil) // fld "l"
+			out[i].IDDrug, _ = redis.Int64(r[1], nil) // fld "d"
+			out[i].IDBrnd, _ = redis.Int64(r[2], nil) // fld "b"
+			out[i].IDCatg, _ = redis.Int64(r[3], nil) // fld "c"
+			out[i].IDStat, _ = redis.Int64(r[4], nil) // fld "s"
 		}
 	}
 
@@ -304,8 +307,8 @@ func GetLinkStat(v []int64) ([]LinkStat, error) {
 	var r string
 	for i := range v {
 		out[i].ID = v[i]
-		r, err = redis.Conv.ToString(c.Receive())
-		if err != nil && redis.Conv.NotErrNil(err) {
+		r, err = redis.String(c.Receive())
+		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
 		out[i].Name = r
@@ -370,7 +373,7 @@ func GetZlog(data []byte) (interface{}, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
-	res, err := redis.Conv.ToStrings(c.Do("ZRANGEBYSCORE", keyZlog, "-inf", "+inf"))
+	res, err := redis.Strings(c.Do("ZRANGEBYSCORE", keyZlog, "-inf", "+inf"))
 	if err != nil {
 		return nil, err
 	}
@@ -391,8 +394,8 @@ func GetZlog(data []byte) (interface{}, error) {
 	var z []byte
 	var m Meta
 	for range res {
-		z, err = redis.Conv.ToBytes(c.Receive())
-		if err != nil && redis.Conv.NotErrNil(err) {
+		z, err = redis.Bytes(c.Receive())
+		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
 
@@ -421,7 +424,7 @@ func GetMeta(data []byte) (interface{}, error) {
 	c := redis.Conn()
 	defer redis.Free(c)
 
-	z, err := redis.Conv.ToBytes(c.Do("GET", v))
+	z, err := redis.Bytes(c.Do("GET", v))
 	if err != nil /*&& err != redis.ErrNil*/ {
 		return nil, err
 	}
@@ -437,4 +440,50 @@ func GetMeta(data []byte) (interface{}, error) {
 	}
 
 	return m, nil
+}
+
+func Ping() (interface{}, error) {
+	c := redis.Conn()
+	defer redis.Free(c)
+
+	return c.Do("PING")
+}
+
+func Info() (interface{}, error) {
+	c := redis.Conn()
+	defer redis.Free(c)
+
+	b, err := redis.Bytes(c.Do("INFO"))
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(b))
+	mapper := make(map[string]map[string]string)
+
+	var (
+		line  string
+		sect  string
+		split []string
+	)
+
+	for scanner.Scan() {
+		line = strings.ToLower(scanner.Text())
+		if line == "" {
+			continue
+		}
+		if strings.Contains(line, "#") {
+			sect = line[2:]
+			mapper[sect] = make(map[string]string)
+			continue
+		}
+		split = strings.Split(line, ":")
+		mapper[sect][split[0]] = split[1]
+	}
+
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
+	}
+
+	return mapper, nil
 }

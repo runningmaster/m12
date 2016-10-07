@@ -11,17 +11,7 @@ import (
 
 var (
 	pool *redis.Pool
-	Conv Converter = conv{}
 )
-
-type Converter interface {
-	ToInt64(interface{}, error) (int64, error)
-	ToString(interface{}, error) (string, error)
-	ToStrings(interface{}, error) ([]string, error)
-	ToIntfs(interface{}, error) ([]interface{}, error)
-	ToBytes(interface{}, error) ([]byte, error)
-	NotErrNil(error) bool
-}
 
 // Init inits client for REDIS Server
 func Init(addr string) error {
@@ -78,28 +68,26 @@ func Free(c io.Closer) {
 	}
 }
 
-type conv struct{}
-
-func (conv) ToInt64(v interface{}, err error) (int64, error) {
+func Int64(v interface{}, err error) (int64, error) {
 	return redis.Int64(v, err)
 }
 
-func (conv) ToString(v interface{}, err error) (string, error) {
+func String(v interface{}, err error) (string, error) {
 	return redis.String(v, err)
 }
 
-func (conv) ToStrings(v interface{}, err error) ([]string, error) {
+func Strings(v interface{}, err error) ([]string, error) {
 	return redis.Strings(v, err)
 }
 
-func (conv) ToIntfs(v interface{}, err error) ([]interface{}, error) {
+func Intfs(v interface{}, err error) ([]interface{}, error) {
 	return redis.Values(v, err)
 }
 
-func (conv) ToBytes(v interface{}, err error) ([]byte, error) {
+func Bytes(v interface{}, err error) ([]byte, error) {
 	return redis.Bytes(v, err)
 }
 
-func (conv) NotErrNil(err error) bool {
+func NotErrNil(err error) bool {
 	return err != redis.ErrNil
 }
