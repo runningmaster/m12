@@ -1,4 +1,4 @@
-package api
+package pipe
 
 import (
 	"bufio"
@@ -11,21 +11,23 @@ import (
 	"internal/core/pref"
 )
 
-func stdh(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	if pref.Debug {
-		if h, p := http.DefaultServeMux.Handler(r); p != "" {
-			b := &stdhResponseWriter{rw: w}
-			h.ServeHTTP(b, r)
-			ctx = ctxt.WithSize(ctx, int64(b.n))
-			ctx = ctxt.WithStdh(ctx, true)
+func StdH(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		if pref.Debug {
+			if h, p := http.DefaultServeMux.Handler(r); p != "" {
+				b := &stdhResponseWriter{rw: w}
+				h.ServeHTTP(b, r)
+				ctx = ctxt.WithSize(ctx, int64(b.n))
+				ctx = ctxt.WithStdh(ctx, true)
+			}
+		} else {
+			err := fmt.Errorf("pipe: flag debug not found")
+			ctx = ctxt.WithFail(ctx, err)
 		}
-	} else {
-		err := fmt.Errorf("api: flag debug not found")
-		ctx = ctxt.WithFail(ctx, err)
-	}
 
-	*r = *r.WithContext(ctx)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 type stdhResponseWriter struct {

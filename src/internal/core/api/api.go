@@ -46,18 +46,18 @@ var (
 		"POST>/stream/get-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getd), pipe.Resp, pipe.Tail),
 		"POST>/stream/del-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(deld), pipe.Resp, pipe.Tail),
 
-		// => Debug mode only, when flag.Debug == true
+		// => Debug mode only, when pref.Debug == true
 		"GET>/debug/info":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(info), pipe.Resp, pipe.Tail), // ?
-		"GET>/debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // expvar
-		"GET>/debug/pprof/":             pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // net/http/pprof
-		"GET>/debug/pprof/cmdline":      pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // net/http/pprof
-		"GET>/debug/pprof/profile":      pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // net/http/pprof
-		"GET>/debug/pprof/symbol":       pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // net/http/pprof
-		"GET>/debug/pprof/trace":        pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // net/http/pprof
-		"GET>/debug/pprof/goroutine":    pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // runtime/pprof
-		"GET>/debug/pprof/threadcreate": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // runtime/pprof
-		"GET>/debug/pprof/heap":         pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // runtime/pprof
-		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(stdh), pipe.Resp, pipe.Tail), // runtime/pprof
+		"GET>/debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // expvar
+		"GET>/debug/pprof/":             pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET>/debug/pprof/cmdline":      pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET>/debug/pprof/profile":      pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET>/debug/pprof/symbol":       pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET>/debug/pprof/trace":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET>/debug/pprof/goroutine":    pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET>/debug/pprof/threadcreate": pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET>/debug/pprof/heap":         pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
 
 		// => Workarounds for 404/405
 		"GET>/error/404": pipe.Use(pipe.Head, pipe.Wrap(e404), pipe.Resp, pipe.Tail),
