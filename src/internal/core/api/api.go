@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/context/ctxutil"
 	"internal/core"
+	"internal/core/ctxt"
 	"internal/core/pipe"
 	"internal/core/pref"
 	"internal/version"
@@ -87,7 +87,7 @@ func e405(w http.ResponseWriter, r *http.Request) {
 func respErr(r *http.Request, code int) {
 	ctx := r.Context()
 	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
-	ctx = ctxutil.WithFail(ctx, err, code)
+	ctx = ctxt.WithFail(ctx, err, code)
 	*r = *r.WithContext(ctx)
 }
 
@@ -109,7 +109,7 @@ func MakeRouter() http.Handler {
 					func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 						ctx := r.Context()
 						for i := range p {
-							ctx = ctxutil.WithURLp(ctx, p[i].Key, p[i].Value)
+							ctx = ctxt.WithURLp(ctx, p[i].Key, p[i].Value)
 						}
 						r = r.WithContext(ctx)
 						h.ServeHTTP(w, r)

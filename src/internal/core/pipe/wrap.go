@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"internal/context/ctxutil"
+	"internal/core/ctxt"
 )
 
 func Wrap(v interface{}) handler {
@@ -14,7 +14,7 @@ func Wrap(v interface{}) handler {
 			defer func() { _ = r.Body.Close() }()
 
 			ctx := r.Context()
-			err := ctxutil.FailFrom(ctx)
+			err := ctxt.FailFrom(ctx)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return
@@ -29,7 +29,7 @@ func Wrap(v interface{}) handler {
 					goto exit
 				}
 			}
-			ctx = ctxutil.WithClen(ctx, n)
+			ctx = ctxt.WithClen(ctx, n)
 
 			switch h := v.(type) {
 			case func(http.ResponseWriter, *http.Request):
@@ -47,10 +47,10 @@ func Wrap(v interface{}) handler {
 
 		exit:
 			if err != nil {
-				ctx = ctxutil.WithFail(ctx, err)
+				ctx = ctxt.WithFail(ctx, err)
 			}
 			if res != nil {
-				ctx = ctxutil.WithData(ctx, res)
+				ctx = ctxt.WithData(ctx, res)
 			}
 			*r = *r.WithContext(ctx)
 			next.ServeHTTP(w, r)

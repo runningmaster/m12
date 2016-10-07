@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"internal/context/ctxutil"
+	"internal/core/ctxt"
 )
 
 func Auth(fn func(string) bool) handler {
@@ -19,12 +19,12 @@ func Auth(fn func(string) bool) handler {
 			}
 
 			if ok {
-				ctx = ctxutil.WithAuth(ctx, key)
+				ctx = ctxt.WithAuth(ctx, key)
 			} else {
 				if err == nil {
 					err = fmt.Errorf("pipe: invalid key: %s: forbidden", key)
 				}
-				ctx = ctxutil.WithFail(ctx, err, http.StatusForbidden)
+				ctx = ctxt.WithFail(ctx, err, http.StatusForbidden)
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
