@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"internal/core"
 )
@@ -97,7 +96,7 @@ func delDrug(data []byte) (interface{}, error) {
 	return core.DelLinkDrug(v)
 }
 
-func getStat(data []byte, _, _ http.Header) (interface{}, error) {
+func getStat(data []byte) (interface{}, error) {
 	var v []int64
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -107,7 +106,7 @@ func getStat(data []byte, _, _ http.Header) (interface{}, error) {
 	return core.GetLinkStat(v)
 }
 
-func setStat(data []byte, _, _ http.Header) (interface{}, error) {
+func setStat(data []byte) (interface{}, error) {
 	var v []core.LinkStat
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -117,7 +116,7 @@ func setStat(data []byte, _, _ http.Header) (interface{}, error) {
 	return core.SetLinkStat(v)
 }
 
-func delStat(data []byte, _, _ http.Header) (interface{}, error) {
+func delStat(data []byte) (interface{}, error) {
 	var v []int64
 	err := json.Unmarshal(data, &v)
 	if err != nil {
