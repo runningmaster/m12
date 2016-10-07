@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"internal/compress/gziputil"
+	"internal/core/pref"
 	"internal/database/redis"
 )
 
@@ -24,6 +25,10 @@ var (
 )
 
 func Pass(key string) bool {
+	if strings.EqualFold(pref.MasterKey, key) {
+		return true
+	}
+
 	c := redis.Conn()
 	defer redis.Free(c)
 

@@ -130,11 +130,6 @@ func StdhFrom(ctx context.Context) bool {
 	return boolFromContext(ctx, ctxStdh)
 }
 
-//
-func WithURLp(ctx context.Context, k, v string) context.Context {
-	return context.WithValue(ctx, k, v)
-}
-
 func URLpFrom(ctx context.Context, k string) string {
 	return stringFromContext(ctx, k)
 }

@@ -1,14 +1,13 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"internal/core"
-	"internal/core/ctxt"
 	"internal/core/pipe"
-	"internal/core/pref"
 	"internal/version"
 
 	"github.com/julienschmidt/httprouter"
@@ -38,7 +37,7 @@ var (
 		"POST>/system/get-meta": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getMeta), pipe.Resp, pipe.Tail),
 		"POST>/system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getZlog), pipe.Resp, pipe.Tail),
 
-		// Converter from old school style /data/add DEPRECATED
+		// DEPRECATED Converter from old school style /data/add
 		"POST>/data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
 
 		"POST>/stream/put-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
@@ -60,35 +59,17 @@ var (
 		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
 
 		// => Workarounds for 404/405
-		"GET>/error/404": pipe.Use(pipe.Head, pipe.Wrap(e404), pipe.Resp, pipe.Tail),
-		"GET>/error/405": pipe.Use(pipe.Head, pipe.Wrap(e405), pipe.Resp, pipe.Tail),
+		"GET>/error/404": pipe.Use(pipe.Head, pipe.ErrH, pipe.Resp, pipe.Tail),
+		"GET>/error/405": pipe.Use(pipe.Head, pipe.ErrH, pipe.Resp, pipe.Tail),
 	}
 )
 
 func pass(key string) bool {
-	if strings.EqualFold(pref.MasterKey, key) {
-		return true
-	}
 	return core.Pass(key)
 }
 
 func root() (interface{}, error) {
 	return fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()), nil
-}
-
-func e404(w http.ResponseWriter, r *http.Request) {
-	respErr(r, http.StatusNotFound)
-}
-
-func e405(w http.ResponseWriter, r *http.Request) {
-	respErr(r, http.StatusMethodNotAllowed)
-}
-
-func respErr(r *http.Request, code int) {
-	ctx := r.Context()
-	err := fmt.Errorf("api: %s", strings.ToLower(http.StatusText(code)))
-	ctx = ctxt.WithFail(ctx, err, code)
-	*r = *r.WithContext(ctx)
 }
 
 // MakeRouter returns http.Handler
@@ -109,7 +90,7 @@ func MakeRouter() http.Handler {
 					func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 						ctx := r.Context()
 						for i := range p {
-							ctx = ctxt.WithURLp(ctx, p[i].Key, p[i].Value)
+							ctx = context.WithValue(ctx, p[i].Key, p[i].Value)
 						}
 						r = r.WithContext(ctx)
 						h.ServeHTTP(w, r)
