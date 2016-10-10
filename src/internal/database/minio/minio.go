@@ -37,6 +37,11 @@ func makeConn(addr string) (*minio.Client, error) {
 		return nil, err
 	}
 
+	_, err = c.BucketExists("test")
+	if err != nil {
+		return nil, err
+	}
+
 	return c, nil
 }
 
