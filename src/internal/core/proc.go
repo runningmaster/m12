@@ -272,29 +272,32 @@ const (
 )
 
 func makeMagicHead(name, head, addr string) string {
-	return strings.TrimSpace(
+	return strings.Trim(
 		strutil.TrimRightN(
 			fmt.Sprintf("%s/%s: %s", name, head, addr),
 			magicLength,
 		),
+		" ",
 	)
 }
 
 func makeMagicAddr(name string) string {
-	return strings.TrimSpace(
+	return strings.Trim(
 		strutil.TrimRightN(
 			name,
 			magicLength,
 		),
+		" ",
 	)
 }
 
 func makeMagicDrug(name string) string {
-	return strings.TrimSpace(
+	return strings.Trim(
 		strutil.TrimRightN(
 			name,
 			magicLength,
 		),
+		" ",
 	)
 }
 
