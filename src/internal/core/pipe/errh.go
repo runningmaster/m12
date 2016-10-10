@@ -6,23 +6,12 @@ import (
 	"strings"
 )
 
-func ErrH(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		code, text := codeWithText(r.URL.Path)
-		ctx = withFail(ctx, fmt.Errorf("api: %s", text), code)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func codeWithText(s string) (int, string) {
-	code := http.StatusInternalServerError
-	switch {
-	case strings.HasPrefix(s, "404"):
-		code = http.StatusNotFound
-	case strings.HasPrefix(s, "405"):
-		code = http.StatusMethodNotAllowed
+func ErrH(code int) handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			ctx = withFail(ctx, fmt.Errorf("pipe: %s", strings.ToLower(http.StatusText(code))), code)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
 	}
-	return code, strings.ToLower(http.StatusText(code))
 }

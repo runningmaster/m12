@@ -13,7 +13,15 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const (
+	code404 = http.StatusNotFound
+	code405 = http.StatusMethodNotAllowed
+)
+
 var (
+	fake404URL = fmt.Sprintf("/workaround-%d", code404)
+	fake405URL = fmt.Sprintf("/workaround-%d", code404)
+
 	httpHandlers = map[string]http.Handler{
 		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
 		"GET>/ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(ping), pipe.Resp, pipe.Tail),
@@ -59,8 +67,8 @@ var (
 		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
 
 		// => Workarounds for 404/405
-		"GET>/error/404": pipe.Use(pipe.Head, pipe.ErrH, pipe.Resp, pipe.Tail),
-		"GET>/error/405": pipe.Use(pipe.Head, pipe.ErrH, pipe.Resp, pipe.Tail),
+		"GET>" + fake404URL: pipe.Use(pipe.Head, pipe.ErrH(code404), pipe.Resp, pipe.Tail),
+		"GET>" + fake405URL: pipe.Use(pipe.Head, pipe.ErrH(code405), pipe.Resp, pipe.Tail),
 	}
 )
 
@@ -80,9 +88,9 @@ func MakeRouter() http.Handler {
 		s := strings.Split(k, ">") // [m,p]
 
 		switch s[1] {
-		case "/error/404":
+		case fake404URL:
 			r.NotFound = v
-		case "/error/405":
+		case fake405URL:
 			r.MethodNotAllowed = v
 		default:
 			func(m, p string, h http.Handler) {
