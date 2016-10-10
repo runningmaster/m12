@@ -24,14 +24,14 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 	go func() { // ?
 		t, err := core.PackMetaData(meta, data)
 		if err != nil {
-			log.Println("putd: err: gztr:", err)
+			log.Println("err: putd: gztr:", err)
 			return
 		}
 
 		f := core.MakeFileName(m.Auth.ID, m.UUID, core.ConvHTag(m.HTag))
 		err = minio.Put(core.BucketStreamIn, f, t)
 		if err != nil {
-			log.Println("putd: err: save:", err)
+			log.Println("err: putd: save:", err)
 		}
 	}()
 

@@ -23,13 +23,13 @@ func proc(data []byte) {
 	s := time.Now()
 	b, o, err := DecodePath(data)
 	if err != nil {
-		log.Println("proc: err: pair:", err)
+		log.Println("err: proc: path:", err)
 		return
 	}
 
 	f1, err := minio.Get(b, o)
 	if err != nil {
-		log.Println("proc: err: load:", o, err)
+		log.Println("err: proc: load:", o, err)
 		return
 	}
 	defer minio.Free(f1)
@@ -37,24 +37,24 @@ func proc(data []byte) {
 	var f string
 	m, d, err := procObject(f1)
 	if err != nil {
-		log.Println("proc: err:", o, err)
+		log.Println("err: proc:", o, err)
 		m.Fail = err.Error()
 
 		f = o + ".txt"
 		err = minio.Put(BucketStreamErr, f, bytes.NewReader(m.MarshalIndent()))
 		if err != nil {
-			log.Println("proc: err: save:", f, err)
+			log.Println("err: proc: save:", f, err)
 		}
 
 		err = minio.Copy(BucketStreamErr, o, b, o)
 		if err != nil {
-			log.Println("proc: err: copy:", o, err)
+			log.Println("err: proc: copy:", o, err)
 		}
 	} else {
 		f = MakeFileName(m.Auth.ID, m.UUID, m.HTag)
 		err = minio.Put(BucketStreamOut, f, d)
 		if err != nil {
-			log.Println("proc: err: save:", f, err)
+			log.Println("err: proc: save:", f, err)
 		}
 
 		log.Println("proc:", f, m.Proc, time.Since(s).String())
@@ -62,12 +62,12 @@ func proc(data []byte) {
 
 	err = minio.Del(b, o)
 	if err != nil {
-		log.Println("proc: err: kill:", o, err)
+		log.Println("err: proc: kill:", o, err)
 	}
 
 	err = SetZlog(m)
 	if err != nil {
-		log.Println("proc: err: zlog:", o, err)
+		log.Println("err: proc: zlog:", o, err)
 	}
 }
 

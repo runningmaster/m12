@@ -38,16 +38,16 @@ func sendMessage(b, s string, d time.Duration, n int) {
 	_ = time.AfterFunc(d, func() {
 		l, err := minio.List(b, n)
 		if err != nil {
-			log.Println(err)
+			log.Println("err: minio:", err)
 		} else {
 			for i := range l {
 				p, err := EncodePath(b, l[i])
 				if err != nil {
-					log.Println(err)
+					log.Println("err: minio:", err)
 				}
 				err = nats.Publish(s, p)
 				if err != nil {
-					log.Println(err)
+					log.Println("err: nats:", err)
 				}
 			}
 		}
