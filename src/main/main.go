@@ -28,8 +28,9 @@ func main() {
 		pref.SERVER,
 	)
 	if err != nil {
+		log.Println("main:", err)
 		pref.Usage()
-		log.Fatalf("main: %v", err)
+		os.Exit(1)
 	}
 }
 
