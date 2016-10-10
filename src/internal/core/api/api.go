@@ -72,14 +72,6 @@ var (
 	}
 )
 
-func pass(key string) bool {
-	return core.Pass(key)
-}
-
-func root() (interface{}, error) {
-	return fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()), nil
-}
-
 // MakeRouter returns http.Handler
 func MakeRouter() http.Handler {
 	r := httprouter.New()
@@ -108,4 +100,20 @@ func MakeRouter() http.Handler {
 	}
 
 	return r
+}
+
+func pass(key string) bool {
+	return core.Pass(key)
+}
+
+func root() (interface{}, error) {
+	return fmt.Sprintf("%s %s", version.AppName(), version.WithBuildInfo()), nil
+}
+
+func ping() (interface{}, error) {
+	return core.Ping()
+}
+
+func info() (interface{}, error) {
+	return core.Info()
 }
