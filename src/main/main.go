@@ -46,7 +46,7 @@ func initLogger(v bool) {
 func initAndRun(addrNATS, addrMINIO, addrREDIS, addrSERVER string) error {
 	err := nats.Init(addrNATS)
 	if err != nil {
-		return err
+		return err // we can receiving data any way or we can not (?)
 	}
 
 	err = minio.Init(addrMINIO)
