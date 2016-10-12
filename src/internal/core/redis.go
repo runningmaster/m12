@@ -129,12 +129,13 @@ func GetLinkAddr(v []string) ([]LinkAddr, error) {
 		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
-		if len(r) == len(fldsAddr) {
-			out[i].IDLink, _ = redis.Int64(r[0], nil)  // fld "l"
-			out[i].IDAddr, _ = redis.Int64(r[1], nil)  // fld "a"
-			out[i].IDStat, _ = redis.Int64(r[2], nil)  // fld "s"
-			out[i].EGRPOU, _ = redis.String(r[3], nil) // fld "e"
+		if len(r) != len(fldsAddr) {
+			continue
 		}
+		out[i].IDLink, _ = redis.Int64(r[0], nil)  // fld "l"
+		out[i].IDAddr, _ = redis.Int64(r[1], nil)  // fld "a"
+		out[i].IDStat, _ = redis.Int64(r[2], nil)  // fld "s"
+		out[i].EGRPOU, _ = redis.String(r[3], nil) // fld "e"
 	}
 
 	return out, nil
@@ -223,13 +224,14 @@ func GetLinkDrug(v []string) ([]LinkDrug, error) {
 		if err != nil && redis.NotErrNil(err) {
 			return nil, err
 		}
-		if len(r) == len(fldsDrug) {
-			out[i].IDLink, _ = redis.Int64(r[0], nil) // fld "l"
-			out[i].IDDrug, _ = redis.Int64(r[1], nil) // fld "d"
-			out[i].IDBrnd, _ = redis.Int64(r[2], nil) // fld "b"
-			out[i].IDCatg, _ = redis.Int64(r[3], nil) // fld "c"
-			out[i].IDStat, _ = redis.Int64(r[4], nil) // fld "s"
+		if len(r) != len(fldsDrug) {
+			continue
 		}
+		out[i].IDLink, _ = redis.Int64(r[0], nil) // fld "l"
+		out[i].IDDrug, _ = redis.Int64(r[1], nil) // fld "d"
+		out[i].IDBrnd, _ = redis.Int64(r[2], nil) // fld "b"
+		out[i].IDCatg, _ = redis.Int64(r[3], nil) // fld "c"
+		out[i].IDStat, _ = redis.Int64(r[4], nil) // fld "s"
 	}
 
 	return out, nil
