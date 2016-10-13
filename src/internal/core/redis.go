@@ -425,6 +425,14 @@ func GetZlog(data []byte) (interface{}, error) {
 	return out, nil
 }
 
+func remZlog(u int64) error {
+	c := redis.Conn()
+	defer redis.Free(c)
+
+	_, err := redis.Int64(c.Do("ZREMRANGEBYSCORE", keyZlog, "-inf", u))
+	return err
+}
+
 func GetMeta(data []byte) (interface{}, error) {
 	var v string
 	err := json.Unmarshal(data, &v)
