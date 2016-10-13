@@ -20,6 +20,7 @@ const (
 	// should be move to pref
 	listN = 100
 	tickD = 10 * time.Second
+	trimD = 3 * 24 * time.Hour
 )
 
 type path struct {
@@ -31,6 +32,7 @@ type path struct {
 func Init() error {
 	sendMessage(BucketStreamOut, SubjectSteamOut, tickD, listN)
 	sendMessage(BucketStreamIn, SubjectSteamIn, tickD, listN)
+	trimZLog(tickD, trimD)
 	return nats.Subscribe(SubjectSteamIn, proc)
 }
 
@@ -53,6 +55,17 @@ func sendMessage(b, s string, d time.Duration, n int) {
 		}
 		sendMessage(b, s, d, n)
 	})
+}
+
+func trimZLog(d, t time.Duration) {
+	_ = time.AfterFunc(d, func() {
+		err := remZlog(time.Now().Add(-1 * t).Unix())
+		if err != nil {
+			log.Println("err: redis:", err)
+		}
+		trimZLog(d, t)
+	})
+
 }
 
 func EncodePath(b string, o string) ([]byte, error) {
