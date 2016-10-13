@@ -23,52 +23,52 @@ var (
 	fake405URL = fmt.Sprintf("/workaround-%d", code404)
 
 	httpHandlers = map[string]http.Handler{
-		"GET>/":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
-		"GET>/ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(ping), pipe.Resp, pipe.Tail),
+		"GET /":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
+		"GET /ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(ping), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getAuth), pipe.Resp, pipe.Tail),
-		"POST>/system/set-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setAuth), pipe.Resp, pipe.Tail),
-		"POST>/system/del-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delAuth), pipe.Resp, pipe.Tail),
+		"POST /system/get-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getAuth), pipe.Resp, pipe.Tail),
+		"POST /system/set-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setAuth), pipe.Resp, pipe.Tail),
+		"POST /system/del-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delAuth), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getAddr), pipe.Resp, pipe.Tail),
-		"POST>/system/set-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setAddr), pipe.Resp, pipe.Tail),
-		"POST>/system/del-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delAddr), pipe.Resp, pipe.Tail),
+		"POST /system/get-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getAddr), pipe.Resp, pipe.Tail),
+		"POST /system/set-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setAddr), pipe.Resp, pipe.Tail),
+		"POST /system/del-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delAddr), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getDrug), pipe.Resp, pipe.Tail),
-		"POST>/system/set-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setDrug), pipe.Resp, pipe.Tail),
-		"POST>/system/del-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delDrug), pipe.Resp, pipe.Tail),
+		"POST /system/get-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getDrug), pipe.Resp, pipe.Tail),
+		"POST /system/set-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setDrug), pipe.Resp, pipe.Tail),
+		"POST /system/del-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delDrug), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getStat), pipe.Resp, pipe.Tail),
-		"POST>/system/set-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setStat), pipe.Resp, pipe.Tail),
-		"POST>/system/del-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delStat), pipe.Resp, pipe.Tail),
+		"POST /system/get-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getStat), pipe.Resp, pipe.Tail),
+		"POST /system/set-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setStat), pipe.Resp, pipe.Tail),
+		"POST /system/del-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delStat), pipe.Resp, pipe.Tail),
 
-		"POST>/system/get-meta": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getMeta), pipe.Resp, pipe.Tail),
-		"POST>/system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getZlog), pipe.Resp, pipe.Tail),
+		"POST /system/get-meta": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getMeta), pipe.Resp, pipe.Tail),
+		"POST /system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getZlog), pipe.Resp, pipe.Tail),
 
 		// DEPRECATED Converter from old school style /data/add
-		"POST>/data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
+		"POST /data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
 
-		"POST>/stream/put-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
-		"POST>/stream/pop-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(popd), pipe.Resp, pipe.Tail),
-		"POST>/stream/get-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getd), pipe.Resp, pipe.Tail),
-		"POST>/stream/del-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(deld), pipe.Resp, pipe.Tail),
+		"POST /stream/put-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
+		"POST /stream/pop-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(popd), pipe.Resp, pipe.Tail),
+		"POST /stream/get-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getd), pipe.Resp, pipe.Tail),
+		"POST /stream/del-data": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(deld), pipe.Resp, pipe.Tail),
 
 		// => Debug mode only, when pref.Debug == true
-		"GET>/debug/info":               pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(info), pipe.Resp, pipe.Tail), // ?
-		"GET>/debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // expvar
-		"GET>/debug/pprof/":             pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
-		"GET>/debug/pprof/cmdline":      pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
-		"GET>/debug/pprof/profile":      pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
-		"GET>/debug/pprof/symbol":       pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
-		"GET>/debug/pprof/trace":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
-		"GET>/debug/pprof/goroutine":    pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
-		"GET>/debug/pprof/threadcreate": pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
-		"GET>/debug/pprof/heap":         pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
-		"GET>/debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET /debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // expvar
+		"GET /debug/pprof/":             pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET /debug/pprof/cmdline":      pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET /debug/pprof/profile":      pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET /debug/pprof/symbol":       pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET /debug/pprof/trace":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // net/http/pprof
+		"GET /debug/pprof/goroutine":    pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET /debug/pprof/threadcreate": pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET /debug/pprof/heap":         pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET /debug/pprof/block":        pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail),       // runtime/pprof
+		"GET /debug/redis/info":         pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(info), pipe.Resp, pipe.Tail), // ?
 
 		// => Workarounds for 404/405
-		"GET>" + fake404URL: pipe.Use(pipe.Head, pipe.ErrH(code404), pipe.Resp, pipe.Tail),
-		"GET>" + fake405URL: pipe.Use(pipe.Head, pipe.ErrH(code405), pipe.Resp, pipe.Tail),
+		"GET " + fake404URL: pipe.Use(pipe.Head, pipe.ErrH(code404), pipe.Resp, pipe.Tail),
+		"GET " + fake405URL: pipe.Use(pipe.Head, pipe.ErrH(code405), pipe.Resp, pipe.Tail),
 	}
 )
 
@@ -77,7 +77,7 @@ func MakeRouter() http.Handler {
 	r := httprouter.New()
 
 	for k, v := range httpHandlers {
-		s := strings.Split(k, ">") // [m,p]
+		s := strings.Split(k, " ") // [m,p]
 
 		switch s[1] {
 		case fake404URL:
