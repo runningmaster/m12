@@ -58,7 +58,7 @@ func mustBucket(b string) error {
 	return nil
 }
 
-func Put(b string, o string, r io.Reader) error {
+func Put(b, o string, r io.Reader) error {
 	err := mustBucket(b)
 	if err != nil {
 		return err
@@ -68,21 +68,21 @@ func Put(b string, o string, r io.Reader) error {
 	return err
 }
 
-func Get(b string, o string) (io.ReadCloser, error) {
+func Get(b, o string) (io.ReadCloser, error) {
 	return cli.GetObject(b, o)
 }
 
-func Del(b string, o string) error {
+func Del(b, o string) error {
 	return cli.RemoveObject(b, o)
 }
 
-func Copy(bDst string, oDst string, bSrc string, oSrc string) error {
+func Copy(bDst, oDst, bSrc, oSrc string) error {
 	err := mustBucket(bDst)
 	if err != nil {
 		return err
 	}
 
-	return cli.CopyObject(bSrc, oSrc, filepath.Join(bDst, oDst), minio.NewCopyConditions())
+	return cli.CopyObject(bDst, oDst, filepath.Join("", bSrc, oSrc), minio.NewCopyConditions())
 }
 
 func List(b string, n int) ([]string, error) {
