@@ -384,6 +384,7 @@ func GetZlog(data []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for i := range res {
 		err = c.Send("GET", res[i])
 		if err != nil {
@@ -402,7 +403,10 @@ func GetZlog(data []byte) (interface{}, error) {
 	var m Meta
 	for range res {
 		z, err = redis.Bytes(c.Receive())
-		if err != nil && redis.NotErrNil(err) {
+		if err != nil {
+			if !redis.NotErrNil(err) {
+				continue
+			}
 			return nil, err
 		}
 
