@@ -64,8 +64,8 @@ type itemV3Sale struct {
 	Reimburse bool     `json:"reimburse,omitempty"`
 	SuppName  string   `json:"supp_name,omitempty"`
 	SuppCode  string   `json:"supp_code,omitempty"`
-	linkAddr  linkAddr `json:"link_addr,omitempty"`
-	linkDrug  linkDrug `json:"link_drug,omitempty"`
+	LinkAddr  linkAddr `json:"link_addr,omitempty"`
+	LinkDrug  linkDrug `json:"link_drug,omitempty"`
 }
 
 type itemV3SaleBy struct {
@@ -123,7 +123,7 @@ func (j jsonV3Sale) getName(i int) string {
 }
 
 func (j jsonV3Sale) setDrug(i int, l linkDrug) bool {
-	j[i].linkDrug = l
+	j[i].LinkDrug = l
 	return l.IDLink != 0
 }
 
@@ -132,7 +132,7 @@ func (j jsonV3Sale) getSupp(i int) string {
 }
 
 func (j jsonV3Sale) setAddr(i int, l linkAddr) bool {
-	j[i].linkAddr = l
+	j[i].LinkAddr = l
 	return l.IDLink != 0
 }
 
