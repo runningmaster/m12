@@ -4,7 +4,7 @@ package core
 // HASH => key="stat"
 // HMSET key i->n [i->n...]
 // HMGET key i [i..]
-type LinkAuth struct {
+type linkAuth struct {
 	ID   string `json:"id,omitempty"   redis:"i"`
 	Name string `json:"name,omitempty" redis:"n"`
 }
@@ -14,7 +14,7 @@ type LinkAuth struct {
 // HMSET key l/v a/v s/v e/v (if exists in json)
 // HMGET key l a s e
 // JSON array: [{"id":"key1","id_link":1,"id_addr":2,"id_stat":0,"egrpou":"egrpou1"}]
-type LinkAddr struct {
+type linkAddr struct {
 	ID     string `json:"id,omitempty"      redis:"key"`
 	IDLink int64  `json:"id_link,omitempty" redis:"l"`
 	IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
@@ -26,7 +26,7 @@ type LinkAddr struct {
 // HASH => key=ID (SHA1)
 // HMSET key l/v d/v b/v c/v s/v (if exists in json)
 // HMGET key l d b c s
-type LinkDrug struct {
+type linkDrug struct {
 	ID     string `json:"id,omitempty"      redis:"key"`
 	IDLink int64  `json:"id_link,omitempty" redis:"l"`
 	IDDrug int64  `json:"id_drug,omitempty" redis:"d"`
@@ -39,7 +39,7 @@ type LinkDrug struct {
 // HASH => key="stat"
 // HMSET key i->n [i->n...]
 // HMGET key i [i..]
-type LinkStat struct {
+type linkStat struct {
 	ID   int64  `json:"id,omitempty"   redis:"i"`
 	Name string `json:"name,omitempty" redis:"n"`
 }
@@ -50,7 +50,7 @@ type itemV3Geoa struct {
 	Home  string   `json:"home,omitempty"` // formerly link
 	Quant float64  `json:"quant,omitempty"`
 	Price float64  `json:"price,omitempty"`
-	Link  LinkDrug `json:"link,omitempty"`
+	Link  linkDrug `json:"link,omitempty"`
 }
 
 type itemV3Sale struct {
@@ -64,8 +64,8 @@ type itemV3Sale struct {
 	Reimburse bool     `json:"reimburse,omitempty"`
 	SuppName  string   `json:"supp_name,omitempty"`
 	SuppCode  string   `json:"supp_code,omitempty"`
-	LinkAddr  LinkAddr `json:"link_addr,omitempty"`
-	LinkDrug  LinkDrug `json:"link_drug,omitempty"`
+	linkAddr  linkAddr `json:"link_addr,omitempty"`
+	linkDrug  linkDrug `json:"link_drug,omitempty"`
 }
 
 type itemV3SaleBy struct {
@@ -78,7 +78,7 @@ type itemV3SaleBy struct {
 	PriceRoc float64  `json:"price_roc,omitempty"`
 	Stock    float64  `json:"stock,omitempty"`     // formerly Balance
 	StockTab float64  `json:"stock_tab,omitempty"` // formerly BalanceT
-	Link     LinkDrug `json:"link,omitempty"`
+	Link     linkDrug `json:"link,omitempty"`
 }
 
 type ruler interface {
@@ -88,13 +88,13 @@ type ruler interface {
 type addrer interface {
 	ruler
 	getSupp(int) string
-	setAddr(int, LinkAddr) bool
+	setAddr(int, linkAddr) bool
 }
 
 type druger interface {
 	ruler
 	getName(int) string
-	setDrug(int, LinkDrug) bool
+	setDrug(int, linkDrug) bool
 }
 
 type jsonV3Geoa []itemV3Geoa
@@ -109,7 +109,7 @@ func (j jsonV3Geoa) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3Geoa) setDrug(i int, l LinkDrug) bool {
+func (j jsonV3Geoa) setDrug(i int, l linkDrug) bool {
 	j[i].Link = l
 	return l.IDLink != 0
 }
@@ -122,8 +122,8 @@ func (j jsonV3Sale) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3Sale) setDrug(i int, l LinkDrug) bool {
-	j[i].LinkDrug = l
+func (j jsonV3Sale) setDrug(i int, l linkDrug) bool {
+	j[i].linkDrug = l
 	return l.IDLink != 0
 }
 
@@ -131,8 +131,8 @@ func (j jsonV3Sale) getSupp(i int) string {
 	return j[i].SuppName
 }
 
-func (j jsonV3Sale) setAddr(i int, l LinkAddr) bool {
-	j[i].LinkAddr = l
+func (j jsonV3Sale) setAddr(i int, l linkAddr) bool {
+	j[i].linkAddr = l
 	return l.IDLink != 0
 }
 
@@ -144,7 +144,7 @@ func (j jsonV3SaleBy) getName(i int) string {
 	return j[i].Name
 }
 
-func (j jsonV3SaleBy) setDrug(i int, l LinkDrug) bool {
+func (j jsonV3SaleBy) setDrug(i int, l linkDrug) bool {
 	j[i].Link = l
 	return l.IDLink != 0
 }

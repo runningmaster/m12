@@ -26,21 +26,21 @@ var (
 		"GET /":     pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(root), pipe.Resp, pipe.Tail),
 		"GET /ping": pipe.Use(pipe.Head, pipe.Gzip, pipe.Wrap(ping), pipe.Resp, pipe.Tail),
 
-		"POST /system/get-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getAuth), pipe.Resp, pipe.Tail),
-		"POST /system/set-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setAuth), pipe.Resp, pipe.Tail),
-		"POST /system/del-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delAuth), pipe.Resp, pipe.Tail),
+		"POST /system/get-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.GetAuth), pipe.Resp, pipe.Tail),
+		"POST /system/set-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.SetAuth), pipe.Resp, pipe.Tail),
+		"POST /system/del-auth": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.DelAuth), pipe.Resp, pipe.Tail),
 
-		"POST /system/get-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getAddr), pipe.Resp, pipe.Tail),
-		"POST /system/set-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setAddr), pipe.Resp, pipe.Tail),
-		"POST /system/del-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delAddr), pipe.Resp, pipe.Tail),
+		"POST /system/get-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.GetAddr), pipe.Resp, pipe.Tail),
+		"POST /system/set-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.SetAddr), pipe.Resp, pipe.Tail),
+		"POST /system/del-addr": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.DelAddr), pipe.Resp, pipe.Tail),
 
-		"POST /system/get-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getDrug), pipe.Resp, pipe.Tail),
-		"POST /system/set-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setDrug), pipe.Resp, pipe.Tail),
-		"POST /system/del-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delDrug), pipe.Resp, pipe.Tail),
+		"POST /system/get-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.GetDrug), pipe.Resp, pipe.Tail),
+		"POST /system/set-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.SetDrug), pipe.Resp, pipe.Tail),
+		"POST /system/del-drug": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.DelDrug), pipe.Resp, pipe.Tail),
 
-		"POST /system/get-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getStat), pipe.Resp, pipe.Tail),
-		"POST /system/set-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(setStat), pipe.Resp, pipe.Tail),
-		"POST /system/del-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(delStat), pipe.Resp, pipe.Tail),
+		"POST /system/get-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.GetStat), pipe.Resp, pipe.Tail),
+		"POST /system/set-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.SetStat), pipe.Resp, pipe.Tail),
+		"POST /system/del-stat": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(core.DelStat), pipe.Resp, pipe.Tail),
 
 		"POST /system/get-meta": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getMeta), pipe.Resp, pipe.Tail),
 		"POST /system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(pass), pipe.Gzip, pipe.Wrap(getZlog), pipe.Resp, pipe.Tail),

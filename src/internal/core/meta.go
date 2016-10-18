@@ -7,7 +7,7 @@ import (
 
 type Meta struct {
 	UUID string   `json:"uuid,omitempty"`
-	Auth LinkAuth `json:"auth,omitempty"`
+	Auth linkAuth `json:"auth,omitempty"`
 	Host string   `json:"host,omitempty"`
 	User string   `json:"user,omitempty"`
 	Time string   `json:"time,omitempty"`
@@ -22,7 +22,7 @@ type Meta struct {
 	Addr string `json:"addr,omitempty"` // *
 	Code string `json:"code,omitempty"` // egrpou (okpo)
 
-	Link LinkAddr `json:"link,omitempty"`
+	Link linkAddr `json:"link,omitempty"`
 
 	CTag string `json:"ctag,omitempty"`
 	ETag string `json:"etag,omitempty"`

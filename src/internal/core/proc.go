@@ -161,13 +161,13 @@ func mineLinks(v interface{}, m *Meta) ([]byte, error) {
 	t := m.HTag
 	s := time.Now()
 
-	a, err := GetLinkAuth([]string{m.Auth.ID})
+	a, err := getLinkAuth([]string{m.Auth.ID})
 	if err != nil {
 		return nil, err
 	}
 	m.Auth = a[0]
 
-	l, err := GetLinkAddr([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
+	l, err := getLinkAddr([]string{strToSHA1(makeMagicHead(m.Name, m.Head, m.Addr))})
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func mineDrugs(v druger, t string) (int, error) {
 		keys[i] = strToSHA1(name)
 	}
 
-	lds, err := GetLinkDrug(keys)
+	lds, err := getLinkDrug(keys)
 	if err != nil {
 		return 0, err
 	}
@@ -248,7 +248,7 @@ func mineAddrs(v addrer) (int, error) {
 		keys[i] = strToSHA1(makeMagicAddr(v.getSupp(i)))
 	}
 
-	lds, err := GetLinkAddr(keys)
+	lds, err := getLinkAddr(keys)
 	if err != nil {
 		return 0, err
 	}
