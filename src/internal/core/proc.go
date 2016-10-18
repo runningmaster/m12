@@ -71,8 +71,8 @@ func proc(data []byte) {
 	}
 }
 
-func procObject(r io.Reader) (Meta, io.Reader, error) {
-	m := Meta{}
+func procObject(r io.Reader) (meta, io.Reader, error) {
+	m := meta{}
 
 	meta, data, err := unpackMetaData(r)
 	if err != nil {
@@ -111,7 +111,7 @@ func killUTF8BOM(data []byte) []byte {
 
 const magicConvString = "conv"
 
-func unmarshalData(data []byte, m *Meta) (interface{}, error) {
+func unmarshalData(data []byte, m *meta) (interface{}, error) {
 	d := killUTF8BOM(data)
 	m.ETag = btsToMD5(d)
 	m.Size = int64(len(d))
@@ -125,7 +125,7 @@ func unmarshalData(data []byte, m *Meta) (interface{}, error) {
 	return unmarshalDataNEW(d, m)
 }
 
-func unmarshalDataOLD(data []byte, m *Meta) (interface{}, error) {
+func unmarshalDataOLD(data []byte, m *meta) (interface{}, error) {
 	t := m.HTag
 
 	switch {
@@ -138,7 +138,7 @@ func unmarshalDataOLD(data []byte, m *Meta) (interface{}, error) {
 	}
 }
 
-func unmarshalDataNEW(data []byte, m *Meta) (interface{}, error) {
+func unmarshalDataNEW(data []byte, m *meta) (interface{}, error) {
 	t := m.HTag
 
 	switch {
@@ -157,7 +157,7 @@ func unmarshalDataNEW(data []byte, m *Meta) (interface{}, error) {
 	}
 }
 
-func mineLinks(v interface{}, m *Meta) ([]byte, error) {
+func mineLinks(v interface{}, m *meta) ([]byte, error) {
 	t := m.HTag
 	s := time.Now()
 

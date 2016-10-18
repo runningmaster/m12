@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type Meta struct {
+type meta struct {
 	UUID string   `json:"uuid,omitempty"`
 	Auth linkAuth `json:"auth,omitempty"`
 	Host string   `json:"host,omitempty"`
@@ -32,18 +32,18 @@ type Meta struct {
 	Test bool   `json:"test,omitempty"`
 }
 
-func unmarshalMeta(b []byte) (Meta, error) {
-	m := Meta{}
+func unmarshalMeta(b []byte) (meta, error) {
+	m := meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func (m *Meta) marshal() []byte {
+func (m *meta) marshal() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m *Meta) marshalIndent() []byte {
+func (m *meta) marshalIndent() []byte {
 	b, _ := json.MarshalIndent(m, "", "\t")
 	return b
 }

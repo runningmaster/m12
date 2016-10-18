@@ -476,7 +476,7 @@ func delLinkStat(v []int64) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func SetZlog(m Meta) error {
+func SetZlog(m meta) error {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -519,10 +519,10 @@ func GetZlog(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	out := make([]Meta, 0, len(res))
+	out := make([]meta, 0, len(res))
 	var r []byte
 	var z []byte
-	var m Meta
+	var m meta
 	for range res {
 		z, err = redis.Bytes(c.Receive())
 		if err != nil {

@@ -17,7 +17,7 @@ func unmarshalSale(data []byte) (*jsonV1Sale, error) {
 	return v, nil
 }
 
-func convSale(data []byte, m *Meta) (jsonV3Sale, error) {
+func convSale(data []byte, m *meta) (jsonV3Sale, error) {
 	v, err := unmarshalSale(data)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
 	return v, nil
 }
 
-func convSaleBy(data []byte, m *Meta) (jsonV3SaleBy, error) {
+func convSaleBy(data []byte, m *meta) (jsonV3SaleBy, error) {
 	v, err := unmarshalSaleBy(data)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func unmarshalGeoa(data []byte) (*jsonV1Geoa, error) {
 	return v, nil
 }
 
-func convGeoa(data []byte, m *Meta) (jsonV3Geoa, error) {
+func convGeoa(data []byte, m *meta) (jsonV3Geoa, error) {
 	v, err := unmarshalGeoa(data)
 	if err != nil {
 		return nil, err
