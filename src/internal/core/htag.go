@@ -26,7 +26,7 @@ var (
 		"sale-out.daily.ua":   {},
 	}
 
-	convHTag = map[string]string{
+	convTags = map[string]string{
 		// version 1 -> version 3
 		"data.geostore":         "geoapt.ua",
 		"data.sale-inp.monthly": "sale-in.monthly.ua",
@@ -52,13 +52,13 @@ var (
 	}
 )
 
-func ConvHTag(t string) string {
-	return convHTag[t]
+func normHTag(t string) string {
+	return convTags[t]
 }
 
-func CheckHTag(t string) error {
+func testHTag(t string) error {
 	t = strings.ToLower(t)
-	_, ok1 := convHTag[t]
+	_, ok1 := convTags[t]
 	_, ok2 := listHTag[t]
 
 	if ok1 || ok2 {

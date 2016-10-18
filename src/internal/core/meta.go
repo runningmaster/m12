@@ -32,18 +32,18 @@ type Meta struct {
 	Test bool   `json:"test,omitempty"`
 }
 
-func UnmarshalMeta(b []byte) (Meta, error) {
+func unmarshalMeta(b []byte) (Meta, error) {
 	m := Meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
 
-func (m *Meta) Marshal() []byte {
+func (m *Meta) marshal() []byte {
 	b, _ := json.Marshal(m)
 	return b
 }
 
-func (m *Meta) MarshalIndent() []byte {
+func (m *Meta) marshalIndent() []byte {
 	b, _ := json.MarshalIndent(m, "", "\t")
 	return b
 }
@@ -57,6 +57,6 @@ func trimPart(s string) string {
 	return s
 }
 
-func MakeFileName(auth, uuid, htag string) string {
+func makeFileName(auth, uuid, htag string) string {
 	return fmt.Sprintf("%s_%s_%s.tar", trimPart(auth), trimPart(uuid), htag)
 }

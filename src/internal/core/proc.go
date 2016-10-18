@@ -41,18 +41,18 @@ func proc(data []byte) {
 		m.Fail = err.Error()
 
 		f = o + ".txt"
-		err = minio.Put(BucketStreamErr, f, bytes.NewReader(m.MarshalIndent()))
+		err = minio.Put(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()))
 		if err != nil {
 			log.Println("err: proc: save:", f, err)
 		}
 
-		err = minio.Copy(BucketStreamErr, o, b, o)
+		err = minio.Copy(bucketStreamErr, o, b, o)
 		if err != nil {
 			log.Println("err: proc: copy:", o, err)
 		}
 	} else {
-		f = MakeFileName(m.Auth.ID, m.UUID, m.HTag)
-		err = minio.Put(BucketStreamOut, f, d)
+		f = makeFileName(m.Auth.ID, m.UUID, m.HTag)
+		err = minio.Put(bucketStreamOut, f, d)
 		if err != nil {
 			log.Println("err: proc: save:", f, err)
 		}
@@ -79,7 +79,7 @@ func procObject(r io.Reader) (Meta, io.Reader, error) {
 		return m, nil, err
 	}
 
-	m, err = UnmarshalMeta(meta)
+	m, err = unmarshalMeta(meta)
 	if err != nil {
 		return m, nil, err
 	}
@@ -94,7 +94,7 @@ func procObject(r io.Reader) (Meta, io.Reader, error) {
 		return m, nil, err
 	}
 
-	t, err := PackMetaData(m.Marshal(), d)
+	t, err := packMetaData(m.marshal(), d)
 	if err != nil {
 		return m, nil, err
 	}
@@ -118,7 +118,7 @@ func unmarshalData(data []byte, m *Meta) (interface{}, error) {
 
 	if strings.HasPrefix(m.CTag, magicConvString) {
 		m.CTag = fmt.Sprintf("converted from %s format", m.HTag)
-		m.HTag = ConvHTag(m.HTag)
+		m.HTag = normHTag(m.HTag)
 		return unmarshalDataOLD(d, m)
 	}
 

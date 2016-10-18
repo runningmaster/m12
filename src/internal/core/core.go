@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	BucketStreamIn  = "stream-in"
-	BucketStreamOut = "stream-out"
-	BucketStreamErr = "stream-err"
+	bucketStreamIn  = "stream-in"
+	bucketStreamOut = "stream-out"
+	bucketStreamErr = "stream-err"
 
-	SubjectSteamIn  = "m12." + BucketStreamIn
-	SubjectSteamOut = "m12." + BucketStreamOut
+	subjectSteamIn  = "m12." + bucketStreamIn
+	subjectSteamOut = "m12." + bucketStreamOut
 
 	// should be move to pref
 	listN = 100
@@ -30,10 +30,10 @@ type path struct {
 
 // Init inits client for NATS Server
 func Init() error {
-	sendMessage(BucketStreamOut, SubjectSteamOut, tickD, listN)
-	sendMessage(BucketStreamIn, SubjectSteamIn, tickD, listN)
+	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
+	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
 	trimZLog(tickD, trimD)
-	return nats.Subscribe(SubjectSteamIn, proc)
+	return nats.Subscribe(subjectSteamIn, proc)
 }
 
 func sendMessage(b, s string, d time.Duration, n int) {

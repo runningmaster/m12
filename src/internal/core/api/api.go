@@ -106,3 +106,7 @@ func MakeRouter() http.Handler {
 
 	return r
 }
+
+func putd(data []byte, r, _ http.Header) (interface{}, error) {
+	return core.Putd([]byte(r.Get("Content-Meta")), data)
+}

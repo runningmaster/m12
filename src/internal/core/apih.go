@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 
 	"internal/compress/gziputil"
 	"internal/core/pref"
+	"internal/database/minio"
 	"internal/database/redis"
 )
 
@@ -478,7 +480,7 @@ func SetZlog(m Meta) error {
 	c := redis.Conn()
 	defer redis.Free(c)
 
-	z, err := gziputil.Compress(m.Marshal())
+	z, err := gziputil.Compress(m.marshal())
 	if err != nil {
 		return err
 	}
@@ -535,7 +537,7 @@ func GetZlog(data []byte) (interface{}, error) {
 			return nil, err
 		}
 
-		m, err = UnmarshalMeta(r)
+		m, err = unmarshalMeta(r)
 		if err != nil {
 			return nil, err
 		}
@@ -573,7 +575,7 @@ func GetMeta(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	m, err := UnmarshalMeta(r)
+	m, err := unmarshalMeta(r)
 	if err != nil {
 		return nil, err
 	}
@@ -625,4 +627,32 @@ func Info() (interface{}, error) {
 	}
 
 	return mapper, nil
+}
+
+func Putd(meta, data []byte) (interface{}, error) {
+	m, err := unmarshalMeta(meta)
+	if err != nil {
+		return nil, err
+	}
+
+	err = testHTag(m.HTag)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() { // ?
+		t, err := packMetaData(meta, data)
+		if err != nil {
+			log.Println("core: putd: pack:", err)
+			return
+		}
+
+		f := makeFileName(m.Auth.ID, m.UUID, normHTag(m.HTag))
+		err = minio.Put(bucketStreamIn, f, t)
+		if err != nil {
+			log.Println("core: putd: save:", err)
+		}
+	}()
+
+	return m.UUID, nil
 }

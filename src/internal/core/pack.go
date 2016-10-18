@@ -14,7 +14,7 @@ const (
 	tarData = "data.json.gz"
 )
 
-func PackMetaData(m, d []byte) (io.Reader, error) {
+func packMetaData(m, d []byte) (io.Reader, error) {
 	b := new(bytes.Buffer)
 	t := tar.NewWriter(b)
 
