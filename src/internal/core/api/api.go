@@ -113,7 +113,7 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 }
 
 func popd(data []byte, _, w http.Header) (interface{}, error) {
-	m, d, err := core.Getd(data, true)
+	m, d, err := core.Getd(data, false)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func popd(data []byte, _, w http.Header) (interface{}, error) {
 }
 
 func getd(data []byte, _, w http.Header) (interface{}, error) {
-	m, d, err := core.Getd(data, false)
+	m, d, err := core.Getd(data, true)
 	if err != nil {
 		return nil, err
 	}

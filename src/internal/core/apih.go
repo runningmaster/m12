@@ -647,18 +647,17 @@ func Putd(meta, data []byte) (interface{}, error) {
 			return
 		}
 
-		f := makeFileName(m.Auth.ID, m.UUID, normHTag(m.HTag))
-		err = minio.Put(bucketStreamIn, f, p)
+		o := makeFileName(m.Auth.ID, m.UUID, normHTag(m.HTag))
+		err = minio.Put(bucketStreamIn, o, p)
 		if err != nil {
 			log.Println("core: putd: save:", err)
 		}
-		// send msg
 	}()
 
 	return m.UUID, nil
 }
 
-func Getd(data []byte, del bool) ([]byte, []byte, error) {
+func Getd(data []byte, keep bool) ([]byte, []byte, error) {
 	b, o, err := decodePath(data)
 	if err != nil {
 		return nil, nil, err
@@ -669,15 +668,15 @@ func Getd(data []byte, del bool) ([]byte, []byte, error) {
 		return nil, nil, err
 	}
 	defer minio.Free(f)
-
-	if del {
-		go func() {
-			err = minio.Del(b, o)
-			if err != nil {
-				log.Println("core: minio:", o, err)
-			}
-		}()
-	}
+	defer func() {
+		if keep {
+			return
+		}
+		err = minio.Del(b, o)
+		if err != nil {
+			log.Println("core: minio:", o, err)
+		}
+	}()
 
 	return unpackMetaData(f, false, true)
 }
