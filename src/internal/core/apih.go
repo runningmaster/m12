@@ -656,3 +656,41 @@ func Putd(meta, data []byte) (interface{}, error) {
 
 	return m.UUID, nil
 }
+
+func Getd(data []byte, del bool) ([]byte, []byte, error) {
+	b, o, err := decodePath(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	f, err := minio.Get(b, o)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer minio.Free(f)
+
+	if del {
+		go func() {
+			err = minio.Del(b, o)
+			if err != nil {
+				log.Println("core: minio:", o, err)
+			}
+		}()
+	}
+
+	return unpackMetaData(f, false, true)
+}
+
+func Deld(data []byte) (interface{}, error) {
+	b, o, err := decodePath(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = minio.Del(b, o)
+	if err != nil {
+		return nil, err
+	}
+
+	return "OK", nil
+}

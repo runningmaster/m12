@@ -21,7 +21,7 @@ import (
 
 func proc(data []byte) {
 	s := time.Now()
-	b, o, err := DecodePath(data)
+	b, o, err := decodePath(data)
 	if err != nil {
 		log.Println("err: proc: path:", err)
 		return
@@ -74,7 +74,7 @@ func proc(data []byte) {
 func procObject(r io.Reader) (Meta, io.Reader, error) {
 	m := Meta{}
 
-	meta, data, err := UnpackMetaData(r)
+	meta, data, err := unpackMetaData(r)
 	if err != nil {
 		return m, nil, err
 	}

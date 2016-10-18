@@ -58,7 +58,7 @@ func writeGzTar(name string, data []byte, w *tar.Writer) error {
 	return err
 }
 
-func UnpackMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
+func unpackMetaData(r io.Reader, gz ...bool) ([]byte, []byte, error) {
 	tr := tar.NewReader(r)
 	var (
 		m = new(bytes.Buffer)

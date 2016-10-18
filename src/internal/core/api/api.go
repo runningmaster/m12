@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -109,4 +110,32 @@ func MakeRouter() http.Handler {
 
 func putd(data []byte, r, _ http.Header) (interface{}, error) {
 	return core.Putd([]byte(r.Get("Content-Meta")), data)
+}
+
+func popd(data []byte, _, w http.Header) (interface{}, error) {
+	m, d, err := core.Getd(data, true)
+	if err != nil {
+		return nil, err
+	}
+
+	w.Set("Content-Encoding", "gzip")
+	w.Set("Content-Type", "gzip") // for writeResp
+	w.Set("Content-Meta", base64.StdEncoding.EncodeToString(m))
+	return d, nil
+}
+
+func getd(data []byte, _, w http.Header) (interface{}, error) {
+	m, d, err := core.Getd(data, false)
+	if err != nil {
+		return nil, err
+	}
+
+	w.Set("Content-Encoding", "gzip")
+	w.Set("Content-Type", "gzip") // for writeResp
+	w.Set("Content-Meta", base64.StdEncoding.EncodeToString(m))
+	return d, nil
+}
+
+func deld(data []byte) (interface{}, error) {
+	return core.Deld(data)
 }

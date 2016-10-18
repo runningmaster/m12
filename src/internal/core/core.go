@@ -43,7 +43,7 @@ func sendMessage(b, s string, d time.Duration, n int) {
 			log.Println("err: minio:", err)
 		} else {
 			for i := range l {
-				p, err := EncodePath(b, l[i])
+				p, err := encodePath(b, l[i])
 				if err != nil {
 					log.Println("err: minio:", err)
 				}
@@ -68,12 +68,12 @@ func trimZLog(d, t time.Duration) {
 
 }
 
-func EncodePath(b string, o string) ([]byte, error) {
+func encodePath(b string, o string) ([]byte, error) {
 	p := path{b, o}
 	return json.Marshal(p)
 }
 
-func DecodePath(data []byte) (string, string, error) {
+func decodePath(data []byte) (string, string, error) {
 	p := path{}
 	err := json.Unmarshal(data, &p)
 	return p.Bucket, p.Object, err
