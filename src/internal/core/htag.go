@@ -53,7 +53,11 @@ var (
 )
 
 func normHTag(t string) string {
-	return convTags[t]
+	s, ok := convTags[t]
+	if ok {
+		return s
+	}
+	return t
 }
 
 func testHTag(t string) error {
