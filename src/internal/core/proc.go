@@ -52,6 +52,7 @@ func flowObject(data []byte) error {
 		if err != nil {
 			return err
 		}
+		m.Fail = err.Error()
 		return minio.Put(bucketStreamErr, o+".txt", bytes.NewReader(m.marshalIndent()))
 	}
 
@@ -72,31 +73,26 @@ func procObject(r io.Reader) (meta, io.Reader, error) {
 
 	meta, data, err := unpackMetaData(r)
 	if err != nil {
-		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	m, err = unmarshalMeta(meta)
 	if err != nil {
-		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	v, err := unmarshalData(data, &m)
 	if err != nil {
-		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	d, err := mineLinks(v, &m)
 	if err != nil {
-		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	p, err := packMetaData(m.marshal(), d)
 	if err != nil {
-		m.Fail = err.Error()
 		return m, nil, err
 	}
 
