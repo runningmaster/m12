@@ -20,55 +20,51 @@ import (
 )
 
 func proc(data []byte) {
-	s := time.Now()
+	err := flowObject(data)
+	if err != nil {
+		log.Println("proc:", err)
+	}
+}
+
+func flowObject(data []byte) error {
+	t := time.Now()
+
 	b, o, err := decodePath(data)
 	if err != nil {
-		log.Println("err: proc: path:", err)
-		return
+		return err
 	}
 
-	f1, err := minio.Get(b, o)
+	f, err := minio.Get(b, o)
 	if err != nil {
-		log.Println("err: proc: load:", o, err)
-		return
+		return err
 	}
-	defer minio.Free(f1)
-
-	var f string
-	m, d, err := procObject(f1)
-	if err != nil {
-		log.Println("err: proc:", o, err)
-		m.Fail = err.Error()
-
-		f = o + ".txt"
-		err = minio.Put(bucketStreamErr, f, bytes.NewReader(m.marshalIndent()))
+	defer minio.Free(f)
+	defer func() {
+		err = minio.Del(b, o)
 		if err != nil {
-			log.Println("err: proc: save:", f, err)
+			log.Println("core: minio:", o, err)
 		}
+	}()
 
+	m, d, err := procObject(f)
+	if err != nil {
 		err = minio.Copy(bucketStreamErr, o, b, o)
 		if err != nil {
-			log.Println("err: proc: copy:", o, err)
+			return err
 		}
-	} else {
-		f = makeFileName(m.Auth.ID, m.UUID, m.HTag)
-		err = minio.Put(bucketStreamOut, f, d)
+		return minio.Put(bucketStreamErr, o+".txt", bytes.NewReader(m.marshalIndent()))
+	}
+
+	o = makeFileName(m.Auth.ID, m.UUID, m.HTag)
+	defer func() {
+		err = setZlog(m)
 		if err != nil {
-			log.Println("err: proc: save:", f, err)
+			log.Println("core: zlog:", err)
 		}
-		// send msg
-		log.Println("proc:", f, m.Proc, time.Since(s).String())
-	}
+		log.Println("proc:", o, m.Proc, time.Since(t).String())
+	}()
 
-	err = minio.Del(b, o)
-	if err != nil {
-		log.Println("err: proc: kill:", o, err)
-	}
-
-	err = setZlog(m)
-	if err != nil {
-		log.Println("err: proc: zlog:", o, err)
-	}
+	return minio.Put(bucketStreamOut, o, d)
 }
 
 func procObject(r io.Reader) (meta, io.Reader, error) {
@@ -76,26 +72,31 @@ func procObject(r io.Reader) (meta, io.Reader, error) {
 
 	meta, data, err := unpackMetaData(r)
 	if err != nil {
+		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	m, err = unmarshalMeta(meta)
 	if err != nil {
+		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	v, err := unmarshalData(data, &m)
 	if err != nil {
+		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	d, err := mineLinks(v, &m)
 	if err != nil {
+		m.Fail = err.Error()
 		return m, nil, err
 	}
 
 	p, err := packMetaData(m.marshal(), d)
 	if err != nil {
+		m.Fail = err.Error()
 		return m, nil, err
 	}
 
