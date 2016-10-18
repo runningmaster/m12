@@ -48,8 +48,8 @@ var (
 		"POST /system/del-stat": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(core.DelStat), pipe.Resp, pipe.Tail),
 
 		// Tracker funcs
-		"POST /system/get-meta": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(getMeta), pipe.Resp, pipe.Tail),
-		"POST /system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(getZlog), pipe.Resp, pipe.Tail),
+		"POST /system/get-meta": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(core.GetMeta), pipe.Resp, pipe.Tail),
+		"POST /system/get-zlog": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(core.GetZlog), pipe.Resp, pipe.Tail),
 
 		// DEPRECATED Converter from old school style /data/add
 		"POST /data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
