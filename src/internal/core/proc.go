@@ -56,7 +56,7 @@ func proc(data []byte) {
 		if err != nil {
 			log.Println("err: proc: save:", f, err)
 		}
-
+		// send msg
 		log.Println("proc:", f, m.Proc, time.Since(s).String())
 	}
 
@@ -65,7 +65,7 @@ func proc(data []byte) {
 		log.Println("err: proc: kill:", o, err)
 	}
 
-	err = SetZlog(m)
+	err = setZlog(m)
 	if err != nil {
 		log.Println("err: proc: zlog:", o, err)
 	}
@@ -94,12 +94,12 @@ func procObject(r io.Reader) (meta, io.Reader, error) {
 		return m, nil, err
 	}
 
-	t, err := packMetaData(m.marshal(), d)
+	p, err := packMetaData(m.marshal(), d)
 	if err != nil {
 		return m, nil, err
 	}
 
-	return m, t, nil
+	return m, p, nil
 }
 
 func killUTF8BOM(data []byte) []byte {

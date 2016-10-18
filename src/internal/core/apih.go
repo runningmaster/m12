@@ -476,7 +476,7 @@ func delLinkStat(v []int64) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func SetZlog(m meta) error {
+func setZlog(m meta) error {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -641,17 +641,18 @@ func Putd(meta, data []byte) (interface{}, error) {
 	}
 
 	go func() { // ?
-		t, err := packMetaData(meta, data)
+		p, err := packMetaData(meta, data)
 		if err != nil {
 			log.Println("core: putd: pack:", err)
 			return
 		}
 
 		f := makeFileName(m.Auth.ID, m.UUID, normHTag(m.HTag))
-		err = minio.Put(bucketStreamIn, f, t)
+		err = minio.Put(bucketStreamIn, f, p)
 		if err != nil {
 			log.Println("core: putd: save:", err)
 		}
+		// send msg
 	}()
 
 	return m.UUID, nil
