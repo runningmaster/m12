@@ -17,8 +17,8 @@ func Tail(next http.Handler) http.Handler {
 
 		log.Println( // log.New() ?
 			codeFrom(ctx),
-			trimPart(uuidFrom(ctx)),
 			markEmpty(trimPart(authFrom(ctx))),
+			trimPart(uuidFrom(ctx)),
 			markEmpty(hostFrom(ctx)),
 			markEmpty(r.Method),
 			markEmpty(makePath(r.URL.Path)),
