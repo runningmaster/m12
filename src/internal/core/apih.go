@@ -476,7 +476,7 @@ func delLinkStat(v []int64) (interface{}, error) {
 	return statusOK, c.Flush()
 }
 
-func setZlog(m meta) error {
+func setZlog(m *meta) error {
 	c := redis.Conn()
 	defer redis.Free(c)
 
@@ -519,10 +519,10 @@ func GetZlog(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	out := make([]meta, 0, len(res))
+	out := make([]*meta, 0, len(res))
 	var r []byte
 	var z []byte
-	var m meta
+	var m *meta
 	for range res {
 		z, err = redis.Bytes(c.Receive())
 		if err != nil {
@@ -643,14 +643,14 @@ func Putd(meta, data []byte) (interface{}, error) {
 	go func() { // ?
 		p, err := packMetaData(meta, data)
 		if err != nil {
-			log.Println("core: putd: pack:", err)
+			log.Println(err)
 			return
 		}
 
 		o := makeFileName(m.Auth.ID, m.UUID, normHTag(m.HTag))
 		err = minio.Put(bucketStreamIn, o, p)
 		if err != nil {
-			log.Println("core: putd: save:", err)
+			log.Println(err)
 		}
 	}()
 
@@ -658,12 +658,12 @@ func Putd(meta, data []byte) (interface{}, error) {
 }
 
 func Getd(data []byte, keep bool) ([]byte, []byte, error) {
-	b, o, err := decodePath(data)
+	p, err := decodePath(data)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	f, err := minio.Get(b, o)
+	f, err := minio.Get(p.Bucket, p.Object)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -672,9 +672,9 @@ func Getd(data []byte, keep bool) ([]byte, []byte, error) {
 		if keep {
 			return
 		}
-		err = minio.Del(b, o)
+		err = minio.Del(p.Bucket, p.Object)
 		if err != nil {
-			log.Println("core: minio:", o, err)
+			log.Println(err)
 		}
 	}()
 
@@ -682,12 +682,12 @@ func Getd(data []byte, keep bool) ([]byte, []byte, error) {
 }
 
 func Deld(data []byte) (interface{}, error) {
-	b, o, err := decodePath(data)
+	p, err := decodePath(data)
 	if err != nil {
 		return nil, err
 	}
 
-	err = minio.Del(b, o)
+	err = minio.Del(p.Bucket, p.Object)
 	if err != nil {
 		return nil, err
 	}

@@ -20,80 +20,107 @@ import (
 )
 
 func proc(data []byte) {
-	err := flowObject(data)
-	if err != nil {
-		log.Println("proc:", err)
-	}
-}
-
-func flowObject(data []byte) error {
 	t := time.Now()
 
-	b, o, err := decodePath(data)
+	p, err := decodePath(data)
 	if err != nil {
-		return err
+		log.Println(err)
+		return
 	}
 
-	f, err := minio.Get(b, o)
+	f, err := minio.Get(p.Bucket, p.Object)
 	if err != nil {
-		return err
+		log.Println(err)
+		return
 	}
 	defer minio.Free(f)
 	defer func() {
-		err = minio.Del(b, o)
+		err = minio.Del(p.Bucket, p.Object)
 		if err != nil {
-			log.Println("core: minio:", o, err)
+			log.Println(err)
 		}
 	}()
 
 	m, d, err := procObject(f)
 	if err != nil {
-		err = minio.Copy(bucketStreamErr, o, b, o)
+		// Fail
+		err = copyToErrs(p, bytes.NewReader(m.marshalIndent()))
 		if err != nil {
-			return err
+			log.Println(err)
 		}
-		m.Fail = err.Error()
-		return minio.Put(bucketStreamErr, o+".txt", bytes.NewReader(m.marshalIndent()))
+	} else {
+		// Success
+		err = copyToOuts(p, m, d)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
-	o = makeFileName(m.Auth.ID, m.UUID, m.HTag)
-	defer func() {
-		err = setZlog(m)
-		if err != nil {
-			log.Println("core: zlog:", err)
-		}
-		log.Println("proc:", o, m.Proc, time.Since(t).String())
-	}()
+	m.Proc = fmt.Sprintf("%s %s", m.Proc, time.Since(t).String())
+	err = setZlog(m)
+	if err != nil {
+		log.Println(err)
+	}
 
-	return minio.Put(bucketStreamOut, o, d)
+	if m.Fail == "" {
+		log.Println("-->", p.Object, m.Proc)
+	} else {
+		log.Println("-x-", p.Object, "err:", m.Fail)
+	}
+
 }
 
-func procObject(r io.Reader) (meta, io.Reader, error) {
-	m := meta{}
+func copyToErrs(p path, r io.Reader) error {
+	err := minio.Copy(bucketStreamErr, p.Object, p.Bucket, p.Object)
+	if err != nil {
+		return err
+	}
+	return minio.Put(bucketStreamErr, p.Object+".txt", r)
+}
+
+func copyToOuts(p path, m *meta, r io.Reader) error {
+	err := minio.Put(bucketStreamOut, p.Object, r)
+	if err != nil {
+		return err
+	}
+	if isGeo(m.HTag) {
+		p.Bucket = bucketStreamOut
+		return minio.Copy(bucketStreamOutGeo, p.Object, p.Bucket, p.Object)
+	}
+	return nil
+}
+
+func procObject(r io.Reader) (*meta, io.Reader, error) {
+	m := &meta{}
+
+	fail := func(m *meta, err error) (*meta, io.Reader, error) {
+		m.Fail = err.Error()
+		return m, nil, err
+	}
 
 	meta, data, err := unpackMetaData(r)
 	if err != nil {
-		return m, nil, err
+		return fail(m, err)
 	}
 
 	m, err = unmarshalMeta(meta)
 	if err != nil {
-		return m, nil, err
+		return fail(m, err)
 	}
 
-	v, err := unmarshalData(data, &m)
+	v, err := unmarshalData(data, m)
 	if err != nil {
-		return m, nil, err
+		return fail(m, err)
 	}
 
-	d, err := mineLinks(v, &m)
+	d, err := mineLinks(v, m)
 	if err != nil {
-		return m, nil, err
+		return fail(m, err)
 	}
 
 	p, err := packMetaData(m.marshal(), d)
 	if err != nil {
-		return m, nil, err
+		return fail(m, err)
 	}
 
 	return m, p, nil

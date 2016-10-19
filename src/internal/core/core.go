@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	bucketStreamIn  = "stream-in"
-	bucketStreamOut = "stream-out"
-	bucketStreamErr = "stream-err"
+	bucketStreamIn     = "stream-in"
+	bucketStreamOut    = "stream-out"
+	bucketStreamOutGeo = "stream-out.geo"
+	bucketStreamErr    = "stream-err"
 
 	subjectSteamIn  = "m12." + bucketStreamIn
 	subjectSteamOut = "m12." + bucketStreamOut
@@ -40,16 +41,16 @@ func sendMessage(b, s string, d time.Duration, n int) {
 	_ = time.AfterFunc(d, func() {
 		l, err := minio.List(b, n)
 		if err != nil {
-			log.Println("err: minio:", err)
+			log.Println(err)
 		} else {
 			for i := range l {
 				p, err := encodePath(b, l[i])
 				if err != nil {
-					log.Println("err: minio:", err)
+					log.Println(err)
 				}
 				err = nats.Publish(s, p)
 				if err != nil {
-					log.Println("err: nats:", err)
+					log.Println(err)
 				}
 			}
 		}
@@ -61,7 +62,7 @@ func trimZLog(d, t time.Duration) {
 	_ = time.AfterFunc(d, func() {
 		err := remZlog(time.Now().Add(-1 * t).Unix())
 		if err != nil {
-			log.Println("err: redis:", err)
+			log.Println(err)
 		}
 		trimZLog(d, t)
 	})
@@ -73,8 +74,8 @@ func encodePath(b string, o string) ([]byte, error) {
 	return json.Marshal(p)
 }
 
-func decodePath(data []byte) (string, string, error) {
+func decodePath(data []byte) (path, error) {
 	p := path{}
 	err := json.Unmarshal(data, &p)
-	return p.Bucket, p.Object, err
+	return p, err
 }

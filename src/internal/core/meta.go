@@ -32,8 +32,8 @@ type meta struct {
 	Test bool   `json:"test,omitempty"`
 }
 
-func unmarshalMeta(b []byte) (meta, error) {
-	m := meta{}
+func unmarshalMeta(b []byte) (*meta, error) {
+	m := &meta{}
 	err := json.Unmarshal(b, &m)
 	return m, err
 }
