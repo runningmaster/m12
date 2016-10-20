@@ -15,6 +15,7 @@ import (
 	"internal/database/redis"
 	"internal/net/http/server"
 	"internal/net/nats"
+	"internal/version"
 )
 
 func main() {
@@ -28,7 +29,7 @@ func main() {
 		pref.SERVER,
 	)
 	if err != nil {
-		log.Println("main:", err)
+		log.Println(version.AppName(), err)
 		pref.Usage()
 		os.Exit(1)
 	}
