@@ -29,7 +29,7 @@ type path struct {
 	Object string `json:"object,omitempty"`
 }
 
-// Init inits client for NATS Server
+// Init inits package
 func Init() error {
 	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
 	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
