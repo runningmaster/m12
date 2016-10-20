@@ -68,6 +68,10 @@ func Free(c io.Closer) {
 	}
 }
 
+func Bool(v interface{}, err error) (bool, error) {
+	return redis.Bool(v, err)
+}
+
 func Int64(v interface{}, err error) (int64, error) {
 	return redis.Int64(v, err)
 }

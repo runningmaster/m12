@@ -34,9 +34,9 @@ func Pass(key string) bool {
 	c := redis.Conn()
 	defer redis.Free(c)
 
-	v, _ := redis.Int64(c.Do("HEXISTS", keyAuth, key))
+	v, _ := redis.Bool(c.Do("HEXISTS", keyAuth, key))
 
-	return v == 1
+	return v
 }
 
 func GetAuth(data []byte) (interface{}, error) {
