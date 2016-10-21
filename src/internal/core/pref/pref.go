@@ -1,6 +1,8 @@
 package pref
 
-import "flag"
+import (
+	"flag"
+)
 
 const envFormat = "M12_%s"
 
