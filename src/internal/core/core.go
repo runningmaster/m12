@@ -15,8 +15,9 @@ const (
 	bucketStreamOutGeo = "stream-out.geo"
 	bucketStreamErr    = "stream-err"
 
-	subjectSteamIn  = "m12." + bucketStreamIn
-	subjectSteamOut = "m12." + bucketStreamOut
+	subjectSteamIn     = "m12." + bucketStreamIn
+	subjectSteamOut    = "m12." + bucketStreamOut
+	subjectSteamOutGeo = "m12." + bucketStreamOutGeo
 
 	// should be move to pref
 	listN = 100
@@ -33,6 +34,7 @@ type path struct {
 func Init() error {
 	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
 	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
+	sendMessage(bucketStreamOutGeo, subjectSteamOutGeo, tickD, listN)
 	trimZLog(tickD, trimD)
 	return nats.Subscribe(subjectSteamIn, proc)
 }
