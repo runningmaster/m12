@@ -37,19 +37,21 @@ func writeResp(w http.ResponseWriter, uuid string, code int, data interface{}) (
 	var out []byte
 	var err error
 	// FIXME
-	if w.Header().Get("Content-Type") == "gzip" {
-		var ok bool
-		if out, ok = data.([]byte); !ok {
-			return 0, fmt.Errorf("unknown data")
-		}
-	} else {
-		if !pref.Debug { // FIXME (flag?)
-			out, err = json.Marshal(data)
+	if data != nil {
+		if w.Header().Get("Content-Type") == "gzip" {
+			var ok bool
+			if out, ok = data.([]byte); !ok {
+				return 0, fmt.Errorf("unknown data")
+			}
 		} else {
-			out, err = json.MarshalIndent(data, "", "\t")
-		}
-		if err != nil {
-			return 0, err
+			if !pref.Debug { // FIXME (flag?)
+				out, err = json.Marshal(data)
+			} else {
+				out, err = json.MarshalIndent(data, "", "\t")
+			}
+			if err != nil {
+				return 0, err
+			}
 		}
 	}
 
@@ -58,7 +60,11 @@ func writeResp(w http.ResponseWriter, uuid string, code int, data interface{}) (
 	w.Header().Set("X-Request-ID", uuid)
 	w.WriteHeader(code)
 
-	return w.Write(out)
+	if len(out) > 0 {
+		return w.Write(out)
+	}
+
+	return 0, nil
 
 	//	_, _ = w.Write([]byte("\n")) // (?)
 	//	return n + 1, nil

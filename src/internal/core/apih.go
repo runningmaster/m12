@@ -654,7 +654,7 @@ func Putd(meta, data []byte) (interface{}, error) {
 		}
 	}()
 
-	return "" /*m.UUID*/, nil
+	return nil /*m.UUID*/, nil
 }
 
 func Getd(data []byte, keep bool) ([]byte, []byte, error) {
