@@ -51,7 +51,7 @@ var (
 			&REDIS,
 		},
 		pref{
-			"host",
+			"server",
 			"Host server address",
 			&SERVER,
 		},
