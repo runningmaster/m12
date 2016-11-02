@@ -20,7 +20,7 @@ const (
 	subjectSteamOutGeo = "m12." + bucketStreamOutGeo
 
 	// should be move to pref
-	listN = 100
+	listN = 50
 	tickD = 10 * time.Second
 	trimD = 3 * 24 * time.Hour
 )
@@ -35,7 +35,7 @@ func Init() error {
 	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
 	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
 	sendMessage(bucketStreamOutGeo, subjectSteamOutGeo, tickD, listN)
-	trimZLog(tickD, trimD)
+	trimZLog(tickD*60, trimD)
 	return nats.Subscribe(subjectSteamIn, proc)
 }
 
