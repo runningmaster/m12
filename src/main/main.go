@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 
 	_ "expvar"
 	_ "net/http/pprof"
@@ -20,7 +21,7 @@ import (
 
 func main() {
 	pref.Init()
-	initLogger(pref.Verbose)
+	initLogger(systemdHere(), pref.Verbose)
 
 	err := initAndRun(
 		pref.NATS,
@@ -35,9 +36,15 @@ func main() {
 	}
 }
 
-func initLogger(v bool) {
-	log.SetFlags(0)
+func systemdHere() bool {
+	return exec.Command("pidof", "systemd").Run() == nil
+}
+
+func initLogger(f, v bool) {
 	log.SetOutput(ioutil.Discard)
+	if f {
+		log.SetFlags(0)
+	}
 	if v {
 		log.SetOutput(os.Stderr)
 	}
