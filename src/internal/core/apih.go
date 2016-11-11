@@ -602,7 +602,11 @@ func GetAddr2(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return fmt.Sprintf("{\"id\": %q}\n", l[0].ID), nil
+	if len(l) > 1 && l[0].IDAddr == 0 {
+		return nil, fmt.Errorf("not found")
+	}
+
+	return fmt.Sprintf("{\"id\": %q}\n", l[0].IDAddr), nil
 }
 
 func Ping() (interface{}, error) {
