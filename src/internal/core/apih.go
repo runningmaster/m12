@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"internal/compress/gziputil"
@@ -587,9 +588,10 @@ func GetMeta(data []byte) (interface{}, error) {
 // D E P R E C A T E D
 func GetAddr2(data []byte) (interface{}, error) {
 	v := struct {
-		Name string `json:"name"`
-		Head string `json:"head"`
-		Addr string `json:"addr"`
+		ID   string `json:"id,omitempty"`
+		Name string `json:"name,omitempty"`
+		Head string `json:"head,omitempty"`
+		Addr string `json:"addr,omitempty"`
 	}{}
 
 	err := json.Unmarshal(data, &v)
@@ -602,11 +604,15 @@ func GetAddr2(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	if len(l) > 1 && l[0].IDAddr == 0 {
+	if len(l) > 0 && l[0].IDAddr == 0 {
 		return nil, fmt.Errorf("not found")
 	}
 
-	return fmt.Sprintf("{\"id\": %q}\n", l[0].IDAddr), nil
+	v.ID = strconv.Itoa(int(l[0].IDAddr))
+	v.Name = ""
+	v.Head = ""
+	v.Addr = ""
+	return v, nil
 }
 
 func Ping() (interface{}, error) {
