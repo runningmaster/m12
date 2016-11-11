@@ -54,6 +54,7 @@ var (
 
 		// DEPRECATED Converter from old school style /data/add
 		"POST /data/add": pipe.Use(pipe.Conv, pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
+		"POST /addr/get": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(core.GetAddr2), pipe.Resp, pipe.Tail),
 
 		"POST /stream/put-data": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(putd), pipe.Resp, pipe.Tail),
 		"POST /stream/pop-data": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(popd), pipe.Resp, pipe.Tail),

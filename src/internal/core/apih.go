@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -581,6 +582,27 @@ func GetMeta(data []byte) (interface{}, error) {
 	}
 
 	return m, nil
+}
+
+// D E P R E C A T E D
+func GetAddr2(data []byte) (interface{}, error) {
+	v := struct {
+		Name string `json:"name"`
+		Head string `json:"head"`
+		Addr string `json:"addr"`
+	}{}
+
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	l, err := getLinkAddr([]string{strToSHA1(makeMagicHead(v.Name, v.Head, v.Addr))})
+	if err != nil {
+		return nil, err
+	}
+
+	return fmt.Sprintf("{\"id\": %q}\n", l[0].ID), nil
 }
 
 func Ping() (interface{}, error) {
