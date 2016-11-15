@@ -21,7 +21,7 @@ import (
 
 func main() {
 	pref.Init()
-	initLogger(systemdHere(), pref.Verbose)
+	initLogger(systemdBased(), pref.Verbose)
 
 	err := initAndRun(
 		pref.NATS,
@@ -36,7 +36,7 @@ func main() {
 	}
 }
 
-func systemdHere() bool {
+func systemdBased() bool {
 	return exec.Command("pidof", "systemd").Run() == nil
 }
 
