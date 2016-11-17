@@ -11,9 +11,9 @@ import (
 
 const (
 	bucketStreamIn     = "stream-in"
+	bucketStreamErr    = "stream-err"
 	bucketStreamOut    = "stream-out"
 	bucketStreamOutGeo = "stream-out.geo"
-	bucketStreamErr    = "stream-err"
 
 	subjectSteamIn     = "m12." + bucketStreamIn
 	subjectSteamOut    = "m12." + bucketStreamOut
@@ -32,11 +32,23 @@ type path struct {
 
 // Init inits package
 func Init() error {
+	initBuckets(bucketStreamIn, bucketStreamErr, bucketStreamOut, bucketStreamOutGeo)
 	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
 	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
 	sendMessage(bucketStreamOutGeo, subjectSteamOutGeo, tickD, listN)
 	trimZLog(tickD*60, trimD)
 	return nats.Subscribe(subjectSteamIn, proc)
+}
+
+func initBuckets(b ...string) error {
+	var err error
+	for i := range b {
+		err = minio.Make(b[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func sendMessage(b, s string, d time.Duration, n int) {

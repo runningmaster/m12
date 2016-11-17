@@ -45,7 +45,20 @@ func makeConn(addr string) (*minio.Client, error) {
 	return c, nil
 }
 
-func mustBucket(b string) error {
+func Put(b, o string, r io.Reader) error {
+	_, err := cli.PutObject(b, o, r, "")
+	return err
+}
+
+func Get(b, o string) (io.ReadCloser, error) {
+	return cli.GetObject(b, o)
+}
+
+func Del(b, o string) error {
+	return cli.RemoveObject(b, o)
+}
+
+func Make(b string) error {
 	ok, err := cli.BucketExists(b)
 	if err != nil {
 		return err
@@ -58,30 +71,7 @@ func mustBucket(b string) error {
 	return nil
 }
 
-func Put(b, o string, r io.Reader) error {
-	err := mustBucket(b)
-	if err != nil {
-		return err
-	}
-
-	_, err = cli.PutObject(b, o, r, "")
-	return err
-}
-
-func Get(b, o string) (io.ReadCloser, error) {
-	return cli.GetObject(b, o)
-}
-
-func Del(b, o string) error {
-	return cli.RemoveObject(b, o)
-}
-
 func Copy(bDst, oDst, bSrc, oSrc string) error {
-	err := mustBucket(bDst)
-	if err != nil {
-		return err
-	}
-
 	return cli.CopyObject(bDst, oDst, filepath.Join("", bSrc, oSrc), minio.NewCopyConditions())
 }
 
