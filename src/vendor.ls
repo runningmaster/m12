@@ -31,8 +31,8 @@ github.com/garyburd/redigo/redis
 github.com/minio/minio-go
 
 # A Go client for the NATS messaging system (https://nats.io).
-# https://godoc.org/github.com/nats-io/nats
-github.com/nats-io/nats
+# https://godoc.org/github.com/nats-io/go-nats
+github.com/nats-io/go-nats
 
 # Package mini implements a simple ini file parser.
 # https://godoc.org/github.com/sasbury/mini
