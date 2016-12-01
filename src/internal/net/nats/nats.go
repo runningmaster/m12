@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"net/url"
 
-	"github.com/nats-io/nats"
+	nats "github.com/nats-io/go-nats"
 )
 
 var cli *nats.Conn
