@@ -16,6 +16,7 @@ type meta struct {
 	HTag string   `json:"htag,omitempty"` // *
 	Span []string `json:"span,omitempty"` // *
 	Nick string   `json:"nick,omitempty"` // * Source | Source:MDSLns | Source:Drugstore -> conv.go
+	Frwd string   `json:"frwd,omitempty"` // *
 
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *
@@ -24,7 +25,7 @@ type meta struct {
 
 	Link linkAddr `json:"link,omitempty"`
 
-	CTag string `json:"ctag,omitempty"`
+	CTag string `json:"ctag,omitempty"` // *
 	ETag string `json:"etag,omitempty"`
 	Size int64  `json:"size,omitempty"`
 	Proc string `json:"proc,omitempty"`
