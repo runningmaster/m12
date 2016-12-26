@@ -28,6 +28,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/minio/minio-go/pkg/s3utils"
 )
 
 // FPutObject - Create an object in a bucket, with contents from file at filePath.
@@ -62,6 +64,8 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 		return 0, ErrEntityTooLarge(fileSize, maxMultipartPutObjectSize, bucketName, objectName)
 	}
 
+	objMetadata := make(map[string][]string)
+
 	// Set contentType based on filepath extension if not given or default
 	// value of "binary/octet-stream" if the extension has no associated type.
 	if contentType == "" {
@@ -70,9 +74,11 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 		}
 	}
 
+	objMetadata["Content-Type"] = []string{contentType}
+
 	// NOTE: Google Cloud Storage multipart Put is not compatible with Amazon S3 APIs.
 	// Current implementation will only upload a maximum of 5GiB to Google Cloud Storage servers.
-	if isGoogleEndpoint(c.endpointURL) {
+	if s3utils.IsGoogleEndpoint(c.endpointURL) {
 		if fileSize > int64(maxSinglePutObjectSize) {
 			return 0, ErrorResponse{
 				Code:       "NotImplemented",
@@ -82,11 +88,11 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 			}
 		}
 		// Do not compute MD5 for Google Cloud Storage. Uploads up to 5GiB in size.
-		return c.putObjectNoChecksum(bucketName, objectName, fileReader, fileSize, contentType, nil)
+		return c.putObjectNoChecksum(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	}
 
 	// NOTE: S3 doesn't allow anonymous multipart requests.
-	if isAmazonEndpoint(c.endpointURL) && c.anonymous {
+	if s3utils.IsAmazonEndpoint(c.endpointURL) && c.anonymous {
 		if fileSize > int64(maxSinglePutObjectSize) {
 			return 0, ErrorResponse{
 				Code:       "NotImplemented",
@@ -97,15 +103,15 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 		}
 		// Do not compute MD5 for anonymous requests to Amazon
 		// S3. Uploads up to 5GiB in size.
-		return c.putObjectNoChecksum(bucketName, objectName, fileReader, fileSize, contentType, nil)
+		return c.putObjectNoChecksum(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	}
 
 	// Small object upload is initiated for uploads for input data size smaller than 5MiB.
 	if fileSize < minPartSize && fileSize >= 0 {
-		return c.putObjectSingle(bucketName, objectName, fileReader, fileSize, contentType, nil)
+		return c.putObjectSingle(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	}
 	// Upload all large objects as multipart.
-	n, err = c.putObjectMultipartFromFile(bucketName, objectName, fileReader, fileSize, contentType, nil)
+	n, err = c.putObjectMultipartFromFile(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	if err != nil {
 		errResp := ToErrorResponse(err)
 		// Verify if multipart functionality is not available, if not
@@ -116,7 +122,7 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 				return 0, ErrEntityTooLarge(fileSize, maxSinglePutObjectSize, bucketName, objectName)
 			}
 			// Fall back to uploading as single PutObject operation.
-			return c.putObjectSingle(bucketName, objectName, fileReader, fileSize, contentType, nil)
+			return c.putObjectSingle(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 		}
 		return n, err
 	}
@@ -131,7 +137,7 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 // against MD5SUM of each individual parts. This function also
 // effectively utilizes file system capabilities of reading from
 // specific sections and not having to create temporary files.
-func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileReader io.ReaderAt, fileSize int64, contentType string, progress io.Reader) (int64, error) {
+func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileReader io.ReaderAt, fileSize int64, metaData map[string][]string, progress io.Reader) (int64, error) {
 	// Input validation.
 	if err := isValidBucketName(bucketName); err != nil {
 		return 0, err
@@ -141,7 +147,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 	}
 
 	// Get the upload id of a previously partially uploaded object or initiate a new multipart upload
-	uploadID, partsInfo, err := c.getMpartUploadSession(bucketName, objectName, contentType)
+	uploadID, partsInfo, err := c.getMpartUploadSession(bucketName, objectName, metaData)
 	if err != nil {
 		return 0, err
 	}
