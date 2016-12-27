@@ -2,7 +2,9 @@ package nats
 
 import (
 	"crypto/tls"
+	"log"
 	"net/url"
+	"time"
 
 	nats "github.com/nats-io/go-nats"
 )
@@ -31,6 +33,12 @@ func makeConn(addr string) (*nats.Conn, error) {
 	}
 
 	c, err := nats.Connect(addr, opts...)
+	// workaround for system restart
+	if err != nil {
+		log.Println(err)
+		time.Sleep(10 * time.Second)
+		c, err = nats.Connect(addr, opts...)
+	}
 	if err != nil {
 		return nil, err
 	}
