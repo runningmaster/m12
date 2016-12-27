@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	bucketStreamIn     = "stream-in"
-	bucketStreamErr    = "stream-err"
-	bucketStreamOut    = "stream-out"
-	bucketStreamOutGeo = "stream-out.geo"
+	bucketStreamIn      = "stream-in"
+	bucketStreamErr     = "stream-err"
+	bucketStreamOut     = "stream-out"
+	bucketStreamOutGeo  = "stream-out.geo"
+	bucketStreamOutFrwd = "stream-out.frwd"
 
 	subjectSteamIn     = "m12." + bucketStreamIn
 	subjectSteamOut    = "m12." + bucketStreamOut
@@ -32,7 +33,7 @@ type path struct {
 
 // Init inits package
 func Init() error {
-	initBuckets(bucketStreamIn, bucketStreamErr, bucketStreamOut, bucketStreamOutGeo)
+	initBuckets(bucketStreamIn, bucketStreamErr, bucketStreamOut, bucketStreamOutGeo, bucketStreamOutFrwd)
 	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
 	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
 	sendMessage(bucketStreamOutGeo, subjectSteamOutGeo, tickD, listN)

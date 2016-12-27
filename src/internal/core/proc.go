@@ -87,6 +87,10 @@ func copyToOuts(p path, m *meta, r io.Reader) error {
 		p.Bucket = bucketStreamOut
 		return minio.Copy(bucketStreamOutGeo, p.Object, p.Bucket, p.Object)
 	}
+	if m.Frwd != "" {
+		p.Bucket = bucketStreamOut
+		return minio.Copy(bucketStreamOutFrwd, p.Object, p.Bucket, p.Object)
+	}
 	return nil
 }
 
@@ -168,6 +172,10 @@ func unmarshalDataNEW(data []byte, m *meta) (interface{}, error) {
 	switch {
 	case isGeo(t):
 		v := jsonV3Geoa{}
+		err := json.Unmarshal(data, &v)
+		return v, err
+	case isRcgn(t):
+		v := jsonRcgnDrug{}
 		err := json.Unmarshal(data, &v)
 		return v, err
 	case isSaleBY(t):
@@ -343,6 +351,10 @@ func makeMagicDrugUA(name string) string {
 
 func isGeo(s string) bool {
 	return strings.Contains(s, "geo")
+}
+
+func isRcgn(s string) bool {
+	return strings.Contains(s, "rcgn.")
 }
 
 func isSaleBY(s string) bool {

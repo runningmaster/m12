@@ -33,7 +33,7 @@ func makeConn(addr string) (*nats.Conn, error) {
 	}
 
 	c, err := nats.Connect(addr, opts...)
-	// workaround for system restart
+	// workaround for system reboot
 	if err != nil {
 		log.Println(err)
 		time.Sleep(10 * time.Second)

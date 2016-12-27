@@ -44,6 +44,12 @@ type linkStat struct {
 	Name string `json:"name,omitempty" redis:"n"`
 }
 
+type itemRcgnDrug struct {
+	ID   string   `json:"id,omitempty"`
+	Name string   `json:"name,omitempty"`
+	Link linkDrug `json:"link,omitempty"`
+}
+
 type itemV3Geoa struct {
 	ID    string   `json:"id,omitempty"`
 	Name  string   `json:"name,omitempty"`
@@ -97,9 +103,23 @@ type druger interface {
 	setDrug(int, linkDrug) bool
 }
 
+type jsonRcgnDrug []itemRcgnDrug
 type jsonV3Geoa []itemV3Geoa
 type jsonV3Sale []itemV3Sale
 type jsonV3SaleBy []itemV3SaleBy
+
+func (j jsonRcgnDrug) len() int {
+	return len(j)
+}
+
+func (j jsonRcgnDrug) getName(i int) string {
+	return j[i].Name
+}
+
+func (j jsonRcgnDrug) setDrug(i int, l linkDrug) bool {
+	j[i].Link = l
+	return l.IDLink != 0
+}
 
 func (j jsonV3Geoa) len() int {
 	return len(j)
