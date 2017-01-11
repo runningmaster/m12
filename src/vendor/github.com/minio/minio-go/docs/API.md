@@ -1,4 +1,4 @@
-# Golang Client API Reference [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Minio/minio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Minio Go Client API Reference [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Minio/minio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Initialize Minio Client object.
 
@@ -60,7 +60,7 @@ func main() {
 |[`ListBuckets`](#ListBuckets)   |[`PutObject`](#PutObject)   |[`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)  | [`SetCustomTransport`](#SetCustomTransport) |
 |[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject)   |[`PresignedPostPolicy`](#PresignedPostPolicy)   |  [`ListBucketPolicies`](#ListBucketPolicies)  | [`TraceOn`](#TraceOn) |
 | [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject)   |   |  [`SetBucketNotification`](#SetBucketNotification)  | [`TraceOff`](#TraceOff) |
-|[`ListObjects`](#ListObjects)   |[`RemoveObject`](#RemoveObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)   |
+|[`ListObjects`](#ListObjects)  |[`RemoveObject`](#RemoveObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)  | [`SetS3TransferAccelerate`](#SetS3TransferAccelerate) |
 |[`ListObjectsV2`](#ListObjectsV2) | [`RemoveObjects`](#RemoveObjects) |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
 |[`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |   |  [`ListenBucketNotification`](#ListenBucketNotification)  |
 |   | [`FPutObject`](#FPutObject)  |   |   |
@@ -1147,6 +1147,17 @@ __Parameters__
 <a name="TraceOff"></a>
 ### TraceOff()
 Disables HTTP tracing.
+
+<a name="SetS3TransferAccelerate"></a>
+### SetS3TransferAccelerate(acceleratedEndpoint string)
+Set AWS S3 transfer acceleration endpoint for all API requests hereafter.
+NOTE: This API applies only to AWS S3 and ignored with other S3 compatible object storage services.
+
+__Parameters__
+
+| Param  | Type  | Description  |
+|---|---|---|
+|`acceleratedEndpoint`  | _string_  | Set to new S3 transfer acceleration endpoint.|
 
 
 ## 7. Explore Further
