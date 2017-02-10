@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"go/format"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +21,7 @@ import (
 const (
 	major      = 2
 	minor      = 0
-	patch      = 3
+	patch      = 4
 	prerelease = ""
 
 	srcFormat = `
@@ -52,11 +53,10 @@ const (
 `
 )
 
-var flagFile = flag.String("o", "tip.go", "output file name")
+var flagFile = flag.String("o", "version_generated.go", "output file name")
 
 func main() {
 	flag.Parse()
-	fmt.Printf("go:generate in %s -> %s\n", os.Getenv("GOFILE"), *flagFile)
 
 	buildtime := time.Now().Format("20060102150405")
 	gitcommit := "00000000"
@@ -89,6 +89,9 @@ func main() {
 	if err != nil {
 		panicWithErr(err)
 	}
+
+	outputName := os.Getenv("GOPACKAGE") + string(os.PathSeparator) + *flagFile
+	log.Println("Generated", outputName)
 }
 
 func panicWithErr(err error) {
