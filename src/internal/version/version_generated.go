@@ -12,14 +12,14 @@ const (
 	Minor = 0
 
 	// Patch version when you make backwards-compatible bug fixes.
-	Patch = 3
+	Patch = 4
 
 	// PreRelease version may be denoted by appending a hyphen and a series of dot separated identifiers immediately following the patch version.
 	PreRelease = ""
 
 	// BuildTime is build metadata and it may be denoted by appending a plus sign and a series of dot separated identifiers immediately following the patch or pre-release version.
-	BuildTime = "20170210164857"
+	BuildTime = "20170210165324"
 
 	// GitCommit is build metadata and it may be denoted by appending a plus sign and a series of dot separated identifiers immediately following the patch or pre-release version.
-	GitCommit = "bdfb6387"
+	GitCommit = "0259cc8d"
 )
