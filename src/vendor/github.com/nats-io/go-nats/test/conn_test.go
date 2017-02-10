@@ -287,12 +287,13 @@ func TestServerTLSHintConnections(t *testing.T) {
 
 	nc, err := nats.Connect(secureURL, nats.RootCAs("./configs/certs/badca.pem"))
 	if err == nil {
+		nc.Close()
 		t.Fatal("Expected an error from bad RootCA file")
 	}
 
 	nc, err = nats.Connect(secureURL, nats.RootCAs("./configs/certs/ca.pem"))
 	if err != nil {
-		t.Fatal("Failed to create secure (TLS) connection", err)
+		t.Fatalf("Failed to create secure (TLS) connection: %v", err)
 	}
 	defer nc.Close()
 }
@@ -1311,7 +1312,7 @@ func TestCustomFlusherTimeout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected to be able to connect, got: %s", err)
 	}
-	doneCh := make(chan struct{}, 0)
+	doneCh := make(chan struct{})
 	payload := ""
 	for i := 0; i < 8192; i++ {
 		payload += "A"
