@@ -51,12 +51,13 @@ type itemRcgnDrug struct {
 }
 
 type itemV3Geoa struct {
-	ID    string   `json:"id,omitempty"`
-	Name  string   `json:"name,omitempty"`
-	Home  string   `json:"home,omitempty"` // formerly link
-	Quant float64  `json:"quant,omitempty"`
-	Price float64  `json:"price,omitempty"`
-	Link  linkDrug `json:"link,omitempty"`
+	ID       string   `json:"id,omitempty"`
+	Name     string   `json:"name,omitempty"`
+	Home     string   `json:"home,omitempty"` // formerly link
+	Quant    float64  `json:"quant,omitempty"`
+	Price    float64  `json:"price,omitempty"`
+	PriceNet float64  `json:"price_net,omitempty"`
+	Link     linkDrug `json:"link,omitempty"`
 }
 
 type itemV3Sale struct {
@@ -227,13 +228,14 @@ type jsonV1Geoa struct {
 		EGRPOU string `json:"EGRPOU,omitempty"` // deprecated from 1.0
 	} `json:"meta"`
 	Data []struct {
-		ID    string  `json:"id,omitempty"`
-		Code  string  `json:"Code,omitempty"` // deprecated from 1.0
-		Name  string  `json:"name"`
-		Desc  string  `json:"Desc,omitempty"` // deprecated from 1.0
-		Addr  string  `json:"Addr,omitempty"` // deprecated from 1.0
-		Link  string  `json:"link"`
-		Quant float64 `json:"quant"`
-		Price float64 `json:"price"`
+		ID       string  `json:"id,omitempty"`
+		Code     string  `json:"Code,omitempty"` // deprecated from 1.0
+		Name     string  `json:"name"`
+		Desc     string  `json:"Desc,omitempty"` // deprecated from 1.0
+		Addr     string  `json:"Addr,omitempty"` // deprecated from 1.0
+		Link     string  `json:"link"`
+		Quant    float64 `json:"quant"`
+		Price    float64 `json:"price"`
+		PriceNet float64 `json:"price_net"`
 	} `json:"data"`
 }
