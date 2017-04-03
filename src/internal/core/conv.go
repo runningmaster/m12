@@ -143,7 +143,7 @@ func convGeoa(data []byte, m *meta) (jsonV3Geoa, error) {
 		}
 		d[i].Quant = v.Quant
 		d[i].Price = v.Price
-		d[i].PriceNet = v.PriceNet
+		d[i].PriceC = v.PriceC
 	}
 
 	return d, nil
