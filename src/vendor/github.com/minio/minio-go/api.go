@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -198,9 +199,6 @@ func privateNew(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Cl
 	clnt := new(Client)
 	clnt.accessKeyID = accessKeyID
 	clnt.secretAccessKey = secretAccessKey
-	if clnt.accessKeyID == "" || clnt.secretAccessKey == "" {
-		clnt.anonymous = true
-	}
 
 	// Remember whether we are using https or not
 	clnt.secure = secure
@@ -316,8 +314,7 @@ var regSign = regexp.MustCompile("Signature=([[0-9a-f]+)")
 
 // Filter out signature value from Authorization header.
 func (c Client) filterSignature(req *http.Request) {
-	// For anonymous requests, no need to filter.
-	if c.anonymous {
+	if _, ok := req.Header["Authorization"]; !ok {
 		return
 	}
 	// Handle if Signature V2.
@@ -428,7 +425,7 @@ func (c Client) do(req *http.Request) (*http.Response, error) {
 				return nil, &url.Error{
 					Op:  urlErr.Op,
 					URL: urlErr.URL,
-					Err: fmt.Errorf("Connection closed by foreign host %s. Retry again.", urlErr.URL),
+					Err: errors.New("Connection closed by foreign host " + urlErr.URL + ". Retry again."),
 				}
 			}
 			return nil, err
@@ -610,15 +607,18 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		return nil, err
 	}
 
+	// Anonymous request.
+	anonymous := c.accessKeyID == "" || c.secretAccessKey == ""
+
 	// Generate presign url if needed, return right here.
 	if metadata.expires != 0 && metadata.presignURL {
-		if c.anonymous {
+		if anonymous {
 			return nil, ErrInvalidArgument("Requests cannot be presigned with anonymous credentials.")
 		}
 		if c.signature.isV2() {
 			// Presign URL with signature v2.
 			req = s3signer.PreSignV2(*req, c.accessKeyID, c.secretAccessKey, metadata.expires)
-		} else {
+		} else if c.signature.isV4() {
 			// Presign URL with signature v4.
 			req = s3signer.PreSignV4(*req, c.accessKeyID, c.secretAccessKey, location, metadata.expires)
 		}
@@ -638,37 +638,32 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		req.ContentLength = metadata.contentLength
 	}
 
-	// Set sha256 sum only for non anonymous credentials.
-	if !c.anonymous {
-		// set sha256 sum for signature calculation only with
-		// signature version '4'.
-		if c.signature.isV4() {
-			shaHeader := unsignedPayload
-			if !c.secure {
-				if metadata.contentSHA256Bytes == nil {
-					shaHeader = hex.EncodeToString(sum256([]byte{}))
-				} else {
-					shaHeader = hex.EncodeToString(metadata.contentSHA256Bytes)
-				}
-			}
-			req.Header.Set("X-Amz-Content-Sha256", shaHeader)
-		}
-	}
-
 	// set md5Sum for content protection.
 	if metadata.contentMD5Bytes != nil {
 		req.Header.Set("Content-Md5", base64.StdEncoding.EncodeToString(metadata.contentMD5Bytes))
 	}
 
-	// Sign the request for all authenticated requests.
-	if !c.anonymous {
-		if c.signature.isV2() {
-			// Add signature version '2' authorization header.
-			req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
-		} else if c.signature.isV4() {
-			// Add signature version '4' authorization header.
-			req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, location)
+	if anonymous {
+		return req, nil
+	} // Sign the request for all authenticated requests.
+
+	if c.signature.isV2() {
+		// Add signature version '2' authorization header.
+		req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
+	} else if c.signature.isV4() {
+		// Set sha256 sum for signature calculation only with signature version '4'.
+		shaHeader := unsignedPayload
+		if !c.secure {
+			if metadata.contentSHA256Bytes == nil {
+				shaHeader = hex.EncodeToString(sum256([]byte{}))
+			} else {
+				shaHeader = hex.EncodeToString(metadata.contentSHA256Bytes)
+			}
 		}
+		req.Header.Set("X-Amz-Content-Sha256", shaHeader)
+
+		// Add signature version '4' authorization header.
+		req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, location)
 	}
 
 	// Return request.

@@ -32,6 +32,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/minio/minio-go/pkg/encrypt"
 	"github.com/minio/minio-go/pkg/policy"
 )
 
@@ -394,17 +395,14 @@ func TestListPartiallyUploaded(t *testing.T) {
 	go func() {
 		i := 0
 		for i < 25 {
-			_, err = io.CopyN(writer, r, (minPartSize*2)/25)
-			if err != nil {
-				t.Fatal("Error:", err, bucketName)
+			_, cerr := io.CopyN(writer, r, (minPartSize*2)/25)
+			if cerr != nil {
+				t.Fatal("Error:", cerr, bucketName)
 			}
 			i++
 			r.Seek(0, 0)
 		}
-		err := writer.CloseWithError(errors.New("Proactively closed to be verified later."))
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
+		writer.CloseWithError(errors.New("proactively closed to be verified later"))
 	}()
 
 	objectName := bucketName + "-resumable"
@@ -412,7 +410,7 @@ func TestListPartiallyUploaded(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error: PutObject should fail.")
 	}
-	if err.Error() != "Proactively closed to be verified later." {
+	if err.Error() != "proactively closed to be verified later" {
 		t.Fatal("Error:", err)
 	}
 
@@ -723,17 +721,14 @@ func TestRemovePartiallyUploaded(t *testing.T) {
 	go func() {
 		i := 0
 		for i < 25 {
-			_, err = io.CopyN(writer, r, 128*1024)
-			if err != nil {
-				t.Fatal("Error:", err, bucketName)
+			_, cerr := io.CopyN(writer, r, 128*1024)
+			if cerr != nil {
+				t.Fatal("Error:", cerr, bucketName)
 			}
 			i++
 			r.Seek(0, 0)
 		}
-		err := writer.CloseWithError(errors.New("Proactively closed to be verified later."))
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
+		writer.CloseWithError(errors.New("proactively closed to be verified later"))
 	}()
 
 	objectName := bucketName + "-resumable"
@@ -1828,7 +1823,7 @@ func TestEncryptionPutGet(t *testing.T) {
 	}
 
 	// Generate a symmetric key
-	symKey := NewSymmetricKey([]byte("my-secret-key-00"))
+	symKey := encrypt.NewSymmetricKey([]byte("my-secret-key-00"))
 
 	// Generate an assymmetric key from predefine public and private certificates
 	privateKey, err := hex.DecodeString(
@@ -1870,7 +1865,7 @@ func TestEncryptionPutGet(t *testing.T) {
 	}
 
 	// Generate an asymmetric key
-	asymKey, err := NewAsymmetricKey(privateKey, publicKey)
+	asymKey, err := encrypt.NewAsymmetricKey(privateKey, publicKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1880,7 +1875,7 @@ func TestEncryptionPutGet(t *testing.T) {
 
 	testCases := []struct {
 		buf    []byte
-		encKey EncryptionKey
+		encKey encrypt.Key
 	}{
 		{encKey: symKey, buf: bytes.Repeat([]byte("F"), 0)},
 		{encKey: symKey, buf: bytes.Repeat([]byte("F"), 1)},
@@ -1907,7 +1902,7 @@ func TestEncryptionPutGet(t *testing.T) {
 		objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
 
 		// Secured object
-		cbcMaterials, err := NewCBCSecureMaterials(testCase.encKey)
+		cbcMaterials, err := encrypt.NewCBCSecureMaterials(testCase.encKey)
 		if err != nil {
 			t.Fatal(err)
 		}
