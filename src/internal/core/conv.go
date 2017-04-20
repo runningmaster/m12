@@ -144,6 +144,10 @@ func convGeoa(data []byte, m *meta) (jsonV3Geoa, error) {
 		d[i].Quant = v.Quant
 		d[i].Price = v.Price
 		d[i].PriceC = v.PriceC
+		if v.PriceNet > 0 {
+			d[i].Price = v.PriceNet
+			d[i].PriceC = v.Price
+		}
 	}
 
 	return d, nil

@@ -228,14 +228,15 @@ type jsonV1Geoa struct {
 		EGRPOU string `json:"EGRPOU,omitempty"` // deprecated from 1.0
 	} `json:"meta"`
 	Data []struct {
-		ID     string  `json:"id,omitempty"`
-		Code   string  `json:"Code,omitempty"` // deprecated from 1.0
-		Name   string  `json:"name"`
-		Desc   string  `json:"Desc,omitempty"` // deprecated from 1.0
-		Addr   string  `json:"Addr,omitempty"` // deprecated from 1.0
-		Link   string  `json:"link"`
-		Quant  float64 `json:"quant"`
-		Price  float64 `json:"price"`
-		PriceC float64 `json:"price_cntr"`
+		ID       string  `json:"id,omitempty"`
+		Code     string  `json:"Code,omitempty"` // deprecated from 1.0
+		Name     string  `json:"name"`
+		Desc     string  `json:"Desc,omitempty"` // deprecated from 1.0
+		Addr     string  `json:"Addr,omitempty"` // deprecated from 1.0
+		Link     string  `json:"link"`
+		Quant    float64 `json:"quant"`
+		Price    float64 `json:"price"`
+		PriceC   float64 `json:"price_cntr"`
+		PriceNet float64 `json:"price_net"` // deprecated from 1.0
 	} `json:"data"`
 }
