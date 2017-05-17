@@ -173,7 +173,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 	close(uploadPartsCh)
 
 	// Use three 'workers' to upload parts in parallel.
-	for w := 1; w <= 3; w++ {
+	for w := 1; w <= totalWorkers; w++ {
 		go func() {
 			// Deal with each part as it comes through the channel.
 			for uploadReq := range uploadPartsCh {
@@ -182,7 +182,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 				hashAlgos := make(map[string]hash.Hash)
 				hashSums := make(map[string][]byte)
 				hashAlgos["md5"] = md5.New()
-				if c.signature.isV4() && !c.secure {
+				if c.overrideSignerType.IsV4() && !c.secure {
 					hashAlgos["sha256"] = sha256.New()
 				}
 
