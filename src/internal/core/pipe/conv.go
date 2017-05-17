@@ -45,7 +45,7 @@ func convHTag(r *http.Request) {
 		v = r.Header.Get("Content-Type")
 		_, p, err := mime.ParseMediaType(v)
 		if err != nil {
-			v = ""
+			v = "" // FIXME: must be error here
 		} else {
 			v = p["hashtag"]
 		}
