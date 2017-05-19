@@ -14,6 +14,10 @@ func unmarshalSale(data []byte) (*jsonV1Sale, error) {
 		return nil, err
 	}
 
+	if v == nil {
+		return nil, fmt.Errorf("value is %v after unmarshal", v)
+	}
+
 	return v, nil
 }
 
@@ -63,6 +67,10 @@ func unmarshalSaleBy(data []byte) (*jsonV1SaleBy, error) {
 		return nil, err
 	}
 
+	if v == nil {
+		return nil, fmt.Errorf("value is %v after unmarshal", v)
+	}
+
 	return v, nil
 }
 
@@ -107,6 +115,10 @@ func unmarshalGeoa(data []byte) (*jsonV1Geoa, error) {
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
+	}
+
+	if v == nil {
+		return nil, fmt.Errorf("value is %v after unmarshal", v)
 	}
 
 	return v, nil
