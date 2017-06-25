@@ -10,15 +10,17 @@ import (
 )
 
 const (
-	bucketStreamIn      = "stream-in"
-	bucketStreamErr     = "stream-err"
-	bucketStreamOut     = "stream-out"
-	bucketStreamOutGeo  = "stream-out.geo"
-	bucketStreamOutFrwd = "stream-out.frwd"
+	bucketStreamIn         = "stream-in"
+	bucketStreamErr        = "stream-err"
+	bucketStreamOut        = "stream-out"
+	bucketStreamOutGeo     = "stream-out.geo"
+	bucketStreamOutGeoTest = "stream-out.geo-test"
+	bucketStreamOutFrwd    = "stream-out.frwd"
 
-	subjectSteamIn     = "m12." + bucketStreamIn
-	subjectSteamOut    = "m12." + bucketStreamOut
-	subjectSteamOutGeo = "m12." + bucketStreamOutGeo
+	subjectSteamIn         = "m12." + bucketStreamIn
+	subjectSteamOut        = "m12." + bucketStreamOut
+	subjectSteamOutGeo     = "m12." + bucketStreamOutGeo
+	subjectSteamOutGeoTest = "m12." + bucketStreamOutGeoTest
 
 	// should be move to pref
 	listN = 50
@@ -33,10 +35,11 @@ type path struct {
 
 // Init inits package
 func Init() error {
-	initBuckets(bucketStreamIn, bucketStreamErr, bucketStreamOut, bucketStreamOutGeo, bucketStreamOutFrwd)
+	initBuckets(bucketStreamIn, bucketStreamErr, bucketStreamOut, bucketStreamOutGeo, bucketStreamOutGeoTest, bucketStreamOutFrwd)
 	sendMessage(bucketStreamOut, subjectSteamOut, tickD, listN)
 	sendMessage(bucketStreamIn, subjectSteamIn, tickD, listN)
 	sendMessage(bucketStreamOutGeo, subjectSteamOutGeo, tickD, listN)
+	sendMessage(bucketStreamOutGeoTest, subjectSteamOutGeoTest, tickD, listN)
 	trimZLog(tickD*60, trimD)
 	return nats.Subscribe(subjectSteamIn, proc)
 }
