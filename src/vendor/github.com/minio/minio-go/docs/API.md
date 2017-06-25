@@ -438,9 +438,6 @@ if err != nil {
 
 Uploads objects that are less than 64MiB in a single PUT operation. For objects that are greater than 64MiB in size, PutObject seamlessly uploads the object as parts of 64MiB or more depending on the actual file size. The max upload size for an object is 5TB.
 
-In the event that PutObject fails to upload an object, the user may attempt to re-upload the same object. If the same object is being uploaded, PutObject API examines the previous partial attempt to upload this object and resumes automatically from where it left off.
-
-
 __Parameters__
 
 
@@ -565,8 +562,6 @@ if err != nil {
 Uploads contents from a file to objectName.
 
 FPutObject uploads objects that are less than 64MiB in a single PUT operation. For objects that are greater than the 64MiB in size, FPutObject seamlessly uploads the object in chunks of 64MiB or more depending on the actual file size. The max upload size for an object is 5TB.
-
-In the event that FPutObject fails to upload an object, the user may attempt to re-upload the same object. If the same object is being uploaded, FPutObject API examines the previous partial attempt to upload this object and resumes automatically from where it left off.
 
 
 __Parameters__
@@ -771,7 +766,7 @@ if err != nil {
 ```
 
 <a name="GetEncryptedObject"></a>
-### GetEncryptedObject(bucketName, objectName string, encryptMaterials minio.EncryptionMaterials) (io.Reader, error)
+### GetEncryptedObject(bucketName, objectName string, encryptMaterials minio.EncryptionMaterials) (io.ReadCloser, error)
 
 Returns the decrypted stream of the object data based of the given encryption materiels. Most of the common errors occur when reading the stream.
 
@@ -788,7 +783,7 @@ __Return Value__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
-|`stream`  | _io.Reader_ | Returns the deciphered object reader. |
+|`stream`  | _io.ReadCloser_ | Returns the deciphered object reader, caller should close after reading. |
 |`err`  | _error | Returns errors. |
 
 
@@ -810,11 +805,14 @@ if err != nil {
     fmt.Println(err)
     return
 }
+defer object.Close()
+
 localFile, err := os.Create("/tmp/local-file.jpg")
 if err != nil {
     fmt.Println(err)
     return
 }
+
 if _, err = io.Copy(localFile, object); err != nil {
     fmt.Println(err)
     return
@@ -1240,7 +1238,7 @@ __Return Values__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
-|`chan NotificationInfo` | _chan_ | Read channel for all notificatons on bucket |
+|`chan NotificationInfo` | _chan_ | Read channel for all notifications on bucket |
 |`NotificationInfo` | _object_ | Notification object represents events info |
 |`notificationInfo.Records` | _[]NotificationEvent_ | Collection of notification events |
 |`notificationInfo.Err` | _error_ | Carries any error occurred during the operation |

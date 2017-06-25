@@ -58,10 +58,10 @@ func (c Client) PutEncryptedObject(bucketName, objectName string, reader io.Read
 // PutObjectWithMetadata - with metadata.
 func (c Client) PutObjectWithMetadata(bucketName, objectName string, reader io.Reader, metaData map[string][]string, progress io.Reader) (n int64, err error) {
 	// Input validation.
-	if err := isValidBucketName(bucketName); err != nil {
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return 0, err
 	}
-	if err := isValidObjectName(objectName); err != nil {
+	if err := s3utils.CheckValidObjectName(objectName); err != nil {
 		return 0, err
 	}
 	if reader == nil {
@@ -83,20 +83,8 @@ func (c Client) PutObjectWithMetadata(bucketName, objectName string, reader io.R
 	}
 
 	// NOTE: Google Cloud Storage does not implement Amazon S3 Compatible multipart PUT.
-	// So we fall back to single PUT operation with the maximum limit of 5GiB.
 	if s3utils.IsGoogleEndpoint(c.endpointURL) {
-		if size <= -1 {
-			return 0, ErrorResponse{
-				Code:       "NotImplemented",
-				Message:    "Content-Length cannot be negative for file uploads to Google Cloud Storage.",
-				Key:        objectName,
-				BucketName: bucketName,
-			}
-		}
-		if size > maxSinglePutObjectSize {
-			return 0, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
-		}
-		// Do not compute MD5 for Google Cloud Storage. Uploads up to 5GiB in size.
+		// Do not compute MD5 for Google Cloud Storage.
 		return c.putObjectNoChecksum(bucketName, objectName, reader, size, metaData, progress)
 	}
 

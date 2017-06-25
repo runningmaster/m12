@@ -73,7 +73,7 @@ func (r *bucketLocationCache) Delete(bucketName string) {
 // GetBucketLocation - get location for the bucket name from location cache, if not
 // fetch freshly by making a new request.
 func (c Client) GetBucketLocation(bucketName string) (string, error) {
-	if err := isValidBucketName(bucketName); err != nil {
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", err
 	}
 	return c.getBucketLocation(bucketName)
@@ -82,8 +82,13 @@ func (c Client) GetBucketLocation(bucketName string) (string, error) {
 // getBucketLocation - Get location for the bucketName from location map cache, if not
 // fetch freshly by making a new request.
 func (c Client) getBucketLocation(bucketName string) (string, error) {
-	if err := isValidBucketName(bucketName); err != nil {
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", err
+	}
+
+	// Region set then no need to fetch bucket location.
+	if c.region != "" {
+		return c.region, nil
 	}
 
 	if s3utils.IsAmazonChinaEndpoint(c.endpointURL) {
@@ -92,11 +97,12 @@ func (c Client) getBucketLocation(bucketName string) (string, error) {
 		// provides a cleaner compatible API across "us-east-1" and
 		// China region.
 		return "cn-north-1", nil
-	}
-
-	// Region set then no need to fetch bucket location.
-	if c.region != "" {
-		return c.region, nil
+	} else if s3utils.IsAmazonGovCloudEndpoint(c.endpointURL) {
+		// For us-gov specifically we need to set everything to
+		// us-gov-west-1 for now, there is no easier way until AWS S3
+		// provides a cleaner compatible API across "us-east-1" and
+		// Gov cloud region.
+		return "us-gov-west-1", nil
 	}
 
 	if location, ok := c.bucketLocCache.Get(bucketName); ok {
