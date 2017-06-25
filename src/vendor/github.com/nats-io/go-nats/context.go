@@ -7,6 +7,7 @@ package nats
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 )
 
@@ -16,7 +17,66 @@ func (nc *Conn) RequestWithContext(ctx context.Context, subj string, data []byte
 	if ctx == nil {
 		return nil, ErrInvalidContext
 	}
+	if nc == nil {
+		return nil, ErrInvalidConnection
+	}
 
+	nc.mu.Lock()
+	// If user wants the old style.
+	if nc.Opts.UseOldRequestStyle {
+		nc.mu.Unlock()
+		return nc.oldRequestWithContext(ctx, subj, data)
+	}
+
+	// Do setup for the new style.
+	if nc.respMap == nil {
+		// _INBOX wildcard
+		nc.respSub = fmt.Sprintf("%s.*", NewInbox())
+		nc.respMap = make(map[string]chan *Msg)
+	}
+	// Create literal Inbox and map to a chan msg.
+	mch := make(chan *Msg, RequestChanLen)
+	respInbox := nc.newRespInbox()
+	token := respToken(respInbox)
+	nc.respMap[token] = mch
+	createSub := nc.respMux == nil
+	ginbox := nc.respSub
+	nc.mu.Unlock()
+
+	if createSub {
+		// Make sure scoped subscription is setup only once.
+		var err error
+		nc.respSetup.Do(func() { err = nc.createRespMux(ginbox) })
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err := nc.PublishRequest(subj, respInbox, data)
+	if err != nil {
+		return nil, err
+	}
+
+	var ok bool
+	var msg *Msg
+
+	select {
+	case msg, ok = <-mch:
+		if !ok {
+			return nil, ErrConnectionClosed
+		}
+	case <-ctx.Done():
+		nc.mu.Lock()
+		delete(nc.respMap, token)
+		nc.mu.Unlock()
+		return nil, ctx.Err()
+	}
+
+	return msg, nil
+}
+
+// oldRequestWithContext utilizes inbox and subscription per request.
+func (nc *Conn) oldRequestWithContext(ctx context.Context, subj string, data []byte) (*Msg, error) {
 	inbox := NewInbox()
 	ch := make(chan *Msg, RequestChanLen)
 
