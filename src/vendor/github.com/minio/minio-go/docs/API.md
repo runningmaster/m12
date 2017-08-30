@@ -50,17 +50,21 @@ func main() {
 }
 ```
 
-| Bucket operations  |Object operations | Encrypted Object operations  | Presigned operations  | Bucket Policy/Notification Operations | Client custom settings |
-|:---|:---|:---|:---|:---|:---|
-|[`MakeBucket`](#MakeBucket)   |[`GetObject`](#GetObject) | [`NewSymmetricKey`](#NewSymmetricKey) | [`PresignedGetObject`](#PresignedGetObject)  |[`SetBucketPolicy`](#SetBucketPolicy)   | [`SetAppInfo`](#SetAppInfo) |
-|[`ListBuckets`](#ListBuckets)   |[`PutObject`](#PutObject) | [`NewAsymmetricKey`](#NewAsymmetricKey) |[`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)  | [`SetCustomTransport`](#SetCustomTransport) |
-|[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject) |  [`GetEncryptedObject`](#GetEncryptedObject)  |[`PresignedPostPolicy`](#PresignedPostPolicy)   |  [`ListBucketPolicies`](#ListBucketPolicies)  | [`TraceOn`](#TraceOn) |
-| [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject) | [`PutObjectStreaming`](#PutObjectStreaming) |   |  [`SetBucketNotification`](#SetBucketNotification)  | [`TraceOff`](#TraceOff) |
-|[`ListObjects`](#ListObjects)  |[`RemoveObject`](#RemoveObject) | [`PutEncryptedObject`](#PutEncryptedObject) |   |  [`GetBucketNotification`](#GetBucketNotification)  | [`SetS3TransferAccelerate`](#SetS3TransferAccelerate) |
-|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveObjects`](#RemoveObjects) |  |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
-|[`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |  |  |  [`ListenBucketNotification`](#ListenBucketNotification)  |
-|   | [`FPutObject`](#FPutObject)  | |   |   |
-|   | [`FGetObject`](#FGetObject)  | |   |   |
+| Bucket operations                                 | Object operations                                   | Encrypted Object operations                 | Presigned operations                          | Bucket Policy/Notification Operations                         | Client custom settings                                |
+| :---                                              | :---                                                | :---                                        | :---                                          | :---                                                          | :---                                                  |
+| [`MakeBucket`](#MakeBucket)                       | [`GetObject`](#GetObject)                           | [`NewSymmetricKey`](#NewSymmetricKey)       | [`PresignedGetObject`](#PresignedGetObject)   | [`SetBucketPolicy`](#SetBucketPolicy)                         | [`SetAppInfo`](#SetAppInfo)                           |
+| [`ListBuckets`](#ListBuckets)                     | [`PutObject`](#PutObject)                           | [`NewAsymmetricKey`](#NewAsymmetricKey)     | [`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)                         | [`SetCustomTransport`](#SetCustomTransport)           |
+| [`BucketExists`](#BucketExists)                   | [`CopyObject`](#CopyObject)                         | [`GetEncryptedObject`](#GetEncryptedObject) | [`PresignedPostPolicy`](#PresignedPostPolicy) | [`ListBucketPolicies`](#ListBucketPolicies)                   | [`TraceOn`](#TraceOn)                                 |
+| [`RemoveBucket`](#RemoveBucket)                   | [`StatObject`](#StatObject)                         | [`PutObjectStreaming`](#PutObjectStreaming) |                                               | [`SetBucketNotification`](#SetBucketNotification)             | [`TraceOff`](#TraceOff)                               |
+| [`ListObjects`](#ListObjects)                     | [`RemoveObject`](#RemoveObject)                     | [`PutEncryptedObject`](#PutEncryptedObject) |                                               | [`GetBucketNotification`](#GetBucketNotification)             | [`SetS3TransferAccelerate`](#SetS3TransferAccelerate) |
+| [`ListObjectsV2`](#ListObjectsV2)                 | [`RemoveObjects`](#RemoveObjects)                   | [`NewSSEInfo`](#NewSSEInfo)                 |                                               | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification) |                                                       |
+| [`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |                                             |                                               | [`ListenBucketNotification`](#ListenBucketNotification)       |                                                       |
+|                                                   | [`FPutObject`](#FPutObject)                         |                                             |                                               |                                                               |                                                       |
+|                                                   | [`FGetObject`](#FGetObject)                         |                                             |                                               |                                                               |                                                       |
+|                                                   | [`ComposeObject`](#ComposeObject)                   |                                             |                                               |                                                               |                                                       |
+|                                                   | [`NewSourceInfo`](#NewSourceInfo)                   |                                             |                                               |                                                               |                                                       |
+|                                                   | [`NewDestinationInfo`](#NewDestinationInfo)         |                                             |                                               |                                                               |                                                       |
+
 
 ## 1. Constructor
 <a name="Minio"></a>
@@ -502,9 +506,11 @@ if err != nil {
 
 
 <a name="CopyObject"></a>
-### CopyObject(bucketName, objectName, objectSource string, conditions CopyConditions) error
+### CopyObject(dst DestinationInfo, src SourceInfo) error
 
-Copy a source object into a new object with the provided name in the provided bucket.
+Create or replace an object through server-side copying of an existing object. It supports conditional copying, copying a part of an object and server-side encryption of destination and decryption of source. See the `SourceInfo` and `DestinationInfo` types for further details.
+
+To copy multiple source objects into a single destination object see the `ComposeObject` API.
 
 
 __Parameters__
@@ -512,49 +518,168 @@ __Parameters__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
-|`bucketName`  | _string_  |Name of the bucket |
-|`objectName` | _string_  |Name of the object   |
-|`objectSource` | _string_  |Name of the source object  |
-|`conditions` | _CopyConditions_  |Collection of supported CopyObject conditions. [`x-amz-copy-source`, `x-amz-copy-source-if-match`, `x-amz-copy-source-if-none-match`, `x-amz-copy-source-if-unmodified-since`, `x-amz-copy-source-if-modified-since`]|
+|`dst`  | _DestinationInfo_  |Argument describing the destination object |
+|`src` | _SourceInfo_  |Argument describing the source object |
 
 
 __Example__
 
 
 ```go
-// Use-case-1
-// To copy an existing object to a new object with _no_ copy conditions.
-copyConds := minio.CopyConditions{}
-err := minioClient.CopyObject("mybucket", "myobject", "my-sourcebucketname/my-sourceobjectname", copyConds)
+// Use-case 1: Simple copy object with no conditions, etc
+// Source object
+src := minio.NewSourceInfo("my-sourcebucketname", "my-sourceobjectname", nil)
+
+// Destination object
+dst, err := minio.NewDestinationInfo("my-bucketname", "my-objectname", nil, nil)
 if err != nil {
     fmt.Println(err)
     return
 }
 
-// Use-case-2
-// To copy an existing object to a new object with the following copy conditions
+// Copy object call
+err = s3Client.CopyObject(dst, src)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+
+// Use-case 2: Copy object with copy-conditions, and copying only part of the source object.
 // 1. that matches a given ETag
 // 2. and modified after 1st April 2014
 // 3. but unmodified since 23rd April 2014
+// 4. copy only first 1MiB of object.
 
-// Initialize empty copy conditions.
-var copyConds = minio.CopyConditions{}
+// Source object
+src := minio.NewSourceInfo("my-sourcebucketname", "my-sourceobjectname", nil)
 
-// copy object that matches the given ETag.
-copyConds.SetMatchETag("31624deb84149d2f8ef9c385918b653a")
+// Set matching ETag condition, copy object which matches the following ETag.
+src.SetMatchETagCond("31624deb84149d2f8ef9c385918b653a")
 
-// and modified after 1st April 2014
-copyConds.SetModified(time.Date(2014, time.April, 1, 0, 0, 0, 0, time.UTC))
+// Set modified condition, copy object modified since 2014 April 1.
+src.SetModifiedSinceCond(time.Date(2014, time.April, 1, 0, 0, 0, 0, time.UTC))
 
-// but unmodified since 23rd April 2014
-copyConds.SetUnmodified(time.Date(2014, time.April, 23, 0, 0, 0, 0, time.UTC))
+// Set unmodified condition, copy object unmodified since 2014 April 23.
+src.SetUnmodifiedSinceCond(time.Date(2014, time.April, 23, 0, 0, 0, 0, time.UTC))
 
-err := minioClient.CopyObject("mybucket", "myobject", "my-sourcebucketname/my-sourceobjectname", copyConds)
+// Set copy-range of only first 1MiB of file.
+src.SetRange(0, 1024*1024-1)
+
+// Destination object
+dst, err := minio.NewDestinationInfo("my-bucketname", "my-objectname", nil, nil)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+
+// Copy object call
+err = s3Client.CopyObject(dst, src)
 if err != nil {
     fmt.Println(err)
     return
 }
 ```
+
+<a name="ComposeObject"></a>
+### ComposeObject(dst DestinationInfo, srcs []SourceInfo) error
+
+Create an object by concatenating a list of source objects using
+server-side copying.
+
+__Parameters__
+
+
+|Param   |Type   |Description   |
+|:---|:---|:---|
+|`dst`  | _minio.DestinationInfo_  |Struct with info about the object to be created. |
+|`srcs` | _[]minio.SourceInfo_  |Slice of struct with info about source objects to be concatenated in order. |
+
+
+__Example__
+
+
+```go
+// Prepare source decryption key (here we assume same key to
+// decrypt all source objects.)
+decKey := minio.NewSSEInfo([]byte{1, 2, 3}, "")
+
+// Source objects to concatenate. We also specify decryption
+// key for each
+src1 := minio.NewSourceInfo("bucket1", "object1", decKey)
+src1.SetMatchETag("31624deb84149d2f8ef9c385918b653a")
+
+src2 := minio.NewSourceInfo("bucket2", "object2", decKey)
+src2.SetMatchETag("f8ef9c385918b653a31624deb84149d2")
+
+src3 := minio.NewSourceInfo("bucket3", "object3", decKey)
+src3.SetMatchETag("5918b653a31624deb84149d2f8ef9c38")
+
+// Create slice of sources.
+srcs := []minio.SourceInfo{src1, src2, src3}
+
+// Prepare destination encryption key
+encKey := minio.NewSSEInfo([]byte{8, 9, 0}, "")
+
+// Create destination info
+dst := minio.NewDestinationInfo("bucket", "object", encKey, nil)
+err = s3Client.ComposeObject(dst, srcs)
+if err != nil {
+	log.Println(err)
+	return
+}
+
+log.Println("Composed object successfully.")
+```
+
+<a name="NewSourceInfo"></a>
+### NewSourceInfo(bucket, object string, decryptSSEC *SSEInfo) SourceInfo
+
+Construct a `SourceInfo` object that can be used as the source for server-side copying operations like `CopyObject` and `ComposeObject`. This object can be used to set copy-conditions on the source.
+
+__Parameters__
+
+| Param         | Type             | Description                                                      |
+| :---          | :---             | :---                                                             |
+| `bucket`      | _string_         | Name of the source bucket                                        |
+| `object`      | _string_         | Name of the source object                                        |
+| `decryptSSEC` | _*minio.SSEInfo_ | Decryption info for the source object (`nil` without encryption) |
+
+__Example__
+
+``` go
+// No decryption parameter.
+src := NewSourceInfo("bucket", "object", nil)
+
+// With decryption parameter.
+decKey := NewSSEKey([]byte{1,2,3}, "")
+src := NewSourceInfo("bucket", "object", decKey)
+```
+
+<a name="NewDestinationInfo"></a>
+### NewDestinationInfo(bucket, object string, encryptSSEC *SSEInfo, userMeta map[string]string) (DestinationInfo, error)
+
+Construct a `DestinationInfo` object that can be used as the destination object for server-side copying operations like `CopyObject` and `ComposeObject`.
+
+__Parameters__
+
+| Param         | Type                | Description                                                                                                    |
+| :---          | :---                | :---                                                                                                           |
+| `bucket`      | _string_            | Name of the destination bucket                                                                                 |
+| `object`      | _string_            | Name of the destination object                                                                                 |
+| `encryptSSEC` | _*minio.SSEInfo_    | Encryption info for the source object (`nil` without encryption)                                               |
+| `userMeta`    | _map[string]string_ | User metadata to be set on the destination. If nil, with only one source, user-metadata is copied from source. |
+
+__Example__
+
+``` go
+// No encryption parameter.
+dst, err := NewDestinationInfo("bucket", "object", nil, nil)
+
+// With encryption parameter.
+encKey := NewSSEKey([]byte{1,2,3}, "")
+dst, err := NewDecryptionInfo("bucket", "object", encKey, nil)
+```
+
 
 <a name="FPutObject"></a>
 ### FPutObject(bucketName, objectName, filePath, contentType string) (length int64, err error)
@@ -881,6 +1006,26 @@ if err != nil {
 }
 ```
 
+<a name="NewSSEInfo"></a>
+
+### NewSSEInfo(key []byte, algo string) SSEInfo
+
+Create a key object for use as encryption or decryption parameter in operations involving server-side-encryption with customer provided key (SSE-C).
+
+__Parameters__
+
+| Param  | Type     | Description                                                                                          |
+| :---   | :---     | :---                                                                                                 |
+| `key`  | _[]byte_ | Byte-slice of the raw, un-encoded binary key                                                         |
+| `algo` | _string_ | Algorithm to use in encryption or decryption with the given key. Can be empty (defaults to `AES256`) |
+
+__Example__
+
+``` go
+// Key for use in encryption/decryption
+keyInfo := NewSSEInfo([]byte{1,2,3}, "")
+```
+
 ## 5. Presigned operations
 
 <a name="PresignedGetObject"></a>
@@ -922,8 +1067,6 @@ Generates a presigned URL for HTTP PUT operations. Browsers/Mobile clients may p
 
 NOTE: you can upload to S3 only with specified object name.
 
-
-
 __Parameters__
 
 
@@ -948,13 +1091,43 @@ if err != nil {
 fmt.Println(presignedURL)
 ```
 
+<a name="PresignedHeadObject"></a>
+### PresignedHeadObject(bucketName, objectName string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
+
+Generates a presigned URL for HTTP HEAD operations. Browsers/Mobile clients may point to this URL to directly get metadata from objects even if the bucket is private. This presigned URL can have an associated expiration time in seconds after which it is no longer operational. The default expiry is set to 7 days.
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`bucketName`  | _string_  |Name of the bucket   |
+|`objectName` | _string_  |Name of the object   |
+|`expiry` | _time.Duration_  |Expiry of presigned URL in seconds   |
+|`reqParams` | _url.Values_  |Additional response header overrides supports _response-expires_, _response-content-type_, _response-cache-control_, _response-content-disposition_.  |
+
+
+__Example__
+
+
+```go
+// Set request parameters for content-disposition.
+reqParams := make(url.Values)
+reqParams.Set("response-content-disposition", "attachment; filename=\"your-filename.txt\"")
+
+// Generates a presigned url which expires in a day.
+presignedURL, err := minioClient.PresignedHeadObject("mybucket", "myobject", time.Second * 24 * 60 * 60, reqParams)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+```
+
 <a name="PresignedPostPolicy"></a>
 ### PresignedPostPolicy(PostPolicy) (*url.URL, map[string]string, error)
 
 Allows setting policy conditions to a presigned URL for POST operations. Policies such as bucket name to receive object uploads, key name prefixes, expiry policy may be set.
 
 Create policy :
-
 
 ```go
 policy := minio.NewPostPolicy()
@@ -983,9 +1156,7 @@ if err != nil {
 }
 ```
 
-
 POST your content from the command line using `curl`:
-
 
 ```go
 fmt.Printf("curl ")

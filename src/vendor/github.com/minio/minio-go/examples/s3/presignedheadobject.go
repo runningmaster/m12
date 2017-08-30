@@ -20,14 +20,15 @@ package main
 
 import (
 	"log"
+	"net/url"
+	"time"
 
-	"github.com/cheggaaa/pb"
 	"github.com/minio/minio-go"
 )
 
 func main() {
-	// Note: YOUR-ACCESSKEYID, YOUR-SECRETACCESSKEY, my-testfile, my-bucketname and
-	// my-objectname are dummy values, please replace them with original values.
+	// Note: YOUR-ACCESSKEYID, YOUR-SECRETACCESSKEY, my-bucketname and my-objectname
+	// are dummy values, please replace them with original values.
 
 	// Requests are always secure (HTTPS) by default. Set secure=false to enable insecure (HTTP) access.
 	// This boolean value is the last argument for New().
@@ -39,27 +40,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	reader, err := s3Client.GetObject("my-bucketname", "my-objectname")
+	// Set request parameters
+	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", "attachment; filename=\"your-filename.txt\"")
+
+	// Gernerate presigned get object url.
+	presignedURL, err := s3Client.PresignedHeadObject("my-bucketname", "my-objectname", time.Duration(1000)*time.Second, reqParams)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer reader.Close()
-
-	objectInfo, err := reader.Stat()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Progress reader is notified as PutObject makes progress with
-	// the Reads inside.
-	progress := pb.New64(objectInfo.Size)
-	progress.Start()
-
-	n, err := s3Client.PutObjectWithProgress("my-bucketname", "my-objectname-progress", reader, map[string][]string{
-		"Content-Type": []string{"application/octet-stream"},
-	}, progress)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("Uploaded", "my-objectname", " of size: ", n, "Successfully.")
+	log.Println(presignedURL)
 }
