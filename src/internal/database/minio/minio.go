@@ -3,7 +3,6 @@ package minio
 import (
 	"io"
 	"net/url"
-	"path/filepath"
 
 	minio "github.com/minio/minio-go"
 )
@@ -72,7 +71,12 @@ func Make(b string) error {
 }
 
 func Copy(bDst, oDst, bSrc, oSrc string) error {
-	return cli.CopyObject(bDst, oDst, filepath.Join("", bSrc, oSrc), minio.NewCopyConditions())
+	dst, err := minio.NewDestinationInfo(bDst, oDst, nil, nil)
+	if err != nil {
+		return err
+	}
+	src := minio.NewSourceInfo(bSrc, oSrc, nil)
+	return cli.CopyObject(dst, src)
 }
 
 func List(b string, n int) ([]string, error) {
