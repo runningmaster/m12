@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	fldsAddr = []interface{}{"l", "a", "s", "e"}
+	fldsAddr = []interface{}{"l", "a", "o", "s", "e"}
 	fldsDrug = []interface{}{"l", "d", "b", "c", "s"}
 )
 
@@ -178,8 +178,9 @@ func getLinkAddr(v []string) ([]linkAddr, error) {
 		}
 		out[i].IDLink, _ = redis.Int64(r[0], nil)  // fld "l"
 		out[i].IDAddr, _ = redis.Int64(r[1], nil)  // fld "a"
-		out[i].IDStat, _ = redis.Int64(r[2], nil)  // fld "s"
-		out[i].EGRPOU, _ = redis.String(r[3], nil) // fld "e"
+		out[i].IDOrgn, _ = redis.Int64(r[2], nil)  // fld "o"
+		out[i].IDStat, _ = redis.Int64(r[3], nil)  // fld "s"
+		out[i].EGRPOU, _ = redis.String(r[4], nil) // fld "e"
 	}
 
 	return out, nil
@@ -208,6 +209,9 @@ func setLinkAddr(v []linkAddr) (interface{}, error) {
 		}
 		if v[i].IDAddr != 0 {
 			vls = append(vls, fldsAddr[1], v[i].IDAddr) // fld "a"
+		}
+		if v[i].IDOrgn != 0 {
+			vls = append(vls, fldsAddr[1], v[i].IDOrgn) // fld "o"
 		}
 		if v[i].IDStat != 0 {
 			vls = append(vls, fldsAddr[2], v[i].IDStat) // fld "s"

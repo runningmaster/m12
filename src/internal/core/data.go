@@ -18,6 +18,7 @@ type linkAddr struct {
 	ID     string `json:"id,omitempty"      redis:"key"`
 	IDLink int64  `json:"id_link,omitempty" redis:"l"`
 	IDAddr int64  `json:"id_addr,omitempty" redis:"a"`
+	IDOrgn int64  `json:"id_orgn,omitempty" redis:"o"`
 	IDStat int64  `json:"id_stat,omitempty" redis:"s"`
 	EGRPOU string `json:"egrpou,omitempty"  redis:"e"`
 }
@@ -42,6 +43,12 @@ type linkDrug struct {
 type linkStat struct {
 	ID   int64  `json:"id,omitempty"   redis:"i"`
 	Name string `json:"name,omitempty" redis:"n"`
+}
+
+type itemRcgnAddr struct {
+	ID   string   `json:"id,omitempty"`
+	Name string   `json:"name,omitempty"`
+	Link linkAddr `json:"link,omitempty"`
 }
 
 type itemRcgnDrug struct {
@@ -104,10 +111,24 @@ type druger interface {
 	setDrug(int, linkDrug) bool
 }
 
+type jsonRcgnAddr []itemRcgnAddr
 type jsonRcgnDrug []itemRcgnDrug
 type jsonV3Geoa []itemV3Geoa
 type jsonV3Sale []itemV3Sale
 type jsonV3SaleBy []itemV3SaleBy
+
+func (j jsonRcgnAddr) len() int {
+	return len(j)
+}
+
+func (j jsonRcgnAddr) getSupp(i int) string {
+	return j[i].Name
+}
+
+func (j jsonRcgnAddr) setAddr(i int, l linkAddr) bool {
+	j[i].Link = l
+	return l.IDLink != 0
+}
 
 func (j jsonRcgnDrug) len() int {
 	return len(j)

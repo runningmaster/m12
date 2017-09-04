@@ -7,6 +7,8 @@ import (
 
 var (
 	listHTag = map[string]struct{}{
+		"rcgn.addr.ua":        {},
+		"rcgn.addr.ru":        {},
 		"rcgn.drug.ua":        {},
 		"rcgn.drug.ru":        {},
 		"geoapt.ru":           {},
