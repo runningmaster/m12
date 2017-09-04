@@ -61,8 +61,7 @@ var (
 		"POST /stream/get-data": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(getd), pipe.Resp, pipe.Tail),
 		"POST /stream/del-data": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(deld), pipe.Resp, pipe.Tail),
 
-		"POST /recognize-addr": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(rcgnAddr), pipe.Resp, pipe.Tail),
-		"POST /recognize-drug": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(rcgnDrug), pipe.Resp, pipe.Tail),
+		"POST /recognize": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(rcgn), pipe.Resp, pipe.Tail),
 
 		// => Debug mode only, when pref.Debug == true
 		"GET /debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail), // expvar
@@ -116,12 +115,8 @@ func putd(data []byte, r, _ http.Header) (interface{}, error) {
 	return core.Putd([]byte(r.Get("Content-Meta")), data)
 }
 
-func rcgnAddr(data []byte, r, _ http.Header) (interface{}, error) {
-	return core.RcgnAddr([]byte(r.Get("Content-Meta")), data)
-}
-
-func rcgnDrug(data []byte, r, _ http.Header) (interface{}, error) {
-	return core.RcgnDrug([]byte(r.Get("Content-Meta")), data)
+func rcgn(data []byte, r, _ http.Header) (interface{}, error) {
+	return core.Rcgn([]byte(r.Get("Content-Meta")), data)
 }
 
 func popd(data []byte, _, w http.Header) (interface{}, error) {

@@ -182,10 +182,6 @@ func unmarshalDataNEW(data []byte, m *meta) (interface{}, error) {
 		v := jsonV3Geoa{}
 		err := json.Unmarshal(data, &v)
 		return v, err
-	case isRcgn(t):
-		v := jsonRcgnDrug{}
-		err := json.Unmarshal(data, &v)
-		return v, err
 	case isSaleBY(t):
 		v := jsonV3SaleBy{}
 		err := json.Unmarshal(data, &v)
@@ -311,6 +307,16 @@ const (
 	magicSuffixUA = ""
 )
 
+func makeMagicName(name, addr string) string {
+	return strings.Trim(
+		strutil.TrimRightN(
+			fmt.Sprintf("%s %s", name, addr),
+			magicLength,
+		),
+		" ",
+	)
+}
+
 func makeMagicHead(name, head, addr string) string {
 	return strings.Trim(
 		strutil.TrimRightN(
@@ -359,10 +365,6 @@ func makeMagicDrugUA(name string) string {
 
 func isGeo(s string) bool {
 	return strings.Contains(s, "geo")
-}
-
-func isRcgn(s string) bool {
-	return strings.Contains(s, "rcgn.")
 }
 
 func isSaleBY(s string) bool {

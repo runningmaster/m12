@@ -48,6 +48,9 @@ type linkStat struct {
 type itemRcgnAddr struct {
 	ID   string   `json:"id,omitempty"`
 	Name string   `json:"name,omitempty"`
+	Head string   `json:"head,omitempty"`
+	Addr string   `json:"addr,omitempty"`
+	Code string   `json:"code,omitempty"`
 	Link linkAddr `json:"link,omitempty"`
 }
 
@@ -122,7 +125,10 @@ func (j jsonRcgnAddr) len() int {
 }
 
 func (j jsonRcgnAddr) getSupp(i int) string {
-	return j[i].Name
+	if j[i].Head != "" {
+		return makeMagicHead(j[i].Name, j[i].Head, j[i].Addr)
+	}
+	return makeMagicName(j[i].Name, j[i].Addr)
 }
 
 func (j jsonRcgnAddr) setAddr(i int, l linkAddr) bool {
