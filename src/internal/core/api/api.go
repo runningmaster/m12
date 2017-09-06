@@ -61,7 +61,7 @@ var (
 		"POST /stream/get-data": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(getd), pipe.Resp, pipe.Tail),
 		"POST /stream/del-data": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Wrap(deld), pipe.Resp, pipe.Tail),
 
-		"POST /recognize": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Meta, pipe.Wrap(rcgn), pipe.Resp, pipe.Tail),
+		"POST /recognize": pipe.Use(pipe.Head, pipe.Auth(core.Pass), pipe.Gzip, pipe.Meta, pipe.Wrap(rcgn), pipe.Resp, pipe.Tail),
 
 		// => Debug mode only, when pref.Debug == true
 		"GET /debug/vars":               pipe.Use(pipe.Head, pipe.Gzip, pipe.StdH, pipe.Resp, pipe.Tail), // expvar

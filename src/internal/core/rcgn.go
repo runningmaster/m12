@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"strings"
 )
 
 func Rcgn(meta, data []byte) (interface{}, error) {
@@ -27,10 +26,6 @@ func Rcgn(meta, data []byte) (interface{}, error) {
 	}
 
 	return d, nil
-}
-
-func isRcgnAddr(s string) bool {
-	return strings.Contains(s, "rcgn.addr")
 }
 
 func unmarshalRcgn(data []byte, m *meta) (interface{}, error) {

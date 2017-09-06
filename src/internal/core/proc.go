@@ -125,7 +125,12 @@ func procObject(r io.Reader) (*meta, io.Reader, error) {
 		return fail(m, err)
 	}
 
-	d, err := mineLinks(v, m)
+	l, err := mineLinks(v, m)
+	if err != nil {
+		return fail(m, err)
+	}
+
+	d, err := json.Marshal(l)
 	if err != nil {
 		return fail(m, err)
 	}
@@ -193,7 +198,7 @@ func unmarshalDataNEW(data []byte, m *meta) (interface{}, error) {
 	}
 }
 
-func mineLinks(v interface{}, m *meta) ([]byte, error) {
+func mineLinks(v interface{}, m *meta) (interface{}, error) {
 	t := m.HTag
 	s := time.Now()
 
@@ -226,7 +231,7 @@ func mineLinks(v interface{}, m *meta) ([]byte, error) {
 	}
 	m.Proc = fmt.Sprintf("%s:%d", m.Proc, n)
 
-	if isSaleIn(t) {
+	if isSaleIn(t) || isRcgnAddr(t) {
 		if a, ok := v.(addrer); ok {
 			n, err = mineAddrs(a)
 		}
@@ -237,7 +242,7 @@ func mineLinks(v interface{}, m *meta) ([]byte, error) {
 	}
 	m.Proc = fmt.Sprintf("%s:%s", m.Proc, time.Since(s).String())
 
-	return json.Marshal(v)
+	return v, nil
 }
 
 func mineDrugs(v druger, t string) (int, error) {
@@ -373,6 +378,10 @@ func isSaleBY(s string) bool {
 
 func isSaleIn(s string) bool {
 	return strings.Contains(s, "sale-in")
+}
+
+func isRcgnAddr(s string) bool {
+	return strings.Contains(s, "rcgn.addr")
 }
 
 const (
