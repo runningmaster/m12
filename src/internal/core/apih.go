@@ -211,13 +211,13 @@ func setLinkAddr(v []linkAddr) (interface{}, error) {
 			vls = append(vls, fldsAddr[1], v[i].IDAddr) // fld "a"
 		}
 		if v[i].IDOrgn != 0 {
-			vls = append(vls, fldsAddr[1], v[i].IDOrgn) // fld "o"
+			vls = append(vls, fldsAddr[2], v[i].IDOrgn) // fld "o"
 		}
 		if v[i].IDStat != 0 {
-			vls = append(vls, fldsAddr[2], v[i].IDStat) // fld "s"
+			vls = append(vls, fldsAddr[3], v[i].IDStat) // fld "s"
 		}
 		if v[i].EGRPOU != "" {
-			vls = append(vls, fldsAddr[3], v[i].EGRPOU) // fld "e"
+			vls = append(vls, fldsAddr[4], v[i].EGRPOU) // fld "e"
 		}
 
 		err = c.Send("DEL", v[i].ID)
