@@ -89,10 +89,10 @@ func copyToOuts(p path, m *meta, r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		if strings.HasSuffix(m.HTag, ".ua") {
-			p.Bucket = bucketStreamOutGeo
-			return minio.Copy(bucketStreamOutGeoTest, p.Object, p.Bucket, p.Object)
-		}
+		//if strings.HasSuffix(m.HTag, ".ua") {
+		//	p.Bucket = bucketStreamOutGeo
+		//	return minio.Copy(bucketStreamOutGeoTest, p.Object, p.Bucket, p.Object)
+		//}
 		return nil
 	}
 	if m.Frwd != "" {
