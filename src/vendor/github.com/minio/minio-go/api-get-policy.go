@@ -17,6 +17,7 @@
 package minio
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -79,10 +80,10 @@ func (c Client) getBucketPolicy(bucketName string) (policy.BucketAccessPolicy, e
 	urlValues.Set("policy", "")
 
 	// Execute GET on bucket to list objects.
-	resp, err := c.executeMethod("GET", requestMetadata{
-		bucketName:         bucketName,
-		queryValues:        urlValues,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
+		bucketName:       bucketName,
+		queryValues:      urlValues,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 
 	defer closeResponse(resp)

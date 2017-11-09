@@ -289,3 +289,78 @@ func TestIsValidBucketName(t *testing.T) {
 	}
 
 }
+
+// Tests if header is standard supported header
+func TestIsStandardHeader(t *testing.T) {
+	testCases := []struct {
+		// Input.
+		header string
+		// Expected result.
+		expectedValue bool
+	}{
+		{"content-encoding", true},
+		{"content-type", true},
+		{"cache-control", true},
+		{"content-disposition", true},
+		{"random-header", false},
+	}
+
+	for i, testCase := range testCases {
+		actual := isStandardHeader(testCase.header)
+		if actual != testCase.expectedValue {
+			t.Errorf("Test %d: Expected to pass, but failed", i+1)
+		}
+	}
+
+}
+
+// Tests if header is server encryption header
+func TestIsSSEHeader(t *testing.T) {
+	testCases := []struct {
+		// Input.
+		header string
+		// Expected result.
+		expectedValue bool
+	}{
+		{"x-amz-server-side-encryption", true},
+		{"x-amz-server-side-encryption-aws-kms-key-id", true},
+		{"x-amz-server-side-encryption-context", true},
+		{"x-amz-server-side-encryption-customer-algorithm", true},
+		{"x-amz-server-side-encryption-customer-key", true},
+		{"x-amz-server-side-encryption-customer-key-MD5", true},
+		{"random-header", false},
+	}
+
+	for i, testCase := range testCases {
+		actual := isSSEHeader(testCase.header)
+		if actual != testCase.expectedValue {
+			t.Errorf("Test %d: Expected to pass, but failed", i+1)
+		}
+	}
+}
+
+// Tests if header is client encryption header
+func TestIsCSEHeader(t *testing.T) {
+	testCases := []struct {
+		// Input.
+		header string
+		// Expected result.
+		expectedValue bool
+	}{
+		{"x-amz-iv", true},
+		{"x-amz-key", true},
+		{"x-amz-matdesc", true},
+		{"x-amz-meta-x-amz-iv", true},
+		{"x-amz-meta-x-amz-key", true},
+		{"x-amz-meta-x-amz-matdesc", true},
+		{"random-header", false},
+	}
+
+	for i, testCase := range testCases {
+		actual := isCSEHeader(testCase.header)
+		if actual != testCase.expectedValue {
+			t.Errorf("Test %d: Expected to pass, but failed", i+1)
+		}
+	}
+
+}

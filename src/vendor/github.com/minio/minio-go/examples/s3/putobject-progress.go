@@ -39,7 +39,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	reader, err := s3Client.GetObject("my-bucketname", "my-objectname")
+	reader, err := s3Client.GetObject("my-bucketname", "my-objectname", minio.GetObjectOptions{})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -54,10 +54,8 @@ func main() {
 	// the Reads inside.
 	progress := pb.New64(objectInfo.Size)
 	progress.Start()
+	n, err := s3Client.PutObject("my-bucketname", "my-objectname-progress", reader, objectInfo.Size, minio.PutObjectOptions{ContentType: "application/octet-stream", Progress: progress})
 
-	n, err := s3Client.PutObjectWithProgress("my-bucketname", "my-objectname-progress", reader, map[string][]string{
-		"Content-Type": []string{"application/octet-stream"},
-	}, progress)
 	if err != nil {
 		log.Fatalln(err)
 	}

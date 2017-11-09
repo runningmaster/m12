@@ -17,18 +17,13 @@
 package minio
 
 import (
+	"context"
 	"io"
 	"math"
 	"os"
 
 	"github.com/minio/minio-go/pkg/s3utils"
 )
-
-// Verify if reader is *os.File
-func isFile(reader io.Reader) (ok bool) {
-	_, ok = reader.(*os.File)
-	return
-}
 
 // Verify if reader is *minio.Object
 func isObject(reader io.Reader) (ok bool) {
@@ -39,6 +34,26 @@ func isObject(reader io.Reader) (ok bool) {
 // Verify if reader is a generic ReaderAt
 func isReadAt(reader io.Reader) (ok bool) {
 	_, ok = reader.(io.ReaderAt)
+	if ok {
+		var v *os.File
+		v, ok = reader.(*os.File)
+		if ok {
+			// Stdin, Stdout and Stderr all have *os.File type
+			// which happen to also be io.ReaderAt compatible
+			// we need to add special conditions for them to
+			// be ignored by this function.
+			for _, f := range []string{
+				"/dev/stdin",
+				"/dev/stdout",
+				"/dev/stderr",
+			} {
+				if f == v.Name() {
+					ok = false
+					break
+				}
+			}
+		}
+	}
 	return
 }
 
@@ -77,7 +92,7 @@ func optimalPartInfo(objectSize int64) (totalPartsCount int, partSize int64, las
 
 // getUploadID - fetch upload id if already present for an object name
 // or initiate a new request to fetch a new upload id.
-func (c Client) newUploadID(bucketName, objectName string, metaData map[string][]string) (uploadID string, err error) {
+func (c Client) newUploadID(ctx context.Context, bucketName, objectName string, opts PutObjectOptions) (uploadID string, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", err
@@ -87,7 +102,7 @@ func (c Client) newUploadID(bucketName, objectName string, metaData map[string][
 	}
 
 	// Initiate multipart upload for an object.
-	initMultipartUploadResult, err := c.initiateMultipartUpload(bucketName, objectName, metaData)
+	initMultipartUploadResult, err := c.initiateMultipartUpload(ctx, bucketName, objectName, opts)
 	if err != nil {
 		return "", err
 	}

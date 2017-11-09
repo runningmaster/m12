@@ -1,7 +1,7 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ package main
 import (
 	"log"
 	"os"
+	"time"
+
+	"context"
 
 	"github.com/minio/minio-go"
-	"github.com/minio/minio-go/pkg/encrypt"
 )
 
 func main() {
@@ -35,50 +37,31 @@ func main() {
 
 	// New returns an Amazon S3 compatible client object. API compatibility (v2 or v4) is automatically
 	// determined based on the Endpoint value.
+
 	s3Client, err := minio.New("s3.amazonaws.com", "YOUR-ACCESSKEYID", "YOUR-SECRETACCESSKEY", true)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// Open a local file that we will upload
-	file, err := os.Open("my-testfile")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+
+	object, err := os.Open("my-testfile")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer file.Close()
+	defer object.Close()
 
-	//// Build an asymmetric key from private and public files
-	//
-	// privateKey, err := ioutil.ReadFile("private.key")
-	// if err != nil {
-	//	t.Fatal(err)
-	// }
-	//
-	// publicKey, err := ioutil.ReadFile("public.key")
-	// if err != nil {
-	//	t.Fatal(err)
-	// }
-	//
-	// asymmetricKey, err := NewAsymmetricKey(privateKey, publicKey)
-	// if err != nil {
-	//	t.Fatal(err)
-	// }
-	////
-
-	// Build a symmetric key
-	symmetricKey := encrypt.NewSymmetricKey([]byte("my-secret-key-00"))
-
-	// Build encryption materials which will encrypt uploaded data
-	cbcMaterials, err := encrypt.NewCBCSecureMaterials(symmetricKey)
+	objectStat, err := object.Stat()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// Encrypt file content and upload to the server
-	n, err := s3Client.PutEncryptedObject("my-bucketname", "my-objectname", file, cbcMaterials)
+	n, err := s3Client.PutObjectWithContext(ctx, "my-bucketname", "my-objectname", object, objectStat.Size(), minio.PutObjectOptions{
+		ContentType: "application/octet-stream",
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	log.Println("Uploaded", "my-objectname", " of size: ", n, "Successfully.")
 }
