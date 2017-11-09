@@ -450,7 +450,7 @@ func RootCAs(file ...string) Option {
 			if err != nil || rootPEM == nil {
 				return fmt.Errorf("nats: error loading or parsing rootCA file: %v", err)
 			}
-			ok := pool.AppendCertsFromPEM([]byte(rootPEM))
+			ok := pool.AppendCertsFromPEM(rootPEM)
 			if !ok {
 				return fmt.Errorf("nats: failed to parse root certificate from %q", f)
 			}
@@ -787,7 +787,7 @@ const tlsScheme = "tls"
 
 // Create the server pool using the options given.
 // We will place a Url option first, followed by any
-// Server Options. We will randomize the server pool unlesss
+// Server Options. We will randomize the server pool unless
 // the NoRandomize flag is set.
 func (nc *Conn) setupServerPool() error {
 	nc.srvPool = make([]*srv, 0, srvPoolSize)
@@ -1040,7 +1040,7 @@ func (nc *Conn) connect() error {
 	// to connect immediately.
 	nc.mu.Lock()
 	nc.initc = true
-	// The pool may change inside theloop iteration due to INFO protocol.
+	// The pool may change inside the loop iteration due to INFO protocol.
 	for i := 0; i < len(nc.srvPool); i++ {
 		nc.url = nc.srvPool[i].url
 
@@ -1682,9 +1682,11 @@ slowConsumer:
 // permissions violation on either publish or subscribe.
 func (nc *Conn) processPermissionsViolation(err string) {
 	nc.mu.Lock()
-	nc.err = errors.New("nats: " + err)
+	// create error here so we can pass it as a closure to the async cb dispatcher.
+	e := errors.New("nats: " + err)
+	nc.err = e
 	if nc.Opts.AsyncErrorCB != nil {
-		nc.ach <- func() { nc.Opts.AsyncErrorCB(nc, nil, nc.err) }
+		nc.ach <- func() { nc.Opts.AsyncErrorCB(nc, nil, e) }
 	}
 	nc.mu.Unlock()
 }
@@ -2670,7 +2672,10 @@ func (nc *Conn) FlushTimeout(timeout time.Duration) (err error) {
 	t := globalTimerPool.Get(timeout)
 	defer globalTimerPool.Put(t)
 
-	ch := make(chan struct{})
+	// Create a buffered channel to prevent chan send to block
+	// in processPong() if this code here times out just when
+	// PONG was received.
+	ch := make(chan struct{}, 1)
 	nc.sendPing(ch)
 	nc.mu.Unlock()
 
