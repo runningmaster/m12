@@ -17,10 +17,50 @@
 package minio
 
 import (
-	"context"
+	"mime"
+	"os"
+	"path/filepath"
+
+	"github.com/minio/minio-go/pkg/s3utils"
 )
 
-// FPutObject - Create an object in a bucket, with contents from file at filePath
-func (c Client) FPutObject(bucketName, objectName, filePath string, opts PutObjectOptions) (n int64, err error) {
-	return c.FPutObjectWithContext(context.Background(), bucketName, objectName, filePath, opts)
+// FPutObject - Create an object in a bucket, with contents from file at filePath.
+func (c Client) FPutObject(bucketName, objectName, filePath, contentType string) (n int64, err error) {
+	// Input validation.
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
+		return 0, err
+	}
+	if err := s3utils.CheckValidObjectName(objectName); err != nil {
+		return 0, err
+	}
+
+	// Open the referenced file.
+	fileReader, err := os.Open(filePath)
+	// If any error fail quickly here.
+	if err != nil {
+		return 0, err
+	}
+	defer fileReader.Close()
+
+	// Save the file stat.
+	fileStat, err := fileReader.Stat()
+	if err != nil {
+		return 0, err
+	}
+
+	// Save the file size.
+	fileSize := fileStat.Size()
+
+	objMetadata := make(map[string][]string)
+
+	// Set contentType based on filepath extension if not given or default
+	// value of "binary/octet-stream" if the extension has no associated type.
+	if contentType == "" {
+		if contentType = mime.TypeByExtension(filepath.Ext(filePath)); contentType == "" {
+			contentType = "application/octet-stream"
+		}
+	}
+
+	objMetadata["Content-Type"] = []string{contentType}
+	return c.putObjectCommon(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 }

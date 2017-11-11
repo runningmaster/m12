@@ -40,7 +40,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	reader, err := s3Client.GetObject("my-bucketname", "my-objectname", minio.GetObjectOptions{})
+	reader, err := s3Client.GetObject("my-bucketname", "my-objectname")
 	if err != nil {
 		log.Fatalln(err)
 	}

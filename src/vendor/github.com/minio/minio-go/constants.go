@@ -50,7 +50,7 @@ const maxMultipartPutObjectSize = 1024 * 1024 * 1024 * 1024 * 5
 const unsignedPayload = "UNSIGNED-PAYLOAD"
 
 // Total number of parallel workers used for multipart operation.
-const totalWorkers = 4
+var totalWorkers = 3
 
 // Signature related constants.
 const (

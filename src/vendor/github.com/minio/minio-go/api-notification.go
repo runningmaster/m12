@@ -18,7 +18,6 @@ package minio
 
 import (
 	"bufio"
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -47,10 +46,10 @@ func (c Client) getBucketNotification(bucketName string) (BucketNotification, er
 	urlValues.Set("notification", "")
 
 	// Execute GET on bucket to list objects.
-	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
-		bucketName:       bucketName,
-		queryValues:      urlValues,
-		contentSHA256Hex: emptySHA256Hex,
+	resp, err := c.executeMethod("GET", requestMetadata{
+		bucketName:         bucketName,
+		queryValues:        urlValues,
+		contentSHA256Bytes: emptySHA256,
 	})
 
 	defer closeResponse(resp)
@@ -151,7 +150,7 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 		// Check ARN partition to verify if listening bucket is supported
 		if s3utils.IsAmazonEndpoint(c.endpointURL) || s3utils.IsGoogleEndpoint(c.endpointURL) {
 			notificationInfoCh <- NotificationInfo{
-				Err: ErrAPINotSupported("Listening for bucket notification is specific only to `minio` server endpoints"),
+				Err: ErrAPINotSupported("Listening bucket notification is specific only to `minio` partitions"),
 			}
 			return
 		}
@@ -171,16 +170,13 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 			urlValues["events"] = events
 
 			// Execute GET on bucket to list objects.
-			resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
-				bucketName:       bucketName,
-				queryValues:      urlValues,
-				contentSHA256Hex: emptySHA256Hex,
+			resp, err := c.executeMethod("GET", requestMetadata{
+				bucketName:         bucketName,
+				queryValues:        urlValues,
+				contentSHA256Bytes: emptySHA256,
 			})
 			if err != nil {
-				notificationInfoCh <- NotificationInfo{
-					Err: err,
-				}
-				return
+				continue
 			}
 
 			// Validate http response, upon error return quickly.

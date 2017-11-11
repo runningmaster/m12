@@ -45,12 +45,14 @@ func makeConn(addr string) (*minio.Client, error) {
 }
 
 func Put(b, o string, r io.Reader) error {
-	_, err := cli.PutObject(b, o, r, -1, minio.PutObjectOptions{})
+	//_, err := cli.PutObject(b, o, r, -1, minio.PutObjectOptions{})
+	_, err := cli.PutObject(b, o, r, "")
 	return err
 }
 
 func Get(b, o string) (io.ReadCloser, error) {
-	return cli.GetObject(b, o, minio.GetObjectOptions{})
+	//return cli.GetObject(b, o, minio.GetObjectOptions{})
+	return cli.GetObject(b, o)
 }
 
 func Del(b, o string) error {

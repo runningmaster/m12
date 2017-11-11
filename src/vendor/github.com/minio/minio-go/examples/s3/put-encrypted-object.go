@@ -75,7 +75,7 @@ func main() {
 	}
 
 	// Encrypt file content and upload to the server
-	n, err := s3Client.PutEncryptedObject("my-bucketname", "my-objectname", file, cbcMaterials)
+	n, err := s3Client.PutEncryptedObject("my-bucketname", "my-objectname", file, cbcMaterials, nil, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -5,25 +5,24 @@
 Please go through this link [Maintainer Responsibility](https://gist.github.com/abperiasamy/f4d9b31d3186bbd26522)
 
 ### Making new releases
-Tag and sign your release commit, additionally this step requires you to have access to Minio's trusted private key.
-```sh
-$ export GNUPGHOME=/media/${USER}/minio/trusted
-$ git tag -s 4.0.0
-$ git push
-$ git push --tags
+Edit `libraryVersion` constant in `api.go`.
+
 ```
-
-### Update version
-Once release has been made update `libraryVersion` constant in `api.go` to next to be released version.
-
-```sh
 $ grep libraryVersion api.go
-      libraryVersion = "4.0.1"
+      libraryVersion = "0.3.0"
 ```
 
 Commit your changes
 ```
-$ git commit -a -m "Update version for next release" --author "Minio Trusted <trusted@minio.io>"
+$ git commit -a -m "Bump to new release 0.3.0" --author "Minio Trusted <trusted@minio.io>"
+```
+
+Tag and sign your release commit, additionally this step requires you to have access to Minio's trusted private key.
+```
+$ export GNUPGHOME=/path/to/trusted/key
+$ git tag -s 0.3.0
+$ git push
+$ git push --tags
 ```
 
 ### Announce
@@ -31,5 +30,5 @@ Announce new release by adding release notes at https://github.com/minio/minio-g
 
 To generate `changelog`
 ```sh
-$ git log --no-color --pretty=format:'-%d %s (%cr) <%an>' <last_release_tag>..<latest_release_tag>
+git log --no-color --pretty=format:'-%d %s (%cr) <%an>' <latest_release_tag>..<last_release_tag>
 ```

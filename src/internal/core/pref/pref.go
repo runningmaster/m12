@@ -75,7 +75,7 @@ var (
 
 // Init is public init func, must be called from main()
 // NOTE about priority levels:
-// 5.explicit set > 4.flag > 3.environment > 2.config > 1.key/value store > 0.default
+// 0.default < 1.key/value store < 2.config < 3.environment <  4.flag < 5.explicit set
 func Init() {
 	init0(prefs...) // 0 default
 	init1(prefs...) // 1 key/value store

@@ -20,94 +20,80 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/minio/minio-go/pkg/encrypt"
 )
 
-// GetObjectOptions are used to specify additional headers or options
-// during GET requests.
-type GetObjectOptions struct {
-	headers map[string]string
-
-	Materials encrypt.Materials
+// RequestHeaders - implement methods for setting special
+// request headers for GET, HEAD object operations.
+// http://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectGET.html
+type RequestHeaders struct {
+	http.Header
 }
 
-// StatObjectOptions are used to specify additional headers or options
-// during GET info/stat requests.
-type StatObjectOptions struct {
-	GetObjectOptions
-}
-
-// Header returns the http.Header representation of the GET options.
-func (o GetObjectOptions) Header() http.Header {
-	headers := make(http.Header, len(o.headers))
-	for k, v := range o.headers {
-		headers.Set(k, v)
+// NewGetReqHeaders - initializes a new request headers for GET request.
+func NewGetReqHeaders() RequestHeaders {
+	return RequestHeaders{
+		Header: make(http.Header),
 	}
-	return headers
 }
 
-// Set adds a key value pair to the options. The
-// key-value pair will be part of the HTTP GET request
-// headers.
-func (o *GetObjectOptions) Set(key, value string) {
-	if o.headers == nil {
-		o.headers = make(map[string]string)
+// NewHeadReqHeaders - initializes a new request headers for HEAD request.
+func NewHeadReqHeaders() RequestHeaders {
+	return RequestHeaders{
+		Header: make(http.Header),
 	}
-	o.headers[http.CanonicalHeaderKey(key)] = value
 }
 
 // SetMatchETag - set match etag.
-func (o *GetObjectOptions) SetMatchETag(etag string) error {
+func (c RequestHeaders) SetMatchETag(etag string) error {
 	if etag == "" {
 		return ErrInvalidArgument("ETag cannot be empty.")
 	}
-	o.Set("If-Match", "\""+etag+"\"")
+	c.Set("If-Match", "\""+etag+"\"")
 	return nil
 }
 
 // SetMatchETagExcept - set match etag except.
-func (o *GetObjectOptions) SetMatchETagExcept(etag string) error {
+func (c RequestHeaders) SetMatchETagExcept(etag string) error {
 	if etag == "" {
 		return ErrInvalidArgument("ETag cannot be empty.")
 	}
-	o.Set("If-None-Match", "\""+etag+"\"")
+	c.Set("If-None-Match", "\""+etag+"\"")
 	return nil
 }
 
 // SetUnmodified - set unmodified time since.
-func (o *GetObjectOptions) SetUnmodified(modTime time.Time) error {
+func (c RequestHeaders) SetUnmodified(modTime time.Time) error {
 	if modTime.IsZero() {
 		return ErrInvalidArgument("Modified since cannot be empty.")
 	}
-	o.Set("If-Unmodified-Since", modTime.Format(http.TimeFormat))
+	c.Set("If-Unmodified-Since", modTime.Format(http.TimeFormat))
 	return nil
 }
 
 // SetModified - set modified time since.
-func (o *GetObjectOptions) SetModified(modTime time.Time) error {
+func (c RequestHeaders) SetModified(modTime time.Time) error {
 	if modTime.IsZero() {
 		return ErrInvalidArgument("Modified since cannot be empty.")
 	}
-	o.Set("If-Modified-Since", modTime.Format(http.TimeFormat))
+	c.Set("If-Modified-Since", modTime.Format(http.TimeFormat))
 	return nil
 }
 
 // SetRange - set the start and end offset of the object to be read.
 // See https://tools.ietf.org/html/rfc7233#section-3.1 for reference.
-func (o *GetObjectOptions) SetRange(start, end int64) error {
+func (c RequestHeaders) SetRange(start, end int64) error {
 	switch {
 	case start == 0 && end < 0:
 		// Read last '-end' bytes. `bytes=-N`.
-		o.Set("Range", fmt.Sprintf("bytes=%d", end))
+		c.Set("Range", fmt.Sprintf("bytes=%d", end))
 	case 0 < start && end == 0:
 		// Read everything starting from offset
 		// 'start'. `bytes=N-`.
-		o.Set("Range", fmt.Sprintf("bytes=%d-", start))
+		c.Set("Range", fmt.Sprintf("bytes=%d-", start))
 	case 0 <= start && start <= end:
 		// Read everything starting at 'start' till the
 		// 'end'. `bytes=N-M`
-		o.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
+		c.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
 	default:
 		// All other cases such as
 		// bytes=-3-
