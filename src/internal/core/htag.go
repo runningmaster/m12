@@ -23,6 +23,7 @@ var (
 		"sale-out.monthly.kz": {},
 		"sale-out.monthly.ru": {},
 		"sale-out.monthly.ua": {},
+		"sale-out.weekly.kz":  {},
 		"sale-out.weekly.ru":  {},
 		"sale-out.weekly.ua":  {},
 		"sale-out.daily.by":   {},
