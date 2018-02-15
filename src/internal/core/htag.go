@@ -30,6 +30,7 @@ var (
 		"sale-out.daily.by":   {},
 		"sale-out.daily.kz":   {},
 		"sale-out.daily.ua":   {},
+		"sale-out.daily.ru":   {},
 	}
 
 	convTags = map[string]string{
