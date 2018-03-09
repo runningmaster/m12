@@ -130,11 +130,15 @@ func convGeoa(data []byte, m *meta) (jsonV3Geoa, error) {
 		return nil, err
 	}
 
+	m.ID_ = v.Meta.ID
 	m.Name = v.Meta.Name
 	m.Head = v.Meta.Head
 	m.Addr = v.Meta.Addr
 	m.Code = v.Meta.Code
 	if v.Meta.EGRPOU != "" {
+		if m.ID_ == "" {
+			m.ID_ = m.Code
+		}
 		m.Code = v.Meta.EGRPOU
 	}
 

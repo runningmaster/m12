@@ -248,6 +248,7 @@ type jsonV1SaleBy struct {
 
 type jsonV1Geoa struct {
 	Meta struct {
+		ID     string `json:"id,omitempty"`
 		Name   string `json:"name,omitempty"`
 		Head   string `json:"head,omitempty"`
 		Addr   string `json:"addr,omitempty"`

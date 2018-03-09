@@ -18,6 +18,7 @@ type meta struct {
 	Nick string   `json:"nick,omitempty"` // * Source | Source:MDSLns | Source:Drugstore -> conv.go
 	Frwd string   `json:"frwd,omitempty"` // *
 
+	ID_  string `json:"id_,omitempty"`  // *
 	Name string `json:"name,omitempty"` // *
 	Head string `json:"head,omitempty"` // *
 	Addr string `json:"addr,omitempty"` // *
